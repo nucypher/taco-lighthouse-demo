@@ -5,6 +5,8 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { TacoConditionsForm } from './TacoConditionsForm';
+import { Condition } from '@nucypher/taco';
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -17,6 +19,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [conditions, setConditions] = useState<Condition[]>([]);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,11 +45,13 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      // Proceed with the upload since wallet is connected
       const formData = new FormData();
       formData.append('audioFile', audioFile);
       if (coverArt) {
         formData.append('coverArt', coverArt);
+      }
+      if (conditions.length > 0) {
+        formData.append('conditions', JSON.stringify(conditions));
       }
 
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
@@ -55,7 +60,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       if (uploadError) throw uploadError;
 
-      // Save track information to database with owner_id as wallet address
       const { error: dbError } = await supabase
         .from('tracks')
         .insert({
@@ -73,11 +77,11 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         description: 'Track uploaded successfully',
       });
 
-      // Reset form
       setTitle('');
       setDescription('');
       setAudioFile(null);
       setCoverArt(null);
+      setConditions([]);
       onSuccess?.();
     } catch (error) {
       console.error('Upload error:', error);
@@ -140,6 +144,11 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         <p className="text-sm text-muted-foreground">
           Recommended size: 1400x1400px
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Access Conditions</Label>
+        <TacoConditionsForm onChange={setConditions} />
       </div>
 
       <Button type="submit" disabled={isUploading} className="w-full">
