@@ -29,11 +29,11 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         condition = new ERC20Balance({
           contractAddress,
           chain: chain === 'sepolia' ? 11155111 : 80002, // Chain IDs for Sepolia and Polygon Amoy
-          standardContractType: 'ERC20',
+          parameters: [value],
           method: 'balanceOf',
           returnValueTest: {
             comparator: ">=",
-            value: value
+            value: "0"
           }
         });
         break;
@@ -45,7 +45,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
           method: 'getTimestamp',
           returnValueTest: {
             comparator: ">=",
-            value: timestamp
+            value: timestamp.toString()
           },
           chain: chain === 'sepolia' ? 11155111 : 80002,
         });
