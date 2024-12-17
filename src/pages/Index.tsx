@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorDisplay } from "@/components/ErrorDisplay";
 
 interface Track {
   id: string;
@@ -16,10 +17,12 @@ const Index = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<any>(null);
 
   const fetchTracks = async (query: string = "") => {
     try {
       setIsLoading(true);
+      setError(null);
       let queryBuilder = supabase
         .from('tracks')
         .select('*')
@@ -31,18 +34,18 @@ const Index = () => {
         queryBuilder = queryBuilder.limit(10);
       }
 
-      const { data, error } = await queryBuilder;
+      const { data, error: supabaseError } = await queryBuilder;
 
-      if (error) {
-        console.error('Error fetching tracks:', error);
+      if (supabaseError) {
+        setError(supabaseError);
         return;
       }
 
       if (data) {
         setTracks(data);
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (err) {
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +69,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header onSearch={handleSearch} onUploadSuccess={() => fetchTracks(searchQuery)} />
       <main className="container mx-auto px-4 pt-24 pb-16">
+        {error && <ErrorDisplay error={error} />}
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">
