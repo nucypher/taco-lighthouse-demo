@@ -27,8 +27,14 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       return;
     }
 
-    // Use the correct chain ID for TACo conditions
-    const chainId = chain === 'sepolia' ? 11155111 : 80001;
+    // Map chain names to their correct chain IDs for TACo
+    const chainIdMap = {
+      sepolia: 11155111,
+      polygon_amoy: 80001
+    };
+
+    const chainId = chainIdMap[chain as keyof typeof chainIdMap];
+    console.log('Creating condition with chainId:', chainId);
 
     let condition;
     if (conditionType === 'erc20') {
@@ -51,6 +57,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       });
     }
 
+    console.log('Created condition:', condition);
     onChange(condition);
   };
 

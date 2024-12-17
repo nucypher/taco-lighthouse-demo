@@ -4,6 +4,6 @@ import './index.css';
 import { initialize } from '@nucypher/taco';
 
 // Initialize TACo when the app starts
-await initialize();
-
-createRoot(document.getElementById("root")!).render(<App />);
+initialize().then(() => {
+  createRoot(document.getElementById("root")!).render(<App />);
+});
