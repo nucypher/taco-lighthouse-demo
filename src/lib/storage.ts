@@ -3,7 +3,9 @@ import { TurboAuthenticatedClient } from '@ardrive/turbo-sdk/web';
 
 // Initialize Turbo SDK with the correct configuration
 const turbo = new TurboAuthenticatedClient({
-  privateKey: 'your-private-key', // This should be obtained from the user's wallet
+  authConfig: {
+    provider: 'arconnect', // or your preferred provider
+  }
 });
 
 export interface UploadTrackOptions {
@@ -22,14 +24,23 @@ export interface UploadTrackOptions {
 
 export const uploadTrack = async ({ file, title, artist, accessConditions }: UploadTrackOptions) => {
   try {
-    // Convert file to string for arbundles
-    const fileData = await file.text();
+    // Convert file to ArrayBuffer for arbundles
+    const fileData = await file.arrayBuffer();
+    const fileBytes = new Uint8Array(fileData);
     
     // Create signer (this needs to be implemented based on your wallet integration)
     const signer = {} as InjectedEthereumSigner; // Placeholder - implement actual signer
     
-    // Create data item
-    const dataItem = createData(fileData, signer);
+    // Create data item with tags
+    const tags = [
+      { name: 'Content-Type', value: file.type },
+      { name: 'App-Name', value: 'D-Sound' },
+      { name: 'Title', value: title },
+      { name: 'Artist', value: artist },
+      { name: 'Type', value: 'audio' }
+    ];
+    
+    const dataItem = createData(fileBytes, signer, { tags });
     await dataItem.sign(signer);
     
     // Upload to Arweave using Turbo

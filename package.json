@@ -44,6 +44,7 @@
     "@web3-onboard/core": "^2.23.0",
     "@web3-onboard/walletconnect": "^2.6.1",
     "arbundles": "^0.11.2",
+    "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -62,6 +63,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "util": "^0.12.5",
     "vaul": "^0.9.3",
     "zod": "^3.23.8"
   },

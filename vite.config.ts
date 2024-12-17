@@ -16,6 +16,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      buffer: 'buffer',
+      util: 'util'
     },
   },
   define: {
@@ -34,7 +36,7 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', 'buffer'],
+      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib'],
       output: {
         manualChunks: {
           vendor: ['arbundles', '@ardrive/turbo-sdk']
