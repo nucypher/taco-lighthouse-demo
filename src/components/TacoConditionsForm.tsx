@@ -6,6 +6,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { ChainSelector } from './taco/ChainSelector';
 import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
 import { TacoCondition, ConditionType } from '@/types/taco';
+import { TokenBalanceCondition, TimeCondition } from '@nucypher/taco';
 
 interface TacoConditionsFormProps {
   onChange: (conditions: TacoCondition[]) => void;
@@ -27,31 +28,21 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
     switch (conditionType) {
       case 'token':
         if (!contractAddress) return;
-        condition = {
+        condition = TokenBalanceCondition.create({
           chain,
           contractAddress,
           standardContractType,
-          method: 'balanceOf',
-          parameters: [':userAddress'],
-          returnValueTest: {
-            comparator,
-            value
-          }
-        };
+          comparator,
+          value,
+        });
         break;
 
       case 'time':
-        condition = {
+        condition = TimeCondition.create({
           chain,
-          contractAddress: '0x0000000000000000000000000000000000000000',
-          standardContractType: null,
-          method: 'blockTimestamp',
-          parameters: [],
-          returnValueTest: {
-            comparator,
-            value: Math.floor(new Date(value).getTime() / 1000).toString()
-          }
-        };
+          comparator,
+          timestamp: Math.floor(new Date(value).getTime() / 1000).toString()
+        });
         break;
 
       default:
