@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    global: 'globalThis',
+    'process.env': {},
+  },
   optimizeDeps: {
     esbuildOptions: {
       define: {
@@ -26,8 +30,11 @@ export default defineConfig(({ mode }) => ({
     }
   },
   build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
     rollupOptions: {
-      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib'],
+      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', 'buffer'],
     }
   }
 }));

@@ -1,4 +1,4 @@
-import { TurboFactory, TurboUploader } from '@ardrive/turbo-sdk';
+import { TurboFactory } from '@ardrive/turbo-sdk';
 
 // Initialize Turbo SDK with the correct configuration
 const turbo = TurboFactory.authenticated({
@@ -24,19 +24,20 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
     // Convert file to Uint8Array
     const fileData = new Uint8Array(await file.arrayBuffer());
 
-    // Create uploader instance
-    const uploader = new TurboUploader({
-      tags: [
-        { name: 'Content-Type', value: file.type },
-        { name: 'App-Name', value: 'D-Sound' },
-        { name: 'Title', value: title },
-        { name: 'Artist', value: artist },
-        { name: 'Type', value: 'audio' },
-      ],
-    });
+    // Create tags for the upload
+    const tags = [
+      { name: 'Content-Type', value: file.type },
+      { name: 'App-Name', value: 'D-Sound' },
+      { name: 'Title', value: title },
+      { name: 'Artist', value: artist },
+      { name: 'Type', value: 'audio' },
+    ];
 
     // Upload to Arweave using Turbo
-    const uploadResponse = await uploader.uploadData(fileData);
+    const uploadResponse = await turbo.uploadFile({
+      fileData,
+      tags,
+    });
 
     // Store metadata
     const metadata = {
