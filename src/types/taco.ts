@@ -9,5 +9,5 @@ export const SUPPORTED_CHAINS = {
 
 // Re-export the conditions we need
 export const ERC721Ownership = conditions.predefined.erc721.ERC721Ownership;
-export const ERC20Ownership = conditions.predefined.erc20.ERC20Ownership;
+export const ERC20Balance = conditions.predefined.erc20.ERC20Balance;
 export const TimeCondition = conditions.predefined.timestamp.TimestampCondition;

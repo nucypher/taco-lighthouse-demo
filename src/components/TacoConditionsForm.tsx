@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from './ui/scroll-area';
 import { ChainSelector } from './taco/ChainSelector';
 import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
-import { ConditionType, ERC20Ownership, TimeCondition } from '@/types/taco';
+import { ConditionType, ERC20Balance, TimeCondition } from '@/types/taco';
 
 interface TacoConditionsFormProps {
   onChange: (conditions: any[]) => void;
@@ -26,7 +26,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
     switch (conditionType) {
       case 'token':
         if (!contractAddress) return;
-        condition = new ERC20Ownership({
+        condition = new ERC20Balance({
           contractAddress,
           parameters: [value], // Amount of tokens required
           chain: chain === 'sepolia' ? 11155111 : 80002, // Chain IDs for Sepolia and Polygon Amoy
