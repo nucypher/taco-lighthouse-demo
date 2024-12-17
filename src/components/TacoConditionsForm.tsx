@@ -5,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from './ui/scroll-area';
 import { ChainSelector } from './taco/ChainSelector';
 import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
-import { ConditionType, ERC20Balance, ERC721Balance, ERC721Ownership } from '@/types/taco';
+import { conditions } from '@nucypher/taco';
+import { ConditionType } from '@/types/taco';
 
 interface TacoConditionsFormProps {
   onChange: (conditions: any[]) => void;
@@ -27,25 +28,25 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
 
     if (conditionType === 'erc20') {
       if (!minBalance) return;
-      condition = new ERC20Balance({
+      condition = new conditions.predefined.erc20.ERC20Balance({
         contractAddress,
         chain: chainId,
-        minBalance
+        parameters: [minBalance]
       });
     } else {
       if (erc721Mode === 'ownership') {
         if (!tokenId) return;
-        condition = new ERC721Ownership({
+        condition = new conditions.predefined.erc721.ERC721Ownership({
           contractAddress,
           chain: chainId,
-          tokenId
+          parameters: [tokenId]
         });
       } else {
         if (!minBalance) return;
-        condition = new ERC721Balance({
+        condition = new conditions.predefined.erc721.ERC721Balance({
           contractAddress,
           chain: chainId,
-          minBalance
+          parameters: [minBalance]
         });
       }
     }
