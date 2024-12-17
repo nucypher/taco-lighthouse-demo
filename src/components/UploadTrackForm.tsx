@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TacoConditionsForm } from './TacoConditionsForm';
 import { ScrollArea } from './ui/scroll-area';
 import { Switch } from './ui/switch';
+import { encrypt } from '@nucypher/taco';
 
 interface ReturnValueTest {
   comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
@@ -67,17 +68,34 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         uploadData = {
           audioCid: 'test-audio-cid',
           coverArtCid: 'test-cover-art-cid',
-          decryptionConditions: []
         };
-        console.log('Dev mode - Conditions:', conditions);
       } else {
+        // Read the audio file as ArrayBuffer
+        const audioBuffer = await audioFile!.arrayBuffer();
+        
+        // Encrypt the audio file using TACo if conditions are set
+        let finalAudioData;
+        if (conditions.length > 0) {
+          finalAudioData = await encrypt(
+            new Uint8Array(audioBuffer),
+            conditions,
+            { provider: window.ethereum }
+          );
+        } else {
+          finalAudioData = audioBuffer;
+        }
+
+        // Create a new File object with the encrypted data
+        const encryptedFile = new File(
+          [finalAudioData], 
+          audioFile!.name, 
+          { type: audioFile!.type }
+        );
+
         const formData = new FormData();
-        formData.append('audioFile', audioFile!);
+        formData.append('audioFile', encryptedFile);
         if (coverArt) {
           formData.append('coverArt', coverArt);
-        }
-        if (conditions.length > 0) {
-          formData.append('conditions', JSON.stringify(conditions));
         }
 
         const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
@@ -95,7 +113,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
           owner_id: wallet.accounts[0].address,
-          decryption_conditions: uploadData.decryptionConditions
         });
 
       if (dbError) throw dbError;

@@ -11,7 +11,7 @@ interface TrackCardProps {
   coverUrl: string;
   trackId: string;
   ipfsCid: string | null;
-  decryptionConditions?: any;
+  decryptionConditions?: any[];
 }
 
 export const TrackCard = ({ 
@@ -53,10 +53,11 @@ export const TrackCard = ({
       const response = await fetch(trackUrl);
       const encryptedData = await response.arrayBuffer();
 
-      // Attempt to decrypt the content
+      // Attempt to decrypt the content using TACo
       const decryptedData = await decrypt(
         new Uint8Array(encryptedData),
-        decryptionConditions
+        decryptionConditions || [],
+        { provider: window.ethereum }
       );
 
       // Create a blob URL from the decrypted data
