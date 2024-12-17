@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,16 +17,16 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRandomTracks = async () => {
+    const fetchTracks = async () => {
       try {
         const { data, error } = await supabase
           .from('tracks')
           .select('*')
-          .limit(5)
+          .limit(10)
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.error('Error fetching random tracks:', error);
+          console.error('Error fetching tracks:', error);
           return;
         }
 
@@ -41,7 +40,7 @@ const Index = () => {
       }
     };
 
-    fetchRandomTracks();
+    fetchTracks();
   }, []);
 
   const getArtworkUrl = (cid: string | null) => {
@@ -53,10 +52,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 pt-24 pb-16">
-        <HeroSection />
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Discover</h2>
+            <h2 className="text-2xl font-bold">Latest Tracks</h2>
             <Button variant="ghost">View All</Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
