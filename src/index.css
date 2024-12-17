@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,42 +6,52 @@
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 13%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 40%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 217 91% 60%;
-    --radius: 0.5rem;
+    --background: 44 100% 99%;
+    --foreground: 193 100% 12%;
+    --card: 44 100% 97%;
+    --card-foreground: 193 100% 12%;
+    --popover: 44 100% 97%;
+    --popover-foreground: 193 100% 12%;
+    --primary: 180 100% 25%;
+    --primary-foreground: 44 100% 99%;
+    --secondary: 44 30% 96%;
+    --secondary-foreground: 193 100% 12%;
+    --muted: 44 10% 80%;
+    --muted-foreground: 44 10% 60%;
+    --accent: 180 100% 25%;
+    --accent-foreground: 44 100% 99%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 44 100% 99%;
+    --border: 44 10% 90%;
+    --input: 44 10% 90%;
+    --ring: 180 100% 25%;
+    --radius: 0.25rem;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border font-fira-code;
   }
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
 .glass-overlay {
-  @apply bg-black bg-opacity-30 backdrop-blur-sm;
+  @apply bg-black/20 backdrop-blur-[2px];
 }
 
 .hover-scale {
-  @apply transition-transform duration-200 hover:scale-105;
+  @apply transition-transform duration-100 hover:scale-[1.02];
+}
+
+/* Fast transitions */
+* {
+  @apply transition-all duration-100 !important;
+}
+
+/* Terminal-like selection */
+::selection {
+  @apply bg-primary text-primary-foreground;
 }
