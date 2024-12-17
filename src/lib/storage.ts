@@ -1,14 +1,12 @@
 import { createData, InjectedEthereumSigner } from 'arbundles';
-import { TurboFactory, TurboSigner } from '@ardrive/turbo-sdk/web';
+import { TurboFactory } from '@ardrive/turbo-sdk/web';
 import { ethers } from 'ethers';
 
-// Initialize provider
-const getProvider = () => {
-  if (!window.ethereum) {
-    throw new Error("No Ethereum provider found");
+declare global {
+  interface Window {
+    ethereum: any;
   }
-  return new ethers.providers.Web3Provider(window.ethereum);
-};
+}
 
 export interface UploadTrackOptions {
   file: File;
@@ -26,7 +24,10 @@ export interface UploadTrackOptions {
 
 export const uploadTrack = async ({ file, title, artist }: UploadTrackOptions) => {
   try {
-    const provider = getProvider();
+    if (!window.ethereum) {
+      throw new Error("No Ethereum provider found");
+    }
+    const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = new InjectedEthereumSigner(provider);
     await signer.setPublicKey();
 
@@ -48,7 +49,7 @@ export const uploadTrack = async ({ file, title, artist }: UploadTrackOptions) =
     
     // Initialize Turbo client
     const turbo = TurboFactory.authenticated({
-      signer: signer as unknown as TurboSigner,
+      signer: signer as any,
     });
 
     // Upload to Arweave using Turbo
