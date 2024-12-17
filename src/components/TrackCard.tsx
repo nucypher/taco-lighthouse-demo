@@ -2,7 +2,7 @@ import { Play, Pause, Lock } from "lucide-react";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioPlayer } from "@/App";
-import { decrypt } from "@nucypher/taco";
+import { decrypt, conditions } from "@nucypher/taco";
 import { useState } from "react";
 
 interface TrackCardProps {
@@ -11,7 +11,7 @@ interface TrackCardProps {
   coverUrl: string;
   trackId: string;
   ipfsCid: string | null;
-  decryptionConditions?: any[];
+  decryptionConditions?: conditions.Condition[];
 }
 
 export const TrackCard = ({ 

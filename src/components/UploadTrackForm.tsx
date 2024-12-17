@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TacoConditionsForm } from './TacoConditionsForm';
 import { ScrollArea } from './ui/scroll-area';
 import { Switch } from './ui/switch';
-import { encrypt } from '@nucypher/taco';
+import { encrypt, conditions } from '@nucypher/taco';
 
 interface ReturnValueTest {
   comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
@@ -35,7 +35,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [conditions, setConditions] = useState<TacoCondition[]>([]);
+  const [conditions, setConditions] = useState<conditions.Condition[]>([]);
   const [devMode, setDevMode] = useState(false);
   const { toast } = useToast();
 
