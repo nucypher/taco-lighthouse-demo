@@ -1,8 +1,42 @@
 import { Search, Upload, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useState, useEffect } from "react";
+import { connectWallet, disconnectWallet } from "@/lib/web3";
+import { useToast } from "@/hooks/use-toast";
 
 export const Header = () => {
+  const [wallet, setWallet] = useState<any>(null);
+  const { toast } = useToast();
+
+  const handleConnect = async () => {
+    try {
+      const connectedWallet = await connectWallet();
+      setWallet(connectedWallet);
+      toast({
+        title: "Connected",
+        description: "Wallet connected successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect wallet",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (wallet) {
+      await disconnectWallet(wallet);
+      setWallet(null);
+      toast({
+        title: "Disconnected",
+        description: "Wallet disconnected successfully",
+      });
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -20,9 +54,15 @@ export const Header = () => {
           <Button variant="ghost" size="icon">
             <Upload className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-          </Button>
+          {wallet ? (
+            <Button variant="outline" onClick={handleDisconnect}>
+              {wallet.label.slice(0, 6)}...{wallet.label.slice(-4)}
+            </Button>
+          ) : (
+            <Button onClick={handleConnect}>
+              Connect Wallet
+            </Button>
+          )}
         </div>
       </div>
     </header>
