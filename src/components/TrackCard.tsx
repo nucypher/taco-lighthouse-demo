@@ -1,6 +1,5 @@
 import { Play } from "lucide-react";
 import { Button } from "./ui/button";
-import { getTrack } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrackCardProps {
@@ -14,18 +13,12 @@ export const TrackCard = ({ title, artist, coverUrl, trackId }: TrackCardProps) 
   const { toast } = useToast();
 
   const handlePlay = async () => {
-    try {
-      const track = await getTrack(trackId);
-      // Here you would handle the track data and play it
-      // This would involve checking TACo access conditions first
-      console.log('Track data:', track);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Unable to play track. You may not have access.',
-        variant: 'destructive',
-      });
-    }
+    // Temporary implementation without storage
+    console.log('Playing track:', trackId);
+    toast({
+      title: 'Playing Track',
+      description: `Now playing ${title} by ${artist}`,
+    });
   };
 
   return (

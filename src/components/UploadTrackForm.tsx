@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { uploadTrack } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 
 export const UploadTrackForm = () => {
@@ -17,23 +16,9 @@ export const UploadTrackForm = () => {
 
     setIsUploading(true);
     try {
-      const accessConditions = {
-        contractTxId: 'your-contract-tx-id',
-        contractSourceTxId: 'your-contract-source-tx-id',
-        evaluationOptions: {
-          sourceType: 'wasm',
-          environment: {
-            allowedAddresses: ['wallet-address-1', 'wallet-address-2'],
-          },
-        },
-      };
-
-      await uploadTrack({
-        file,
-        title,
-        artist: 'Current User',
-        accessConditions,
-      });
+      // Temporary implementation - just simulate upload
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Simulated upload:', { file, title });
 
       toast({
         title: 'Success',
