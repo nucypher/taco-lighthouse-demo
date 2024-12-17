@@ -27,7 +27,9 @@ export const uploadTrack = async ({ file, title, artist }: UploadTrackOptions) =
     if (!window.ethereum) {
       throw new Error("No Ethereum provider found");
     }
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    
+    // Initialize provider with Web3Provider instead of BrowserProvider
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = new InjectedEthereumSigner(provider);
     await signer.setPublicKey();
 

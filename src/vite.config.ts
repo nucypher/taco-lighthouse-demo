@@ -16,17 +16,21 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      buffer: 'buffer',
+      stream: 'stream-browserify',
+      util: 'util',
     },
   },
   define: {
     'process.env': {},
+    global: {},
   },
   build: {
     commonjsOptions: {
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib'],
+      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', 'node:buffer'],
       output: {
         manualChunks: {
           vendor: ['arbundles', '@ardrive/turbo-sdk']
