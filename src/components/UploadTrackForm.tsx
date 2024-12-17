@@ -8,9 +8,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
+  wallet: any;
 }
 
-export const UploadTrackForm = ({ onSuccess }: UploadTrackFormProps) => {
+export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -20,6 +21,15 @@ export const UploadTrackForm = ({ onSuccess }: UploadTrackFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!wallet) {
+      toast({
+        title: 'Error',
+        description: 'Please connect your wallet to upload tracks',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!audioFile) {
       toast({
         title: 'Error',
@@ -52,6 +62,7 @@ export const UploadTrackForm = ({ onSuccess }: UploadTrackFormProps) => {
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
+          owner_id: wallet.id,
         });
 
       if (dbError) throw dbError;

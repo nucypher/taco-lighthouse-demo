@@ -40,6 +40,18 @@ export const Header = () => {
     }
   };
 
+  const handleUploadClick = () => {
+    if (!wallet) {
+      toast({
+        title: "Connect Wallet",
+        description: "Please connect your wallet to upload tracks",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowUploadDialog(true);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -54,7 +66,7 @@ export const Header = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setShowUploadDialog(true)}>
+          <Button variant="ghost" size="icon" onClick={handleUploadClick}>
             <Upload className="h-5 w-5" />
           </Button>
           {wallet ? (
@@ -74,7 +86,10 @@ export const Header = () => {
           <DialogHeader>
             <DialogTitle>Upload Track</DialogTitle>
           </DialogHeader>
-          <UploadTrackForm onSuccess={() => setShowUploadDialog(false)} />
+          <UploadTrackForm 
+            onSuccess={() => setShowUploadDialog(false)} 
+            wallet={wallet}
+          />
         </DialogContent>
       </Dialog>
     </header>
