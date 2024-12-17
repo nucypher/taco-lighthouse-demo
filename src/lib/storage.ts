@@ -3,9 +3,11 @@ import { TurboAuthenticatedClient } from '@ardrive/turbo-sdk/web';
 
 // Initialize Turbo SDK with the correct configuration
 const turbo = new TurboAuthenticatedClient({
-  bundler: 'https://turbo.ardrive.io',
-  currency: 'solana',
-  wallet: 'phantom'
+  auth: {
+    provider: 'arconnect',
+  },
+  gateway: 'https://turbo.ardrive.io',
+  network: 'mainnet'
 });
 
 export interface UploadTrackOptions {
@@ -49,17 +51,14 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
       dataItemSizeFactory: () => dataItem.getRaw().byteLength,
     });
 
-    // Store metadata
-    const metadata = {
-      title,
-      artist,
-      contentType: file.type,
-      timestamp: Date.now(),
-    };
-
     return {
       id: uploadResponse.id,
-      metadata,
+      metadata: {
+        title,
+        artist,
+        contentType: file.type,
+        timestamp: Date.now(),
+      }
     };
   } catch (error) {
     console.error('Error uploading track:', error);
