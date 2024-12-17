@@ -5,6 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+async function base64ToFile(base64Data: string, filename: string, type: string): Promise<File> {
+  // Convert base64 to binary
+  const binaryString = atob(base64Data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type });
+  return new File([blob], filename, { type });
+}
+
 async function uploadToLighthouse(file: File) {
   const formData = new FormData();
   formData.append('file', file);
@@ -32,25 +43,39 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData();
-    const audioFile = formData.get('audioFile') as File;
-    const coverArt = formData.get('coverArt') as File;
+    const body = await req.json();
+    console.log('Received request body:', body);
 
-    if (!audioFile) {
+    if (!body.audioFile) {
       return new Response(
         JSON.stringify({ error: 'No audio file provided' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
+    // Convert base64 back to File objects
+    console.log('Converting audio file from base64...');
+    const audioFile = await base64ToFile(
+      body.audioFile.data,
+      body.audioFile.name,
+      body.audioFile.type
+    );
+
     console.log('Uploading audio file to Lighthouse...');
     const audioCid = await uploadToLighthouse(audioFile);
     console.log('Audio file uploaded, CID:', audioCid);
 
     let coverArtCid = null;
-    if (coverArt) {
+    if (body.coverArt) {
+      console.log('Converting cover art from base64...');
+      const coverArtFile = await base64ToFile(
+        body.coverArt.data,
+        body.coverArt.name,
+        body.coverArt.type
+      );
+
       console.log('Uploading cover art to Lighthouse...');
-      coverArtCid = await uploadToLighthouse(coverArt);
+      coverArtCid = await uploadToLighthouse(coverArtFile);
       console.log('Cover art uploaded, CID:', coverArtCid);
     }
 
