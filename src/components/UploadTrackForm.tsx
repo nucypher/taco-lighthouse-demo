@@ -83,13 +83,12 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         // Encrypt the audio file using TACo if conditions are set
         let finalAudioData;
         if (conditions.length > 0) {
+          const condition = conditions.reduce((acc, curr) => acc.and(curr));
           finalAudioData = await encrypt(
             web3Provider,
             domains.TESTNET,
             new Uint8Array(audioBuffer),
-            conditions,
-            1, // threshold: minimum number of conditions that must be satisfied
-            1  // shares: number of shares to split the secret into
+            condition
           );
         } else {
           finalAudioData = audioBuffer;
