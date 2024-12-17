@@ -1,9 +1,11 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
-
+import { X, Copy } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "./button"
+import { ScrollArea } from "./scroll-area"
+import { toast } from "sonner"
 
 const ToastProvider = ToastPrimitives.Provider
 
@@ -14,7 +16,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      "fixed bottom-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:max-w-[420px]",
       className
     )}
     {...props}
@@ -89,13 +91,41 @@ ToastClose.displayName = ToastPrimitives.Close.displayName
 const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Title
-    ref={ref}
-    className={cn("text-sm font-semibold", className)}
-    {...props}
-  />
-))
+>(({ className, children, ...props }, ref) => {
+  const content = typeof children === 'string' ? children : null;
+  const copyToClipboard = async () => {
+    if (content) {
+      try {
+        await navigator.clipboard.writeText(content);
+        toast.success("Copied to clipboard");
+      } catch (err) {
+        toast.error("Failed to copy");
+      }
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between w-full">
+      <ToastPrimitives.Title
+        ref={ref}
+        className={cn("text-sm font-semibold", className)}
+        {...props}
+      >
+        {children}
+      </ToastPrimitives.Title>
+      {content && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 ml-2"
+          onClick={copyToClipboard}
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+})
 ToastTitle.displayName = ToastPrimitives.Title.displayName
 
 const ToastDescription = React.forwardRef<
