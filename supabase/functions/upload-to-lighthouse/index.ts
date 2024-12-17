@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { conditions, encrypt } from 'https://esm.sh/@nucypher/taco'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,47 +15,14 @@ serve(async (req) => {
     const formData = await req.formData()
     const audioFile = formData.get('audioFile')
     const coverArt = formData.get('coverArt')
-    const conditionsStr = formData.get('conditions')
     
     if (!audioFile) {
       throw new Error('No audio file provided')
     }
 
-    // Parse conditions
-    let accessConditions = []
-    if (conditionsStr) {
-      const parsedConditions = JSON.parse(conditionsStr)
-      accessConditions = parsedConditions.map((condition: any) => {
-        if (condition.standardContractType === 'ERC20') {
-          return new conditions.predefined.erc20.ERC20Balance({
-            contractAddress: condition.contractAddress,
-            chain: condition.chain,
-            returnValueTest: condition.returnValueTest
-          })
-        } else {
-          return new conditions.predefined.erc721.ERC721Balance({
-            contractAddress: condition.contractAddress,
-            chain: condition.chain,
-            returnValueTest: condition.returnValueTest
-          })
-        }
-      })
-    }
-
-    // Encrypt the audio file
-    const audioBuffer = await audioFile.arrayBuffer()
-    const { encryptedFile, decryptionConditions } = await encrypt(
-      new Uint8Array(audioBuffer),
-      accessConditions
-    )
-
-    // Upload encrypted file to Lighthouse
+    // Upload file to Lighthouse
     const formDataLighthouse = new FormData()
-    formDataLighthouse.append(
-      'file', 
-      new Blob([encryptedFile], { type: audioFile.type }), 
-      'encrypted-' + audioFile.name
-    )
+    formDataLighthouse.append('file', audioFile)
 
     const uploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
       method: 'POST',
@@ -94,12 +60,11 @@ serve(async (req) => {
       coverArtCid = coverData.Hash
     }
 
-    // Return both the CID and the decryption conditions
+    // Return the CIDs
     return new Response(
       JSON.stringify({
         audioCid: uploadData.Hash,
-        coverArtCid,
-        decryptionConditions
+        coverArtCid
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
