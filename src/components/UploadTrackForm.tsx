@@ -44,20 +44,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      // Get the current authenticated user
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) throw sessionError;
-      
-      if (!session) {
-        toast({
-          title: 'Error',
-          description: 'Please sign in to upload tracks',
-          variant: 'destructive',
-        });
-        return;
-      }
-
       // Upload files to Lighthouse
       const formData = new FormData();
       formData.append('audioFile', audioFile);
@@ -79,7 +65,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: session.user.id,
+          owner_id: wallet.label, // Use the wallet address as the owner ID
         });
 
       if (dbError) throw dbError;
