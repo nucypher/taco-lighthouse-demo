@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -30,14 +31,30 @@ export const UploadTrackForm = ({ onSuccess }: UploadTrackFormProps) => {
 
     setIsUploading(true);
     try {
-      // Temporary implementation - just simulate upload
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Form data:', {
-        title,
-        description,
-        audioFile,
-        coverArt,
+      // Upload files to Lighthouse
+      const formData = new FormData();
+      formData.append('audioFile', audioFile);
+      if (coverArt) {
+        formData.append('coverArt', coverArt);
+      }
+
+      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
+        body: formData,
       });
+
+      if (uploadError) throw uploadError;
+
+      // Save track information to database
+      const { error: dbError } = await supabase
+        .from('tracks')
+        .insert({
+          title,
+          description,
+          ipfs_cid: uploadData.audioCid,
+          cover_art_cid: uploadData.coverArtCid,
+        });
+
+      if (dbError) throw dbError;
 
       toast({
         title: 'Success',
@@ -51,6 +68,7 @@ export const UploadTrackForm = ({ onSuccess }: UploadTrackFormProps) => {
       setCoverArt(null);
       onSuccess?.();
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: 'Error',
         description: 'Failed to upload track',
