@@ -237,4 +237,4 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       </div>
     </div>
   );
-});
+};
