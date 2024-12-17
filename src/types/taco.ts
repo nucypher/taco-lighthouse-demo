@@ -8,4 +8,6 @@ export const SUPPORTED_CHAINS = {
 } as const;
 
 // Re-export the conditions we need
-export const { ERC721Balance, ERC721Ownership, ERC20Balance } = conditions.predefined;
+export const ERC721Balance = conditions.predefined.erc721.ERC721Balance;
+export const ERC721Ownership = conditions.predefined.erc721.ERC721Ownership;
+export const ERC20Balance = conditions.predefined.erc20.ERC20Balance;
