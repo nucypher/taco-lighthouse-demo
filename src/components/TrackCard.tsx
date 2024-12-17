@@ -59,8 +59,8 @@ export const TrackCard = ({ title, artist, coverUrl, ipfsCid }: TrackCardProps) 
       <div className="absolute inset-0 glass-overlay opacity-0 group-hover:opacity-100 flex items-center justify-center">
         <Button 
           size="icon" 
-          variant="secondary" 
-          className="rounded-sm"
+          variant="ghost" 
+          className="rounded-full bg-background/80 hover:bg-background/90 transition-colors"
           onClick={handlePlay}
         >
           {isThisTrackPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
