@@ -15,33 +15,47 @@ interface Track {
 const Index = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const fetchTracks = async (query: string = "") => {
+    try {
+      setIsLoading(true);
+      let queryBuilder = supabase
+        .from('tracks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (query) {
+        queryBuilder = queryBuilder.ilike('title', `%${query}%`);
+      } else {
+        queryBuilder = queryBuilder.limit(10);
+      }
+
+      const { data, error } = await queryBuilder;
+
+      if (error) {
+        console.error('Error fetching tracks:', error);
+        return;
+      }
+
+      if (data) {
+        setTracks(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTracks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('tracks')
-          .select('*')
-          .limit(10)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching tracks:', error);
-          return;
-        }
-
-        if (data) {
-          setTracks(data);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchTracks();
   }, []);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    fetchTracks(query);
+  };
 
   const getArtworkUrl = (cid: string | null) => {
     if (!cid) return "/placeholder.svg";
@@ -50,11 +64,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onSearch={handleSearch} />
       <main className="container mx-auto px-4 pt-24 pb-16">
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Latest Tracks</h2>
+            <h2 className="text-2xl font-bold">
+              {searchQuery ? `Search Results for "${searchQuery}"` : "Latest Tracks"}
+            </h2>
             <Button variant="ghost">View All</Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -74,7 +90,9 @@ const Index = () => {
                 />
               ))
             ) : (
-              <p className="col-span-full text-center text-muted-foreground">No tracks available</p>
+              <p className="col-span-full text-center text-muted-foreground">
+                {searchQuery ? "No tracks found matching your search" : "No tracks available"}
+              </p>
             )}
           </div>
         </section>

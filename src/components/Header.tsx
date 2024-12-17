@@ -8,9 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Header = () => {
+interface HeaderProps {
+  onSearch?: (query: string) => void;
+}
+
+export const Header = ({ onSearch }: HeaderProps) => {
   const [wallet, setWallet] = useState<any>(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const handleConnect = async () => {
@@ -69,6 +74,12 @@ export const Header = () => {
     setShowUploadDialog(true);
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    onSearch?.(query);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-[2px] border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -79,6 +90,8 @@ export const Header = () => {
             <Input
               placeholder="Search tracks..."
               className="pl-10 bg-secondary rounded-sm"
+              value={searchQuery}
+              onChange={handleSearch}
             />
           </div>
         </div>
