@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', 'node:buffer'],
+      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib'],
       output: {
         manualChunks: {
           vendor: ['arbundles', '@ardrive/turbo-sdk']
