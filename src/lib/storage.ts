@@ -3,9 +3,9 @@ import { TurboAuthenticatedClient } from '@ardrive/turbo-sdk/web';
 
 // Initialize Turbo SDK with the correct configuration
 const turbo = new TurboAuthenticatedClient({
-  authConfig: {
-    provider: 'arconnect', // or your preferred provider
-  }
+  bundler: 'https://turbo.ardrive.io',
+  currency: 'solana',
+  wallet: 'phantom'
 });
 
 export interface UploadTrackOptions {
