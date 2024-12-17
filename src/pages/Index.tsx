@@ -10,6 +10,7 @@ interface Track {
   title: string;
   owner_id: string | null;
   cover_art_cid: string | null;
+  ipfs_cid: string | null;
 }
 
 const Index = () => {
@@ -71,6 +72,7 @@ const Index = () => {
                   title={track.title}
                   artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
                   coverUrl={getArtworkUrl(track.cover_art_cid)}
+                  ipfsCid={track.ipfs_cid}
                 />
               ))
             ) : (
