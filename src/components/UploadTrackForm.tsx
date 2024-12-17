@@ -88,7 +88,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         const audioBuffer = await audioFile!.arrayBuffer();
         
         // Encrypt the audio file using TACo
-        const finalAudioData = await encrypt(
+        const encryptedData = await encrypt(
           web3Provider,
           domains.DEVNET,
           new Uint8Array(audioBuffer),
@@ -97,9 +97,14 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           signer
         );
 
+        // Send the encrypted data directly to the Edge Function
         const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
-          body: finalAudioData,
+          body: encryptedData,
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
         });
+
         if (uploadError) throw uploadError;
         uploadData = data;
       }
