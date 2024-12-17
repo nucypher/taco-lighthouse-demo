@@ -12,15 +12,13 @@ interface TrackCardProps {
   coverUrl: string;
   trackId: string;
   ipfsCid: string | null;
-  decryptionConditions?: conditions.condition.Condition[];
 }
 
 export const TrackCard = ({ 
   title, 
   artist, 
   coverUrl, 
-  ipfsCid,
-  decryptionConditions 
+  ipfsCid
 }: TrackCardProps) => {
   const { toast } = useToast();
   const { currentTrack, isPlaying, playTrack, togglePlayPause } = useAudioPlayer();
@@ -59,7 +57,7 @@ export const TrackCard = ({
       // Fetch the encrypted content
       const response = await fetch(trackUrl);
       const encryptedData = await response.arrayBuffer();
-      const messageKit = new Uint8Array(encryptedData);
+      const messageKit = ThresholdMessageKit.fromBytes(new Uint8Array(encryptedData));
 
       // Setup condition context and auth provider
       const conditionContext = conditions.context.ConditionContext.fromMessageKit(messageKit);
