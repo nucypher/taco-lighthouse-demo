@@ -23,6 +23,8 @@ export async function encryptAudioFile(
     signer
   );
   
-  console.log('✅ Encryption successful, encrypted size:', encryptedData.byteLength, 'bytes');
-  return encryptedData;
+  // Convert ThresholdMessageKit to binary format
+  const serializedData = encryptedData.toBytes();
+  console.log('✅ Encryption successful, encrypted size:', serializedData.byteLength, 'bytes');
+  return serializedData;
 }
