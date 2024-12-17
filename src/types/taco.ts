@@ -5,7 +5,7 @@ export type ConditionType = 'erc20' | 'erc721';
 // Using direct chain IDs instead of string mappings
 export const SUPPORTED_CHAINS = {
   11155111: 'Sepolia Testnet',
-  80001: 'Polygon Amoy Testnet'
+  80002: 'Polygon Amoy Testnet'
 } as const;
 
 // Re-export the conditions we need

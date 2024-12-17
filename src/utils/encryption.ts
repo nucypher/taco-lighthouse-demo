@@ -8,12 +8,12 @@ export async function encryptAudioFile(
 ) {
   console.log('🔒 Starting encryption with TACo...');
   
-  // Use Mumbai (Amoy) testnet provider
-  const mumbaiProvider = new ethers.providers.JsonRpcProvider(
-    'https://polygon-mumbai.infura.io/v3/YOUR_INFURA_PROJECT_ID',
+  // Use Amoy testnet provider
+  const amoyProvider = new ethers.providers.JsonRpcProvider(
+    'wss://polygon-amoy-bor-rpc.publicnode.com',
     {
-      name: 'mumbai',
-      chainId: 80001, // Mumbai testnet chainId
+      name: 'amoy',
+      chainId: 80002, // Mumbai testnet chainId
     }
   );
 

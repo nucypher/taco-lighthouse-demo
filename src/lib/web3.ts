@@ -12,10 +12,10 @@ const web3Onboard = Onboard({
   wallets: [injected, walletConnect],
   chains: [
     {
-      id: '0x13881', // Polygon Mumbai (80001 in hex)
+      id: '0x13882', // Polygon amoy in hex
       token: 'MATIC',
       label: 'Polygon Mumbai Testnet',
-      rpcUrl: 'https://polygon-mumbai.infura.io/v3/YOUR_INFURA_PROJECT_ID'
+      rpcUrl: 'wss://polygon-amoy-bor-rpc.publicnode.com'
     }
   ],
   appMetadata: {
