@@ -11,7 +11,7 @@ import { ConditionType } from '@/types/taco';
 const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
 
 interface TacoConditionsFormProps {
-  onChange: (conditions: any[]) => void;
+  onChange: (condition: conditions.condition.Condition | null) => void;
 }
 
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
@@ -21,11 +21,14 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const [chain, setChain] = useState('sepolia');
 
   const handleChange = () => {
-    if (!contractAddress || !minBalance) return;
+    if (!contractAddress || !minBalance) {
+      onChange(null);
+      return;
+    }
 
-    let condition;
     const chainId = chain === 'sepolia' ? 11155111 : 80002;
 
+    let condition;
     if (conditionType === 'erc20') {
       condition = new conditions.predefined.erc20.ERC20Balance({
         contractAddress,
@@ -46,7 +49,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       });
     }
 
-    onChange([condition]);
+    onChange(condition);
   };
 
   return (

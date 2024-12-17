@@ -36,7 +36,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [conditions, setConditions] = useState<conditions.condition.Condition[]>([]);
+  const [condition, setCondition] = useState<conditions.condition.Condition | null>(null);
   const [devMode, setDevMode] = useState(false);
   const { toast } = useToast();
 
@@ -78,10 +78,9 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         // Read the audio file as ArrayBuffer
         const audioBuffer = await audioFile!.arrayBuffer();
         
-        // Encrypt the audio file using TACo if conditions are set
+        // Encrypt the audio file using TACo if condition is set
         let finalAudioData;
-        if (conditions.length > 0) {
-          const condition = conditions.reduce((acc, curr) => acc.and(curr));
+        if (condition) {
           finalAudioData = await encrypt(
             web3Provider,
             domains.DEVNET,
@@ -135,7 +134,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       setDescription('');
       setAudioFile(null);
       setCoverArt(null);
-      setConditions([]);
+      setCondition(null);
       onSuccess?.();
     } catch (error) {
       console.error('Upload error:', error);
@@ -220,7 +219,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           <div className="space-y-2">
             <Label>Access Conditions</Label>
             <div className="border rounded-md">
-              <TacoConditionsForm onChange={setConditions} />
+              <TacoConditionsForm onChange={setCondition} />
             </div>
           </div>
         </form>
