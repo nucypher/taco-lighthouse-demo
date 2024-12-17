@@ -61,7 +61,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       return;
     }
 
-    // Add condition validation
     if (!condition) {
       toast({
         title: 'Error',
@@ -97,19 +96,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           27,
           signer
         );
-
-        // Create a new File object with the encrypted data
-        // const encryptedFile = new File(
-        //   [finalAudioData], 
-        //   audioFile!.name, 
-        //   { type: audioFile!.type }
-        // );
-
-        // const formData = new FormData();
-        // formData.append('audioFile', encryptedFile);
-        // if (coverArt) {
-        //   formData.append('coverArt', coverArt);
-        // }
 
         const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
           body: finalAudioData,
