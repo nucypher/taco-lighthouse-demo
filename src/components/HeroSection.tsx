@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Play, Pause } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAudioPlayer } from "@/App";
 
 interface Track {
   id: string;
@@ -15,9 +16,8 @@ interface Track {
 export const HeroSection = () => {
   const [randomTrack, setRandomTrack] = useState<Track | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
+  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useAudioPlayer();
 
   useEffect(() => {
     const fetchRandomTrack = async () => {
@@ -56,7 +56,7 @@ export const HeroSection = () => {
     return `https://gateway.lighthouse.storage/ipfs/${cid}`;
   };
 
-  const handlePlay = async () => {
+  const handlePlay = () => {
     if (!randomTrack) return;
 
     const trackUrl = getTrackUrl(randomTrack.ipfs_cid);
@@ -69,32 +69,23 @@ export const HeroSection = () => {
       return;
     }
 
-    if (!audioRef.current) {
-      audioRef.current = new Audio(trackUrl);
-      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
-    }
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    if (currentTrack?.audioUrl === trackUrl) {
+      togglePlayPause();
     } else {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-        toast({
-          title: 'Playing Track',
-          description: `Now playing ${randomTrack.title}`,
-        });
-      } catch (error) {
-        console.error('Error playing track:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to play track',
-          variant: 'destructive',
-        });
-      }
+      playTrack({
+        title: randomTrack.title,
+        artist: randomTrack.owner_id ? `${randomTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist',
+        coverUrl: getArtworkUrl(randomTrack.cover_art_cid),
+        audioUrl: trackUrl,
+      });
+      toast({
+        title: 'Playing Track',
+        description: `Now playing ${randomTrack.title}`,
+      });
     }
   };
+
+  const isThisTrackPlaying = currentTrack?.audioUrl === getTrackUrl(randomTrack?.ipfs_cid) && isPlaying;
 
   if (isLoading) {
     return (
@@ -133,8 +124,8 @@ export const HeroSection = () => {
             className="w-fit rounded-sm gap-2" 
             onClick={handlePlay}
           >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {isPlaying ? 'Pause' : 'Start Listening'}
+            {isThisTrackPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {isThisTrackPlaying ? 'Pause' : 'Start Listening'}
           </Button>
         </div>
       </div>
