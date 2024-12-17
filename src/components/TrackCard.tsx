@@ -1,7 +1,7 @@
 import { Play, Pause, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioPlayer } from "@/App";
-import { conditions, decrypt, domains, initialize } from '@nucypher/taco';
+import { conditions, decrypt, domains, initialize, ThresholdMessageKit } from '@nucypher/taco';
 import { EIP4361AuthProvider, USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
 import { ethers } from "ethers";
 import { useState } from "react";

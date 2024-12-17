@@ -84,12 +84,10 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         let finalAudioData;
         if (conditions.length > 0) {
           finalAudioData = await encrypt(
-            new Uint8Array(audioBuffer),
-            conditions,
             web3Provider,
             domains.TESTNET,
-            undefined,
-            undefined
+            new Uint8Array(audioBuffer),
+            conditions
           );
         } else {
           finalAudioData = audioBuffer;
