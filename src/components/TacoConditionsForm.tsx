@@ -15,7 +15,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const [contractAddress, setContractAddress] = useState('');
   const [value, setValue] = useState('');
   const [chain, setChain] = useState('sepolia');
-  const [method, setMethod] = useState('balanceOf');
   const [standardContractType, setStandardContractType] = useState<'ERC20' | 'ERC721' | 'ERC1155'>('ERC20');
   const [comparator, setComparator] = useState<'>=' | '<=' | '>' | '<' | '=' | '!='>('>=');
 
@@ -40,21 +39,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         };
         break;
 
-      case 'contract':
-        if (!contractAddress || !method) return;
-        condition = {
-          chain,
-          contractAddress,
-          standardContractType: null,
-          method,
-          parameters: [':userAddress'],
-          returnValueTest: {
-            comparator,
-            value
-          }
-        };
-        break;
-
       case 'time':
         condition = {
           chain,
@@ -65,20 +49,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
           returnValueTest: {
             comparator,
             value: Math.floor(new Date(value).getTime() / 1000).toString()
-          }
-        };
-        break;
-
-      case 'blockchain':
-        condition = {
-          chain,
-          contractAddress: '0x0000000000000000000000000000000000000000',
-          standardContractType: null,
-          method: 'blockNumber',
-          parameters: [],
-          returnValueTest: {
-            comparator,
-            value
           }
         };
         break;
@@ -108,51 +78,37 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         }} 
       />
 
-      {(conditionType === 'token' || conditionType === 'contract') && (
-        <div className="space-y-2">
-          <Label>Contract Address</Label>
-          <Input
-            placeholder="0x..."
-            value={contractAddress}
-            onChange={(e) => {
-              setContractAddress(e.target.value);
-              handleChange();
-            }}
-          />
-        </div>
-      )}
-
       {conditionType === 'token' && (
-        <div className="space-y-2">
-          <Label>Token Standard</Label>
-          <Select value={standardContractType} onValueChange={(value: 'ERC20' | 'ERC721' | 'ERC1155') => {
-            setStandardContractType(value);
-            handleChange();
-          }}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select token standard" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ERC20">ERC20</SelectItem>
-              <SelectItem value="ERC721">ERC721</SelectItem>
-              <SelectItem value="ERC1155">ERC1155</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+        <>
+          <div className="space-y-2">
+            <Label>Contract Address</Label>
+            <Input
+              placeholder="0x..."
+              value={contractAddress}
+              onChange={(e) => {
+                setContractAddress(e.target.value);
+                handleChange();
+              }}
+            />
+          </div>
 
-      {conditionType === 'contract' && (
-        <div className="space-y-2">
-          <Label>Contract Method</Label>
-          <Input
-            placeholder="Enter method name"
-            value={method}
-            onChange={(e) => {
-              setMethod(e.target.value);
+          <div className="space-y-2">
+            <Label>Token Standard</Label>
+            <Select value={standardContractType} onValueChange={(value: 'ERC20' | 'ERC721' | 'ERC1155') => {
+              setStandardContractType(value);
               handleChange();
-            }}
-          />
-        </div>
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select token standard" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ERC20">ERC20</SelectItem>
+                <SelectItem value="ERC721">ERC721</SelectItem>
+                <SelectItem value="ERC1155">ERC1155</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
       )}
 
       <div className="space-y-2">
@@ -181,7 +137,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
           type={conditionType === 'time' ? 'datetime-local' : 'text'}
           placeholder={
             conditionType === 'token' ? 'Enter minimum balance' :
-            conditionType === 'blockchain' ? 'Enter block number' :
             conditionType === 'time' ? 'Select date and time' :
             'Enter expected value'
           }

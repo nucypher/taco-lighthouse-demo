@@ -17,9 +17,7 @@ export const ConditionTypeSelector = ({ value, onChange }: ConditionTypeSelector
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="token">Token Balance</SelectItem>
-          <SelectItem value="contract">Contract State</SelectItem>
           <SelectItem value="time">Time-based</SelectItem>
-          <SelectItem value="blockchain">Block Number</SelectItem>
         </SelectContent>
       </Select>
     </div>

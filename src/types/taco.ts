@@ -12,9 +12,9 @@ export interface TacoCondition {
   returnValueTest: ReturnValueTest;
 }
 
-export type ConditionType = 'token' | 'contract' | 'time' | 'blockchain';
+export type ConditionType = 'token' | 'time';
 
 export const SUPPORTED_CHAINS = {
   sepolia: 'Sepolia Testnet',
-  amoy: 'Amoy (Optimism Testnet)'
+  amoy: 'Amoy (Polygon Testnet)'
 } as const;
