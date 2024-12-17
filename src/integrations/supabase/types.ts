@@ -9,7 +9,71 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      tracks: {
+        Row: {
+          cover_art_cid: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          ipfs_cid: string | null
+          owner_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          cover_art_cid?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          ipfs_cid?: string | null
+          owner_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          cover_art_cid?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          ipfs_cid?: string | null
+          owner_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          id: string
+          updated_at: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          updated_at?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          updated_at?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
