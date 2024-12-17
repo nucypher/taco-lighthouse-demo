@@ -99,20 +99,20 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         );
 
         // Create a new File object with the encrypted data
-        const encryptedFile = new File(
-          [finalAudioData], 
-          audioFile!.name, 
-          { type: audioFile!.type }
-        );
+        // const encryptedFile = new File(
+        //   [finalAudioData], 
+        //   audioFile!.name, 
+        //   { type: audioFile!.type }
+        // );
 
-        const formData = new FormData();
-        formData.append('audioFile', encryptedFile);
-        if (coverArt) {
-          formData.append('coverArt', coverArt);
-        }
+        // const formData = new FormData();
+        // formData.append('audioFile', encryptedFile);
+        // if (coverArt) {
+        //   formData.append('coverArt', coverArt);
+        // }
 
         const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
-          body: formData,
+          body: finalAudioData,
         });
         if (uploadError) throw uploadError;
         uploadData = data;
