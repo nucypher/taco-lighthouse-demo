@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TacoConditionsForm } from './TacoConditionsForm';
 import { ScrollArea } from './ui/scroll-area';
+import { Switch } from './ui/switch';
 
 interface ReturnValueTest {
   comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
@@ -34,6 +35,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [conditions, setConditions] = useState<TacoCondition[]>([]);
+  const [devMode, setDevMode] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +50,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       return;
     }
 
-    if (!audioFile) {
+    if (!devMode && !audioFile) {
       toast({
         title: 'Error',
         description: 'Please select an audio file',
@@ -59,26 +61,37 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('audioFile', audioFile);
-      if (coverArt) {
-        formData.append('coverArt', coverArt);
-      }
-      if (conditions.length > 0) {
-        formData.append('conditions', JSON.stringify(conditions));
-      }
+      let uploadData;
+      
+      if (devMode) {
+        // Use test data in dev mode
+        uploadData = {
+          audioCid: 'test-audio-cid',
+          coverArtCid: 'test-cover-art-cid'
+        };
+        console.log('Dev mode - Conditions:', conditions);
+      } else {
+        const formData = new FormData();
+        formData.append('audioFile', audioFile!);
+        if (coverArt) {
+          formData.append('coverArt', coverArt);
+        }
+        if (conditions.length > 0) {
+          formData.append('conditions', JSON.stringify(conditions));
+        }
 
-      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
-        body: formData,
-      });
-
-      if (uploadError) throw uploadError;
+        const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
+          body: formData,
+        });
+        if (uploadError) throw uploadError;
+        uploadData = data;
+      }
 
       const { error: dbError } = await supabase
         .from('tracks')
         .insert({
-          title,
-          description,
+          title: devMode ? 'Test Track' : title,
+          description: devMode ? 'Test Description' : description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
           owner_id: wallet.accounts[0].address,
@@ -88,7 +101,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       toast({
         title: 'Success',
-        description: 'Track uploaded successfully',
+        description: devMode ? 'Test track created successfully' : 'Track uploaded successfully',
       });
 
       setTitle('');
@@ -113,56 +126,69 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
     <div className="relative flex flex-col h-[calc(100vh-200px)]">
       <ScrollArea className="flex-1 px-4 pb-16">
         <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
-          <div className="space-y-2">
-            <Label htmlFor="title">Track Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter track title"
-              required
+          <div className="flex items-center space-x-2 mb-4">
+            <Switch
+              id="devMode"
+              checked={devMode}
+              onCheckedChange={setDevMode}
             />
+            <Label htmlFor="devMode">Development Mode</Label>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter track description"
-              rows={3}
-            />
-          </div>
+          {!devMode && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="title">Track Title</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter track title"
+                  required
+                />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="audioFile">Audio File</Label>
-              <Input
-                id="audioFile"
-                type="file"
-                accept="audio/*"
-                onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Supported: MP3, WAV, FLAC
-              </p>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter track description"
+                  rows={3}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="coverArt">Cover Art</Label>
-              <Input
-                id="coverArt"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setCoverArt(e.target.files?.[0] || null)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Recommended: 1400x1400px
-              </p>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="audioFile">Audio File</Label>
+                  <Input
+                    id="audioFile"
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Supported: MP3, WAV, FLAC
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="coverArt">Cover Art</Label>
+                  <Input
+                    id="coverArt"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setCoverArt(e.target.files?.[0] || null)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Recommended: 1400x1400px
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label>Access Conditions</Label>
@@ -179,7 +205,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           className="w-full" 
           onClick={handleSubmit}
         >
-          {isUploading ? 'Uploading...' : 'Upload Track'}
+          {isUploading ? 'Uploading...' : devMode ? 'Create Test Track' : 'Upload Track'}
         </Button>
       </div>
     </div>
