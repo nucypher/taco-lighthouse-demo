@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TacoConditionsForm } from './TacoConditionsForm';
 import { ScrollArea } from './ui/scroll-area';
 import { Switch } from './ui/switch';
-import { conditions, encrypt, domains, initialize } from '@nucypher/taco';
+import { conditions, encrypt, domains } from '@nucypher/taco';
 import { ethers } from 'ethers';
 
 interface ReturnValueTest {
@@ -71,11 +71,9 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           coverArtCid: 'test-cover-art-cid',
         };
       } else {
-        // Initialize TACo
-        await initialize();
-        
-        // Setup Web3 provider
+        // Initialize Web3 provider and signer
         const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = web3Provider.getSigner();
 
         // Read the audio file as ArrayBuffer
         const audioBuffer = await audioFile!.arrayBuffer();
@@ -86,9 +84,11 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           const condition = conditions.reduce((acc, curr) => acc.and(curr));
           finalAudioData = await encrypt(
             web3Provider,
-            domains.TESTNET,
+            domains.DEVNET,
             new Uint8Array(audioBuffer),
-            condition
+            condition,
+            27,
+            signer
           );
         } else {
           finalAudioData = audioBuffer;
@@ -237,4 +237,4 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       </div>
     </div>
   );
-};
+});
