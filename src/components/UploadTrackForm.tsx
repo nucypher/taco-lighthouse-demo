@@ -57,7 +57,16 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       if (uploadError) throw uploadError;
 
-      // Save track information to database
+      // Get the user's ID from the users table using their wallet address
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('wallet_address', wallet.accounts[0].address)
+        .single();
+
+      if (userError) throw userError;
+
+      // Save track information to database using the user's ID
       const { error: dbError } = await supabase
         .from('tracks')
         .insert({
@@ -65,7 +74,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: wallet.label, // Use the wallet address as the owner ID
+          owner_id: userData.id, // Use the actual user ID from the users table
         });
 
       if (dbError) throw dbError;
