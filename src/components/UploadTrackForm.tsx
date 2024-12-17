@@ -22,7 +22,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!wallet) {
+    if (!wallet?.accounts?.[0]?.address) {
       toast({
         title: 'Error',
         description: 'Please connect your wallet to upload tracks',
@@ -63,7 +63,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       if (uploadError) throw uploadError;
 
-      // Save track information to database
+      // Save track information to database with owner_id as wallet address
       const { error: dbError } = await supabase
         .from('tracks')
         .insert({
@@ -71,6 +71,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
+          owner_id: wallet.accounts[0].address, // Add the wallet address as owner_id
         });
 
       if (dbError) throw dbError;
