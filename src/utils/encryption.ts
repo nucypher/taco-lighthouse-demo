@@ -13,7 +13,7 @@ export async function encryptAudioFile(
     'wss://polygon-amoy-bor-rpc.publicnode.com',
     {
       name: 'amoy',
-      chainId: 80002, // Mumbai testnet chainId
+      chainId: 80002, // Amoy testnet chainId
     }
   );
 
@@ -21,11 +21,11 @@ export async function encryptAudioFile(
     domain: domains.DEVNET,
     conditionType: condition.constructor.name,
     ritualsToTry: 27,
-    network: await mumbaiProvider.getNetwork()
+    network: await amoyProvider.getNetwork()
   });
   
   const encryptedData = await encrypt(
-    mumbaiProvider,
+    amoyProvider,
     domains.DEVNET,
     new Uint8Array(audioBuffer),
     condition,

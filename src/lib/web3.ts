@@ -14,7 +14,7 @@ const web3Onboard = Onboard({
     {
       id: '0x13882', // Polygon amoy in hex
       token: 'MATIC',
-      label: 'Polygon Mumbai Testnet',
+      label: 'Polygon Amoy Testnet',
       rpcUrl: 'wss://polygon-amoy-bor-rpc.publicnode.com'
     }
   ],
