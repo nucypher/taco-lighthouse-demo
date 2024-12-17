@@ -40,38 +40,6 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "tracks_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          created_at: string | null
-          display_name: string | null
-          id: string
-          updated_at: string | null
-          wallet_address: string
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: string | null
-          id?: string
-          updated_at?: string | null
-          wallet_address: string
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: string | null
-          id?: string
-          updated_at?: string | null
-          wallet_address?: string
-        }
         Relationships: []
       }
     }
