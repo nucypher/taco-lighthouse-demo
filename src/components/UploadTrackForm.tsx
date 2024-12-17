@@ -6,7 +6,20 @@ import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TacoConditionsForm } from './TacoConditionsForm';
-import { Condition } from '@nucypher/taco';
+
+interface ReturnValueTest {
+  comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
+  value: string;
+}
+
+interface TacoCondition {
+  chain: string;
+  contractAddress: string;
+  standardContractType: 'ERC20' | 'ERC721' | 'ERC1155';
+  method: string;
+  parameters: string[];
+  returnValueTest: ReturnValueTest;
+}
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -19,7 +32,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [conditions, setConditions] = useState<Condition[]>([]);
+  const [conditions, setConditions] = useState<TacoCondition[]>([]);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

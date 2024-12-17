@@ -2,10 +2,23 @@ import { useState } from 'react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Condition } from '@nucypher/taco';
+
+interface ReturnValueTest {
+  comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
+  value: string;
+}
+
+interface TacoCondition {
+  chain: string;
+  contractAddress: string;
+  standardContractType: 'ERC20' | 'ERC721' | 'ERC1155';
+  method: string;
+  parameters: string[];
+  returnValueTest: ReturnValueTest;
+}
 
 interface TacoConditionsFormProps {
-  onChange: (conditions: Condition[]) => void;
+  onChange: (conditions: TacoCondition[]) => void;
 }
 
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
@@ -16,7 +29,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const handleChange = () => {
     if (!contractAddress || !minBalance) return;
 
-    const condition: Condition = {
+    const condition: TacoCondition = {
       chain,
       contractAddress,
       standardContractType: 'ERC20',
