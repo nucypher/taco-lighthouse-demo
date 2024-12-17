@@ -1,7 +1,7 @@
 import { Play, Pause } from "lucide-react";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useRef } from "react";
+import { useAudioPlayer } from "@/App";
 
 interface TrackCardProps {
   title: string;
@@ -11,17 +11,16 @@ interface TrackCardProps {
   ipfsCid: string | null;
 }
 
-export const TrackCard = ({ title, artist, coverUrl, trackId, ipfsCid }: TrackCardProps) => {
+export const TrackCard = ({ title, artist, coverUrl, ipfsCid }: TrackCardProps) => {
   const { toast } = useToast();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useAudioPlayer();
 
   const getTrackUrl = (cid: string | null) => {
     if (!cid) return null;
     return `https://gateway.lighthouse.storage/ipfs/${cid}`;
   };
 
-  const handlePlay = async () => {
+  const handlePlay = () => {
     const trackUrl = getTrackUrl(ipfsCid);
     if (!trackUrl) {
       toast({
@@ -32,32 +31,23 @@ export const TrackCard = ({ title, artist, coverUrl, trackId, ipfsCid }: TrackCa
       return;
     }
 
-    if (!audioRef.current) {
-      audioRef.current = new Audio(trackUrl);
-      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
-    }
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    if (currentTrack?.audioUrl === trackUrl) {
+      togglePlayPause();
     } else {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-        toast({
-          title: 'Playing Track',
-          description: `Now playing ${title} by ${artist}`,
-        });
-      } catch (error) {
-        console.error('Error playing track:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to play track',
-          variant: 'destructive',
-        });
-      }
+      playTrack({
+        title,
+        artist,
+        coverUrl,
+        audioUrl: trackUrl,
+      });
+      toast({
+        title: 'Playing Track',
+        description: `Now playing ${title} by ${artist}`,
+      });
     }
   };
+
+  const isThisTrackPlaying = currentTrack?.audioUrl === getTrackUrl(ipfsCid) && isPlaying;
 
   return (
     <div className="group relative overflow-hidden rounded-sm border border-border hover-scale">
@@ -73,7 +63,7 @@ export const TrackCard = ({ title, artist, coverUrl, trackId, ipfsCid }: TrackCa
           className="rounded-sm"
           onClick={handlePlay}
         >
-          {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+          {isThisTrackPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
         </Button>
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-4 glass-overlay">
