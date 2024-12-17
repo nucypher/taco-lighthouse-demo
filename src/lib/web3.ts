@@ -22,26 +22,6 @@ const web3Onboard = Onboard({
     name: 'D-Sound',
     icon: '/favicon.ico',
     description: 'Decentralized Sound Platform'
-  },
-  theme: {
-    '--w3o-background-color': 'hsl(var(--background))',
-    '--w3o-foreground-color': 'hsl(var(--foreground))',
-    '--w3o-text-color': 'hsl(var(--foreground))',
-    '--w3o-border-color': 'hsl(var(--border))',
-    '--w3o-action-color': 'hsl(var(--primary))',
-    '--w3o-border-radius': '0.25rem',
-    '--w3o-font-family': '"Fira Code", monospace',
-    '--w3o-modal-z-index': '100',
-    '--w3o-modal-backdrop-background': 'rgba(0, 0, 0, 0.2)',
-    '--w3o-modal-background': 'hsl(var(--background))',
-    '--w3o-modal-color': 'hsl(var(--foreground))',
-    '--w3o-modal-border-color': 'hsl(var(--border))',
-    '--w3o-button-border-radius': '0.25rem',
-    '--w3o-button-hover-background-color': 'hsl(var(--primary))',
-    '--w3o-button-hover-color': 'hsl(var(--primary-foreground))',
-    '--w3o-button-background-color': 'transparent',
-    '--w3o-button-color': 'hsl(var(--foreground))',
-    '--w3o-button-border-color': 'hsl(var(--border))'
   }
 });
 
