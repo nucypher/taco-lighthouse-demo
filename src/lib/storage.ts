@@ -1,14 +1,14 @@
 import { createData, InjectedEthereumSigner } from 'arbundles';
-import { TurboAuthenticatedClient } from '@ardrive/turbo-sdk/web';
+import { TurboFactory, TurboSigner } from '@ardrive/turbo-sdk/web';
+import { ethers } from 'ethers';
 
-// Initialize Turbo SDK with the correct configuration
-const turbo = new TurboAuthenticatedClient({
-  auth: {
-    provider: 'arconnect'
-  },
-  gateway: 'https://turbo.ardrive.io',
-  network: 'mainnet'
-});
+// Initialize provider
+const getProvider = () => {
+  if (!window.ethereum) {
+    throw new Error("No Ethereum provider found");
+  }
+  return new ethers.providers.Web3Provider(window.ethereum);
+};
 
 export interface UploadTrackOptions {
   file: File;
@@ -24,14 +24,15 @@ export interface UploadTrackOptions {
   };
 }
 
-export const uploadTrack = async ({ file, title, artist, accessConditions }: UploadTrackOptions) => {
+export const uploadTrack = async ({ file, title, artist }: UploadTrackOptions) => {
   try {
-    // Convert file to ArrayBuffer for arbundles
+    const provider = getProvider();
+    const signer = new InjectedEthereumSigner(provider);
+    await signer.setPublicKey();
+
+    // Convert file to string/buffer for upload
     const fileData = await file.arrayBuffer();
     const fileBytes = new Uint8Array(fileData);
-    
-    // Create signer (this needs to be implemented based on your wallet integration)
-    const signer = {} as InjectedEthereumSigner; // Placeholder - implement actual signer
     
     // Create data item with tags
     const tags = [
@@ -45,23 +46,27 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
     const dataItem = createData(fileBytes, signer, { tags });
     await dataItem.sign(signer);
     
+    // Initialize Turbo client
+    const turbo = TurboFactory.authenticated({
+      signer: signer as unknown as TurboSigner,
+    });
+
     // Upload to Arweave using Turbo
-    const uploadResponse = await turbo.uploadSignedDataItem({
+    const response = await turbo.uploadSignedDataItem({
       dataItemStreamFactory: () => dataItem.getRaw(),
       dataItemSizeFactory: () => dataItem.getRaw().byteLength,
     });
 
-    // Store metadata
-    const metadata = {
-      title,
-      artist,
-      contentType: file.type,
-      timestamp: Date.now(),
-    };
+    console.log('Upload response:', response);
 
     return {
-      id: uploadResponse.id,
-      metadata,
+      id: response.id,
+      metadata: {
+        title,
+        artist,
+        contentType: file.type,
+        timestamp: Date.now(),
+      },
     };
   } catch (error) {
     console.error('Error uploading track:', error);
