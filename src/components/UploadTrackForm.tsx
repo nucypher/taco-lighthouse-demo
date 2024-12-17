@@ -41,6 +41,13 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
+      // Get the current authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Authentication required');
+      }
+
       // Upload files to Lighthouse
       const formData = new FormData();
       formData.append('audioFile', audioFile);
@@ -62,7 +69,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: wallet.id,
+          owner_id: user.id, // Use the authenticated user's ID
         });
 
       if (dbError) throw dbError;
