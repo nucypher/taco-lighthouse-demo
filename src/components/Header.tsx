@@ -6,6 +6,7 @@ import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Header = () => {
   const [wallet, setWallet] = useState<any>(null);
@@ -16,11 +17,38 @@ export const Header = () => {
     try {
       const connectedWallet = await connectWallet();
       setWallet(connectedWallet);
+
+      // Sign up or sign in the user with their wallet address
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: `${connectedWallet.label}@placeholder.com`,
+        password: connectedWallet.label,
+        options: {
+          data: {
+            wallet_address: connectedWallet.label,
+          }
+        }
+      });
+
+      if (authError) {
+        // If user already exists, try to sign in
+        if (authError.message.includes('already registered')) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: `${connectedWallet.label}@placeholder.com`,
+            password: connectedWallet.label,
+          });
+
+          if (signInError) throw signInError;
+        } else {
+          throw authError;
+        }
+      }
+
       toast({
         title: "Connected",
         description: "Wallet connected successfully",
       });
     } catch (error) {
+      console.error('Connection error:', error);
       toast({
         title: "Error",
         description: "Failed to connect wallet",
@@ -32,6 +60,7 @@ export const Header = () => {
   const handleDisconnect = async () => {
     if (wallet) {
       await disconnectWallet(wallet);
+      await supabase.auth.signOut();
       setWallet(null);
       toast({
         title: "Disconnected",
