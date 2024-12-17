@@ -4,9 +4,12 @@ import { Input } from "./ui/input";
 import { useState, useEffect } from "react";
 import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { UploadTrackForm } from "./UploadTrackForm";
 
 export const Header = () => {
   const [wallet, setWallet] = useState<any>(null);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { toast } = useToast();
 
   const handleConnect = async () => {
@@ -51,7 +54,7 @@ export const Header = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => setShowUploadDialog(true)}>
             <Upload className="h-5 w-5" />
           </Button>
           {wallet ? (
@@ -65,6 +68,15 @@ export const Header = () => {
           )}
         </div>
       </div>
+
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Upload Track</DialogTitle>
+          </DialogHeader>
+          <UploadTrackForm onSuccess={() => setShowUploadDialog(false)} />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

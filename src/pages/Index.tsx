@@ -2,8 +2,6 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
-import { UploadTrackForm } from "@/components/UploadTrackForm";
-import { useState } from "react";
 
 const FEATURED_TRACKS = [
   {
@@ -39,27 +37,10 @@ const FEATURED_TRACKS = [
 ];
 
 const Index = () => {
-  const [showUploadForm, setShowUploadForm] = useState(false);
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 pt-24 pb-16">
-        <div className="mb-8">
-          <Button 
-            onClick={() => setShowUploadForm(!showUploadForm)}
-            className="w-full md:w-auto"
-          >
-            {showUploadForm ? 'Cancel Upload' : 'Upload Track'}
-          </Button>
-          
-          {showUploadForm && (
-            <div className="mt-6">
-              <UploadTrackForm />
-            </div>
-          )}
-        </div>
-
         <HeroSection />
         <section>
           <div className="flex items-center justify-between mb-6">

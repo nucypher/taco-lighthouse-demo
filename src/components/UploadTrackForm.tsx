@@ -5,7 +5,11 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-export const UploadTrackForm = () => {
+interface UploadTrackFormProps {
+  onSuccess?: () => void;
+}
+
+export const UploadTrackForm = ({ onSuccess }: UploadTrackFormProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -45,6 +49,7 @@ export const UploadTrackForm = () => {
       setDescription('');
       setAudioFile(null);
       setCoverArt(null);
+      onSuccess?.();
     } catch (error) {
       toast({
         title: 'Error',
@@ -57,7 +62,7 @@ export const UploadTrackForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="title">Track Title</Label>
         <Input
