@@ -1,6 +1,6 @@
 import { createData, InjectedEthereumSigner } from 'arbundles';
 import { TurboFactory } from '@ardrive/turbo-sdk/web';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 
 declare global {
   interface Window {
@@ -29,7 +29,7 @@ export const uploadTrack = async ({ file, title, artist }: UploadTrackOptions) =
     }
     
     // Initialize provider with Web3Provider
-    const provider = new ethers.Web3Provider(window.ethereum);
+    const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = new InjectedEthereumSigner(provider);
     await signer.setPublicKey();
 
