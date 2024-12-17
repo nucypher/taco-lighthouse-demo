@@ -6,6 +6,7 @@ import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
+import { SIWEAuth } from "./SIWEAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Header = () => {
@@ -19,36 +20,6 @@ export const Header = () => {
       
       if (!connectedWallet) {
         throw new Error('Failed to connect wallet');
-      }
-
-      const walletAddress = connectedWallet.accounts[0].address;
-
-      // First check if user exists
-      const { data: existingUser, error: fetchError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('wallet_address', walletAddress)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        throw fetchError;
-      }
-
-      if (!existingUser) {
-        // Create new user if they don't exist
-        const { data: newUser, error: createError } = await supabase
-          .from('users')
-          .insert({
-            wallet_address: walletAddress,
-          })
-          .select('id')
-          .single();
-
-        if (createError) throw createError;
-        
-        if (!newUser) {
-          throw new Error('Failed to create user');
-        }
       }
 
       setWallet(connectedWallet);
@@ -70,6 +41,7 @@ export const Header = () => {
     try {
       if (wallet) {
         await disconnectWallet(wallet);
+        await supabase.auth.signOut();
         setWallet(null);
         toast({
           title: "Disconnected",
@@ -116,9 +88,20 @@ export const Header = () => {
             <Upload className="h-5 w-5" />
           </Button>
           {wallet ? (
-            <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
-              {wallet.accounts[0].address.slice(0, 6)}...{wallet.accounts[0].address.slice(-4)}
-            </Button>
+            <div className="flex items-center gap-2">
+              <SIWEAuth 
+                address={wallet.accounts[0].address} 
+                onSuccess={() => {
+                  toast({
+                    title: "Success",
+                    description: "You can now upload tracks",
+                  });
+                }}
+              />
+              <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
+                {wallet.accounts[0].address.slice(0, 6)}...{wallet.accounts[0].address.slice(-4)}
+              </Button>
+            </div>
           ) : (
             <Button onClick={handleConnect} className="rounded-sm font-medium">
               Connect Wallet

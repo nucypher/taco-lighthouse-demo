@@ -42,23 +42,15 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      // First verify the user exists in our database
-      const walletAddress = wallet.accounts[0].address;
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('wallet_address', walletAddress)
-        .single();
-
-      if (userError) {
-        throw new Error('User not found. Please try reconnecting your wallet.');
+      // Get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) throw sessionError;
+      if (!session) {
+        throw new Error('Please sign in with Ethereum first');
       }
 
-      if (!userData) {
-        throw new Error('User account not properly set up. Please try reconnecting your wallet.');
-      }
-
-      // Now that we've verified the user exists, proceed with the upload
+      // Now that we've verified the session, proceed with the upload
       const formData = new FormData();
       formData.append('audioFile', audioFile);
       if (coverArt) {
@@ -71,7 +63,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       if (uploadError) throw uploadError;
 
-      // Save track information to database using the user's ID
+      // Save track information to database
       const { error: dbError } = await supabase
         .from('tracks')
         .insert({
@@ -79,7 +71,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: userData.id,
         });
 
       if (dbError) throw dbError;
