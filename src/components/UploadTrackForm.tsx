@@ -57,14 +57,29 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       if (uploadError) throw uploadError;
 
-      // Get the user's ID from the users table using their wallet address
-      const { data: userData, error: userError } = await supabase
+      // First, ensure user exists in the database
+      const walletAddress = wallet.accounts[0].address;
+      let { data: userData, error: userError } = await supabase
         .from('users')
         .select('id')
-        .eq('wallet_address', wallet.accounts[0].address)
-        .single();
+        .eq('wallet_address', walletAddress)
+        .maybeSingle(); // Use maybeSingle() instead of single()
 
-      if (userError) throw userError;
+      if (!userData) {
+        // Create user if doesn't exist
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            wallet_address: walletAddress,
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        userData = newUser;
+      }
+
+      if (!userData) throw new Error('Failed to get or create user');
 
       // Save track information to database using the user's ID
       const { error: dbError } = await supabase
@@ -74,7 +89,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: userData.id, // Use the actual user ID from the users table
+          owner_id: userData.id,
         });
 
       if (dbError) throw dbError;
