@@ -1,4 +1,4 @@
-import { TurboFactory, createData } from '@ardrive/turbo-sdk';
+import { TurboFactory, TurboUploader } from '@ardrive/turbo-sdk';
 
 // Initialize Turbo SDK with the correct configuration
 const turbo = TurboFactory.authenticated({
@@ -21,7 +21,24 @@ export interface UploadTrackOptions {
 
 export const uploadTrack = async ({ file, title, artist, accessConditions }: UploadTrackOptions) => {
   try {
-    // Create metadata
+    // Convert file to Uint8Array
+    const fileData = new Uint8Array(await file.arrayBuffer());
+
+    // Create uploader instance
+    const uploader = new TurboUploader({
+      tags: [
+        { name: 'Content-Type', value: file.type },
+        { name: 'App-Name', value: 'D-Sound' },
+        { name: 'Title', value: title },
+        { name: 'Artist', value: artist },
+        { name: 'Type', value: 'audio' },
+      ],
+    });
+
+    // Upload to Arweave using Turbo
+    const uploadResponse = await uploader.uploadData(fileData);
+
+    // Store metadata
     const metadata = {
       title,
       artist,
@@ -29,29 +46,8 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
       timestamp: Date.now(),
     };
 
-    // Convert file to Uint8Array
-    const fileData = new Uint8Array(await file.arrayBuffer());
-
-    // Create data item with metadata and TACo access conditions
-    const data = createData(
-      fileData,
-      {
-        tags: [
-          { name: 'Content-Type', value: file.type },
-          { name: 'App-Name', value: 'D-Sound' },
-          { name: 'Title', value: title },
-          { name: 'Artist', value: artist },
-          { name: 'Type', value: 'audio' },
-        ],
-      },
-      accessConditions
-    );
-
-    // Upload to Arweave using Turbo
-    const uploadResponse = await turbo.uploadData(data);
-
     return {
-      id: uploadResponse.id,
+      id: uploadResponse.dataTxId,
       metadata,
     };
   } catch (error) {
@@ -62,7 +58,10 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
 
 export const getTrack = async (id: string) => {
   try {
-    const response = await turbo.getData(id);
+    const response = await fetch(`https://arweave.net/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch track');
+    }
     return response;
   } catch (error) {
     console.error('Error fetching track:', error);
