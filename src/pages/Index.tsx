@@ -2,45 +2,64 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
+import { UploadTrackForm } from "@/components/UploadTrackForm";
+import { useState } from "react";
 
 const FEATURED_TRACKS = [
   {
     title: "I'm the One",
     artist: "DJ Khaled ft. Justin Bieber",
     coverUrl: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
-    trackId: "track-1", // Added trackId
+    trackId: "track-1",
   },
   {
     title: "The Wind",
     artist: "Cat Stevens",
     coverUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    trackId: "track-2", // Added trackId
+    trackId: "track-2",
   },
   {
     title: "Happiness",
     artist: "Pharrell Williams",
     coverUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    trackId: "track-3", // Added trackId
+    trackId: "track-3",
   },
   {
     title: "Havana",
     artist: "Camila Cabello",
     coverUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475",
-    trackId: "track-4", // Added trackId
+    trackId: "track-4",
   },
   {
     title: "Bad Guy",
     artist: "Billie Eilish",
     coverUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e",
-    trackId: "track-5", // Added trackId
+    trackId: "track-5",
   },
 ];
 
 const Index = () => {
+  const [showUploadForm, setShowUploadForm] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 pt-24 pb-16">
+        <div className="mb-8">
+          <Button 
+            onClick={() => setShowUploadForm(!showUploadForm)}
+            className="w-full md:w-auto"
+          >
+            {showUploadForm ? 'Cancel Upload' : 'Upload Track'}
+          </Button>
+          
+          {showUploadForm && (
+            <div className="mt-6">
+              <UploadTrackForm />
+            </div>
+          )}
+        </div>
+
         <HeroSection />
         <section>
           <div className="flex items-center justify-between mb-6">
