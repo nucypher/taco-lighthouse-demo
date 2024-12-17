@@ -91,6 +91,18 @@ ToastClose.displayName = ToastPrimitives.Close.displayName
 const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Title
+    ref={ref}
+    className={cn("text-sm font-semibold", className)}
+    {...props}
+  />
+))
+ToastTitle.displayName = ToastPrimitives.Title.displayName
+
+const ToastDescription = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Description>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
 >(({ className, children, ...props }, ref) => {
   const content = typeof children === 'string' ? children : null;
   const copyToClipboard = async () => {
@@ -105,19 +117,19 @@ const ToastTitle = React.forwardRef<
   };
 
   return (
-    <div className="flex items-center justify-between w-full">
-      <ToastPrimitives.Title
+    <div className="flex items-start gap-2 w-full">
+      <ToastPrimitives.Description
         ref={ref}
-        className={cn("text-sm font-semibold", className)}
+        className={cn("text-sm opacity-90", className)}
         {...props}
       >
         {children}
-      </ToastPrimitives.Title>
+      </ToastPrimitives.Description>
       {content && (
         <Button
           variant="outline"
           size="sm"
-          className="h-8 ml-2"
+          className="h-8 shrink-0"
           onClick={copyToClipboard}
         >
           <Copy className="h-4 w-4" />
@@ -126,18 +138,6 @@ const ToastTitle = React.forwardRef<
     </div>
   );
 })
-ToastTitle.displayName = ToastPrimitives.Title.displayName
-
-const ToastDescription = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Description>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Description
-    ref={ref}
-    className={cn("text-sm opacity-90", className)}
-    {...props}
-  />
-))
 ToastDescription.displayName = ToastPrimitives.Description.displayName
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
