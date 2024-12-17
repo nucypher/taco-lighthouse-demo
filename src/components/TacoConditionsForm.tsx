@@ -7,13 +7,16 @@ import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
 import { conditions } from '@nucypher/taco';
 import { ConditionType } from '@/types/taco';
 
+// Use the provided contract address as the default
+const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
+
 interface TacoConditionsFormProps {
   onChange: (conditions: any[]) => void;
 }
 
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const [conditionType, setConditionType] = useState<ConditionType>('erc20');
-  const [contractAddress, setContractAddress] = useState('');
+  const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [minBalance, setMinBalance] = useState('');
   const [chain, setChain] = useState('sepolia');
 
