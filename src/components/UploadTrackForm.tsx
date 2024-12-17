@@ -17,14 +17,12 @@ export const UploadTrackForm = () => {
 
     setIsUploading(true);
     try {
-      // Example TACo access conditions - these would be customized based on user input
       const accessConditions = {
         contractTxId: 'your-contract-tx-id',
         contractSourceTxId: 'your-contract-source-tx-id',
         evaluationOptions: {
           sourceType: 'wasm',
           environment: {
-            // Example environment variables for access control
             allowedAddresses: ['wallet-address-1', 'wallet-address-2'],
           },
         },
@@ -33,7 +31,7 @@ export const UploadTrackForm = () => {
       await uploadTrack({
         file,
         title,
-        artist: 'Current User', // This would come from the connected wallet
+        artist: 'Current User',
         accessConditions,
       });
 
@@ -42,7 +40,6 @@ export const UploadTrackForm = () => {
         description: 'Track uploaded successfully',
       });
 
-      // Reset form
       setFile(null);
       setTitle('');
     } catch (error) {
