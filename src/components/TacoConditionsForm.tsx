@@ -2,30 +2,19 @@ import { useState } from 'react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
-interface ReturnValueTest {
-  comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
-  value: string;
-}
-
-interface TacoCondition {
-  chain: string;
-  contractAddress: string;
-  standardContractType: 'ERC20' | 'ERC721' | 'ERC1155' | null;
-  method: string;
-  parameters: string[];
-  returnValueTest: ReturnValueTest;
-}
+import { ChainSelector } from './taco/ChainSelector';
+import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
+import { TacoCondition, ConditionType } from '@/types/taco';
 
 interface TacoConditionsFormProps {
   onChange: (conditions: TacoCondition[]) => void;
 }
 
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
-  const [conditionType, setConditionType] = useState<'token' | 'contract' | 'time' | 'blockchain'>('token');
+  const [conditionType, setConditionType] = useState<ConditionType>('token');
   const [contractAddress, setContractAddress] = useState('');
   const [value, setValue] = useState('');
-  const [chain, setChain] = useState('ethereum');
+  const [chain, setChain] = useState('sepolia');
   const [method, setMethod] = useState('balanceOf');
   const [standardContractType, setStandardContractType] = useState<'ERC20' | 'ERC721' | 'ERC1155'>('ERC20');
   const [comparator, setComparator] = useState<'>=' | '<=' | '>' | '<' | '=' | '!='>('>=');
@@ -103,41 +92,21 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Condition Type</Label>
-        <Select value={conditionType} onValueChange={(value: 'token' | 'contract' | 'time' | 'blockchain') => {
-          setConditionType(value);
+      <ConditionTypeSelector 
+        value={conditionType} 
+        onChange={(value) => {
+          setConditionType(value as ConditionType);
           handleChange();
-        }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select condition type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="token">Token Balance</SelectItem>
-            <SelectItem value="contract">Contract State</SelectItem>
-            <SelectItem value="time">Time-based</SelectItem>
-            <SelectItem value="blockchain">Block Number</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        }} 
+      />
 
-      <div className="space-y-2">
-        <Label>Chain</Label>
-        <Select value={chain} onValueChange={(value) => {
+      <ChainSelector 
+        value={chain} 
+        onChange={(value) => {
           setChain(value);
           handleChange();
-        }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select chain" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ethereum">Ethereum</SelectItem>
-            <SelectItem value="polygon">Polygon</SelectItem>
-            <SelectItem value="optimism">Optimism</SelectItem>
-            <SelectItem value="arbitrum">Arbitrum</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        }} 
+      />
 
       {(conditionType === 'token' || conditionType === 'contract') && (
         <div className="space-y-2">
