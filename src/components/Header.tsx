@@ -10,9 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
+  onUploadSuccess?: () => void;
 }
 
-export const Header = ({ onSearch }: HeaderProps) => {
+export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const [wallet, setWallet] = useState<any>(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -117,7 +118,10 @@ export const Header = ({ onSearch }: HeaderProps) => {
             <DialogTitle>Upload Track</DialogTitle>
           </DialogHeader>
           <UploadTrackForm 
-            onSuccess={() => setShowUploadDialog(false)} 
+            onSuccess={() => {
+              setShowUploadDialog(false);
+              onUploadSuccess?.();
+            }} 
             wallet={wallet}
           />
         </DialogContent>
