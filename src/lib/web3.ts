@@ -1,12 +1,15 @@
 import Onboard from '@web3-onboard/core';
 import walletConnectModule from '@web3-onboard/walletconnect';
+import injectedModule from '@web3-onboard/injected-wallets';
 
 const walletConnect = walletConnectModule({
   projectId: 'c5d90293c2ddcb8e467deb6484b19f9b',
 });
 
+const injected = injectedModule();
+
 const web3Onboard = Onboard({
-  wallets: [walletConnect],
+  wallets: [injected, walletConnect],
   chains: [
     {
       id: '0x1', // Ethereum Mainnet
