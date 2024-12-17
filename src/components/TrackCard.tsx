@@ -70,7 +70,7 @@ export const TrackCard = ({
       // Decrypt the content
       const decryptedData = await decrypt(
         web3Provider,
-        domains.TESTNET,
+        domains.DEVNET,
         messageKit,
         conditionContext
       );
