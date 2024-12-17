@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 export const HeroSection = () => {
   return (
     <div className="relative h-[500px] rounded-lg overflow-hidden mb-8">
