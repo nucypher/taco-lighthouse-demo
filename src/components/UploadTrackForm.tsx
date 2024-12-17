@@ -99,9 +99,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
         const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
           body: finalAudioData,
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
         });
         if (uploadError) throw uploadError;
         uploadData = data;
