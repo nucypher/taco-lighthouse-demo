@@ -28,9 +28,11 @@ export const Header = () => {
         .from('users')
         .select('id')
         .eq('wallet_address', walletAddress)
-        .maybeSingle();
+        .single();
 
-      if (fetchError) throw fetchError;
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        throw fetchError;
+      }
 
       if (!existingUser) {
         // Create new user if they don't exist
