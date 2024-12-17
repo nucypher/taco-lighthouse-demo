@@ -87,7 +87,9 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
             web3Provider,
             domains.TESTNET,
             new Uint8Array(audioBuffer),
-            conditions
+            conditions,
+            1, // threshold: minimum number of conditions that must be satisfied
+            1  // shares: number of shares to split the secret into
           );
         } else {
           finalAudioData = audioBuffer;
