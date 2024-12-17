@@ -64,10 +64,10 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       let uploadData;
       
       if (devMode) {
-        // Use test data in dev mode
         uploadData = {
           audioCid: 'test-audio-cid',
-          coverArtCid: 'test-cover-art-cid'
+          coverArtCid: 'test-cover-art-cid',
+          decryptionConditions: []
         };
         console.log('Dev mode - Conditions:', conditions);
       } else {
@@ -95,6 +95,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
           owner_id: wallet.accounts[0].address,
+          decryption_conditions: uploadData.decryptionConditions
         });
 
       if (dbError) throw dbError;

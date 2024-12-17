@@ -1,7 +1,9 @@
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Lock } from "lucide-react";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioPlayer } from "@/App";
+import { decrypt } from "@nucypher/taco";
+import { useState } from "react";
 
 interface TrackCardProps {
   title: string;
@@ -9,18 +11,26 @@ interface TrackCardProps {
   coverUrl: string;
   trackId: string;
   ipfsCid: string | null;
+  decryptionConditions?: any;
 }
 
-export const TrackCard = ({ title, artist, coverUrl, ipfsCid }: TrackCardProps) => {
+export const TrackCard = ({ 
+  title, 
+  artist, 
+  coverUrl, 
+  ipfsCid,
+  decryptionConditions 
+}: TrackCardProps) => {
   const { toast } = useToast();
   const { currentTrack, isPlaying, playTrack, togglePlayPause } = useAudioPlayer();
+  const [isDecrypting, setIsDecrypting] = useState(false);
 
   const getTrackUrl = (cid: string | null) => {
     if (!cid) return null;
     return `https://gateway.lighthouse.storage/ipfs/${cid}`;
   };
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     const trackUrl = getTrackUrl(ipfsCid);
     if (!trackUrl) {
       toast({
@@ -33,17 +43,47 @@ export const TrackCard = ({ title, artist, coverUrl, ipfsCid }: TrackCardProps) 
 
     if (currentTrack?.audioUrl === trackUrl) {
       togglePlayPause();
-    } else {
+      return;
+    }
+
+    try {
+      setIsDecrypting(true);
+      
+      // Fetch the encrypted content
+      const response = await fetch(trackUrl);
+      const encryptedData = await response.arrayBuffer();
+
+      // Attempt to decrypt the content
+      const decryptedData = await decrypt(
+        new Uint8Array(encryptedData),
+        decryptionConditions
+      );
+
+      // Create a blob URL from the decrypted data
+      const blob = new Blob([decryptedData], { type: 'audio/mpeg' });
+      const decryptedUrl = URL.createObjectURL(blob);
+
+      // Play the decrypted track
       playTrack({
         title,
         artist,
         coverUrl,
-        audioUrl: trackUrl,
+        audioUrl: decryptedUrl,
       });
+
       toast({
         title: 'Playing Track',
         description: `Now playing ${title} by ${artist}`,
       });
+    } catch (error) {
+      console.error('Decryption error:', error);
+      toast({
+        title: 'Access Denied',
+        description: 'You do not meet the required conditions to play this track',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDecrypting(false);
     }
   };
 
@@ -61,10 +101,13 @@ export const TrackCard = ({ title, artist, coverUrl, ipfsCid }: TrackCardProps) 
           onClick={handlePlay}
           className="p-3 rounded-full bg-background/80 hover:bg-background/90 cursor-pointer transition-colors"
         >
-          {isThisTrackPlaying ? 
-            <Pause className="h-6 w-6" /> : 
+          {isDecrypting ? (
+            <Lock className="h-6 w-6 animate-pulse" />
+          ) : isThisTrackPlaying ? (
+            <Pause className="h-6 w-6" />
+          ) : (
             <Play className="h-6 w-6" />
-          }
+          )}
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-4 glass-overlay">

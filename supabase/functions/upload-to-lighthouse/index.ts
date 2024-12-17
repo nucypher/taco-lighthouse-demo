@@ -1,71 +1,118 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { conditions, encrypt } from 'https://esm.sh/@nucypher/taco'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-async function uploadToLighthouse(file: File) {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const response = await fetch("https://node.lighthouse.storage/api/v0/add", {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to upload to Lighthouse: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-  return result.Hash;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const formData = await req.formData();
-    const audioFile = formData.get('audioFile') as File;
-    const coverArt = formData.get('coverArt') as File;
-
+    const formData = await req.formData()
+    const audioFile = formData.get('audioFile')
+    const coverArt = formData.get('coverArt')
+    const conditionsStr = formData.get('conditions')
+    
     if (!audioFile) {
-      return new Response(
-        JSON.stringify({ error: 'No audio file provided' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+      throw new Error('No audio file provided')
     }
 
-    console.log('Uploading audio file to Lighthouse...');
-    const audioCid = await uploadToLighthouse(audioFile);
-    console.log('Audio file uploaded, CID:', audioCid);
+    // Parse conditions
+    let accessConditions = []
+    if (conditionsStr) {
+      const parsedConditions = JSON.parse(conditionsStr)
+      accessConditions = parsedConditions.map((condition: any) => {
+        if (condition.standardContractType === 'ERC20') {
+          return new conditions.predefined.erc20.ERC20Balance({
+            contractAddress: condition.contractAddress,
+            chain: condition.chain,
+            returnValueTest: condition.returnValueTest
+          })
+        } else {
+          return new conditions.predefined.erc721.ERC721Balance({
+            contractAddress: condition.contractAddress,
+            chain: condition.chain,
+            returnValueTest: condition.returnValueTest
+          })
+        }
+      })
+    }
 
-    let coverArtCid = null;
+    // Encrypt the audio file
+    const audioBuffer = await audioFile.arrayBuffer()
+    const { encryptedFile, decryptionConditions } = await encrypt(
+      new Uint8Array(audioBuffer),
+      accessConditions
+    )
+
+    // Upload encrypted file to Lighthouse
+    const formDataLighthouse = new FormData()
+    formDataLighthouse.append(
+      'file', 
+      new Blob([encryptedFile], { type: audioFile.type }), 
+      'encrypted-' + audioFile.name
+    )
+
+    const uploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
+      },
+      body: formDataLighthouse,
+    })
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload to Lighthouse')
+    }
+
+    const uploadData = await uploadResponse.json()
+    let coverArtCid = null
+
+    // Upload cover art if provided
     if (coverArt) {
-      console.log('Uploading cover art to Lighthouse...');
-      coverArtCid = await uploadToLighthouse(coverArt);
-      console.log('Cover art uploaded, CID:', coverArtCid);
+      const coverFormData = new FormData()
+      coverFormData.append('file', coverArt)
+      
+      const coverResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
+        },
+        body: coverFormData,
+      })
+
+      if (!coverResponse.ok) {
+        throw new Error('Failed to upload cover art')
+      }
+
+      const coverData = await coverResponse.json()
+      coverArtCid = coverData.Hash
     }
 
+    // Return both the CID and the decryption conditions
     return new Response(
-      JSON.stringify({ 
-        audioCid,
-        coverArtCid 
+      JSON.stringify({
+        audioCid: uploadData.Hash,
+        coverArtCid,
+        decryptionConditions
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
   } catch (error) {
-    console.error('Error uploading to Lighthouse:', error);
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    )
   }
-});
+})
