@@ -2,7 +2,7 @@ import Onboard from '@web3-onboard/core';
 import walletConnectModule from '@web3-onboard/walletconnect';
 
 const walletConnect = walletConnectModule({
-  projectId: 'YOUR_PROJECT_ID', // You'll need to get this from WalletConnect
+  projectId: 'c5d90293c2ddcb8e467deb6484b19f9b',
 });
 
 const web3Onboard = Onboard({
