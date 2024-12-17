@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
@@ -9,6 +9,7 @@ import { ConditionType } from '@/types/taco';
 
 // Use the provided contract address as the default
 const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
+const DEFAULT_MIN_BALANCE = '1';
 
 interface TacoConditionsFormProps {
   onChange: (condition: conditions.condition.Condition | null) => void;
@@ -17,10 +18,10 @@ interface TacoConditionsFormProps {
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const [conditionType, setConditionType] = useState<ConditionType>('erc20');
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
-  const [minBalance, setMinBalance] = useState('');
+  const [minBalance, setMinBalance] = useState(DEFAULT_MIN_BALANCE);
   const [chain, setChain] = useState('sepolia');
 
-  const handleChange = () => {
+  const createCondition = () => {
     if (!contractAddress || !minBalance) {
       onChange(null);
       return;
@@ -50,6 +51,15 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
     }
 
     onChange(condition);
+  };
+
+  // Set initial condition on mount
+  useEffect(() => {
+    createCondition();
+  }, []);
+
+  const handleChange = () => {
+    createCondition();
   };
 
   return (
