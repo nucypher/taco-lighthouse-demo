@@ -61,6 +61,16 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       return;
     }
 
+    // Add condition validation
+    if (!condition) {
+      toast({
+        title: 'Error',
+        description: 'Please set access conditions for the track',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
       let uploadData;
@@ -78,20 +88,15 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         // Read the audio file as ArrayBuffer
         const audioBuffer = await audioFile!.arrayBuffer();
         
-        // Encrypt the audio file using TACo if condition is set
-        let finalAudioData;
-        if (condition) {
-          finalAudioData = await encrypt(
-            web3Provider,
-            domains.DEVNET,
-            new Uint8Array(audioBuffer),
-            condition,
-            27,
-            signer
-          );
-        } else {
-          finalAudioData = audioBuffer;
-        }
+        // Encrypt the audio file using TACo
+        const finalAudioData = await encrypt(
+          web3Provider,
+          domains.DEVNET,
+          new Uint8Array(audioBuffer),
+          condition,
+          27,
+          signer
+        );
 
         // Create a new File object with the encrypted data
         const encryptedFile = new File(
@@ -217,7 +222,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           )}
 
           <div className="space-y-2">
-            <Label>Access Conditions</Label>
+            <Label>Access Conditions (Required)</Label>
             <div className="border rounded-md">
               <TacoConditionsForm onChange={setCondition} />
             </div>
@@ -227,7 +232,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t">
         <Button 
           type="submit" 
-          disabled={isUploading} 
+          disabled={isUploading || !condition} 
           className="w-full" 
           onClick={handleSubmit}
         >
