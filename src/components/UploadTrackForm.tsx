@@ -21,6 +21,8 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for wallet connection first
     if (!wallet) {
       toast({
         title: 'Error',
@@ -30,6 +32,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       return;
     }
 
+    // Check for audio file
     if (!audioFile) {
       toast({
         title: 'Error',
@@ -42,10 +45,17 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
     setIsUploading(true);
     try {
       // Get the current authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!user) {
-        throw new Error('Authentication required');
+      if (sessionError) throw sessionError;
+      
+      if (!session) {
+        toast({
+          title: 'Error',
+          description: 'Please sign in to upload tracks',
+          variant: 'destructive',
+        });
+        return;
       }
 
       // Upload files to Lighthouse
@@ -69,7 +79,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: user.id, // Use the authenticated user's ID
+          owner_id: session.user.id,
         });
 
       if (dbError) throw dbError;
@@ -89,7 +99,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       console.error('Upload error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to upload track',
+        description: error.message || 'Failed to upload track',
         variant: 'destructive',
       });
     } finally {
