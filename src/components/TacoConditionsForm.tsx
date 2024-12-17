@@ -31,7 +31,10 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       condition = new conditions.predefined.erc20.ERC20Balance({
         contractAddress,
         chain: chainId,
-        parameters: [minBalance]
+        returnValueTest: {
+          comparator: '>=',
+          value: minBalance
+        }
       });
     } else {
       if (erc721Mode === 'ownership') {
@@ -39,14 +42,20 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         condition = new conditions.predefined.erc721.ERC721Ownership({
           contractAddress,
           chain: chainId,
-          parameters: [tokenId]
+          returnValueTest: {
+            comparator: '==',
+            value: tokenId
+          }
         });
       } else {
         if (!minBalance) return;
         condition = new conditions.predefined.erc721.ERC721Balance({
           contractAddress,
           chain: chainId,
-          parameters: [minBalance]
+          returnValueTest: {
+            comparator: '>=',
+            value: minBalance
+          }
         });
       }
     }
