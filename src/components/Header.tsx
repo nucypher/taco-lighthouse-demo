@@ -6,7 +6,6 @@ import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
-import { SIWEAuth } from "./SIWEAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Header = () => {
@@ -88,20 +87,9 @@ export const Header = () => {
             <Upload className="h-5 w-5" />
           </Button>
           {wallet ? (
-            <div className="flex items-center gap-2">
-              <SIWEAuth 
-                address={wallet.accounts[0].address} 
-                onSuccess={() => {
-                  toast({
-                    title: "Success",
-                    description: "You can now upload tracks",
-                  });
-                }}
-              />
-              <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
-                {wallet.accounts[0].address.slice(0, 6)}...{wallet.accounts[0].address.slice(-4)}
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
+              {wallet.accounts[0].address.slice(0, 6)}...{wallet.accounts[0].address.slice(-4)}
+            </Button>
           ) : (
             <Button onClick={handleConnect} className="rounded-sm font-medium">
               Connect Wallet
