@@ -10,7 +10,7 @@ export async function encryptAudioFile(
   
   // Use Amoy testnet provider
   const amoyProvider = new ethers.providers.JsonRpcProvider(
-    'wss://polygon-amoy-bor-rpc.publicnode.com',
+    'https://polygon-amoy.infura.io/v3/c5d90293c2ddcb8e467deb6484b19f9b',
     {
       name: 'amoy',
       chainId: 80002, // Amoy testnet chainId
@@ -29,7 +29,8 @@ export async function encryptAudioFile(
     domains.DEVNET,
     new Uint8Array(audioBuffer),
     condition,
-    27
+    27,
+    amoyProvider.getSigner() // Add the signer as the 6th argument
   );
   
   // Convert ThresholdMessageKit to binary format
