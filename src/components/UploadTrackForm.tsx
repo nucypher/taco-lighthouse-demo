@@ -42,15 +42,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      // Get the current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) throw sessionError;
-      if (!session) {
-        throw new Error('Please sign in with Ethereum first');
-      }
-
-      // Now that we've verified the session, proceed with the upload
+      // Proceed with the upload since wallet is connected
       const formData = new FormData();
       formData.append('audioFile', audioFile);
       if (coverArt) {
@@ -71,7 +63,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           description,
           ipfs_cid: uploadData.audioCid,
           cover_art_cid: uploadData.coverArtCid,
-          owner_id: wallet.accounts[0].address, // Add the wallet address as owner_id
+          owner_id: wallet.accounts[0].address,
         });
 
       if (dbError) throw dbError;
