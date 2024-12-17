@@ -12,10 +12,16 @@ const web3Onboard = Onboard({
   wallets: [injected, walletConnect],
   chains: [
     {
-      id: '0x1', // Ethereum Mainnet
+      id: '0xaa36a7', // Sepolia (11155111 in hex)
       token: 'ETH',
-      label: 'Ethereum Mainnet',
-      rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'
+      label: 'Sepolia Testnet',
+      rpcUrl: 'https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID'
+    },
+    {
+      id: '0x13881', // Polygon Mumbai (80001 in hex)
+      token: 'MATIC',
+      label: 'Polygon Mumbai Testnet',
+      rpcUrl: 'https://polygon-mumbai.infura.io/v3/YOUR_INFURA_PROJECT_ID'
     }
   ],
   appMetadata: {
