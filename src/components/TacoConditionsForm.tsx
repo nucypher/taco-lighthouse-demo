@@ -42,9 +42,10 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         condition = new conditions.predefined.erc721.ERC721Ownership({
           contractAddress,
           chain: chainId,
+          parameters: [tokenId],
           returnValueTest: {
             comparator: '==',
-            value: tokenId
+            value: ':userAddress'
           }
         });
       } else {
