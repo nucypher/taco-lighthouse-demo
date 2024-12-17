@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        inter: ["Inter", "sans-serif"],
+        "fira-code": ["Fira Code", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",

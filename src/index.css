@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -25,7 +25,7 @@
     --border: 0 0% 20%;
     --input: 0 0% 20%;
     --ring: 217 91% 60%;
-    --radius: 0.5rem;
+    --radius: 0.25rem;
   }
 }
 
@@ -34,7 +34,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground font-fira-code;
   }
 }
 
