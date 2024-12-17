@@ -30,11 +30,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       condition = new ERC20Balance({
         contractAddress,
         chain: chainId,
-        method: 'balanceOf',
-        returnValueTest: {
-          comparator: ">=",
-          value: minBalance
-        }
+        minBalance
       });
     } else {
       if (erc721Mode === 'ownership') {
@@ -49,11 +45,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         condition = new ERC721Balance({
           contractAddress,
           chain: chainId,
-          method: 'balanceOf',
-          returnValueTest: {
-            comparator: ">=",
-            value: minBalance
-          }
+          minBalance
         });
       }
     }
