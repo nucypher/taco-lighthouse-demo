@@ -1,7 +1,7 @@
 import { Search, Upload, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -53,28 +53,28 @@ export const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-[2px] border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <h1 className="text-xl font-bold">D-Sound</h1>
+          <h1 className="text-xl font-bold tracking-tight">D-Sound</h1>
           <div className="relative w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tracks..."
-              className="pl-10 bg-secondary"
+              className="pl-10 bg-secondary rounded-sm"
             />
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handleUploadClick}>
+          <Button variant="ghost" size="icon" onClick={handleUploadClick} className="rounded-sm">
             <Upload className="h-5 w-5" />
           </Button>
           {wallet ? (
-            <Button variant="outline" onClick={handleDisconnect}>
+            <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
               {wallet.label.slice(0, 6)}...{wallet.label.slice(-4)}
             </Button>
           ) : (
-            <Button onClick={handleConnect}>
+            <Button onClick={handleConnect} className="rounded-sm font-medium">
               Connect Wallet
             </Button>
           )}
@@ -82,7 +82,7 @@ export const Header = () => {
       </div>
 
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] rounded-sm">
           <DialogHeader>
             <DialogTitle>Upload Track</DialogTitle>
           </DialogHeader>
