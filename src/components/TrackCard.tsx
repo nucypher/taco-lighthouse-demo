@@ -1,8 +1,9 @@
 import { Play, Pause, Lock } from "lucide-react";
-import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioPlayer } from "@/App";
-import { decrypt, conditions } from "@nucypher/taco";
+import { conditions, decrypt, domains, initialize } from '@nucypher/taco';
+import { EIP4361AuthProvider, USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
+import { ethers } from "ethers";
 import { useState } from "react";
 
 interface TrackCardProps {
@@ -11,7 +12,7 @@ interface TrackCardProps {
   coverUrl: string;
   trackId: string;
   ipfsCid: string | null;
-  decryptionConditions?: conditions.Condition[];
+  decryptionConditions?: conditions.condition.Condition[];
 }
 
 export const TrackCard = ({ 
@@ -49,15 +50,31 @@ export const TrackCard = ({
     try {
       setIsDecrypting(true);
       
+      // Initialize TACo
+      await initialize();
+      
+      // Setup Web3 provider
+      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+
       // Fetch the encrypted content
       const response = await fetch(trackUrl);
       const encryptedData = await response.arrayBuffer();
+      const messageKit = new Uint8Array(encryptedData);
 
-      // Attempt to decrypt the content using TACo
+      // Setup condition context and auth provider
+      const conditionContext = conditions.context.ConditionContext.fromMessageKit(messageKit);
+      const authProvider = new EIP4361AuthProvider(
+        web3Provider,
+        web3Provider.getSigner()
+      );
+      conditionContext.addAuthProvider(USER_ADDRESS_PARAM_DEFAULT, authProvider);
+
+      // Decrypt the content
       const decryptedData = await decrypt(
-        new Uint8Array(encryptedData),
-        decryptionConditions || [],
-        { provider: window.ethereum }
+        web3Provider,
+        domains.TESTNET,
+        messageKit,
+        conditionContext
       );
 
       // Create a blob URL from the decrypted data

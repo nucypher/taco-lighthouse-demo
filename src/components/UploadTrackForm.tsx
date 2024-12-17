@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { TacoConditionsForm } from './TacoConditionsForm';
 import { ScrollArea } from './ui/scroll-area';
 import { Switch } from './ui/switch';
-import { encrypt, conditions } from '@nucypher/taco';
+import { conditions, encrypt, domains, initialize } from '@nucypher/taco';
+import { ethers } from 'ethers';
 
 interface ReturnValueTest {
   comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
@@ -35,7 +36,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [conditions, setConditions] = useState<conditions.Condition[]>([]);
+  const [conditions, setConditions] = useState<conditions.condition.Condition[]>([]);
   const [devMode, setDevMode] = useState(false);
   const { toast } = useToast();
 
@@ -70,6 +71,12 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           coverArtCid: 'test-cover-art-cid',
         };
       } else {
+        // Initialize TACo
+        await initialize();
+        
+        // Setup Web3 provider
+        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+
         // Read the audio file as ArrayBuffer
         const audioBuffer = await audioFile!.arrayBuffer();
         
@@ -79,7 +86,10 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
           finalAudioData = await encrypt(
             new Uint8Array(audioBuffer),
             conditions,
-            { provider: window.ethereum }
+            web3Provider,
+            domains.TESTNET,
+            undefined,
+            undefined
           );
         } else {
           finalAudioData = audioBuffer;
