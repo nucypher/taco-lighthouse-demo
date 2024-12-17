@@ -44,27 +44,15 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      // Convert files to base64 strings
-      const audioBase64 = await fileToBase64(audioFile);
-      let coverArtBase64 = null;
+      // Upload files to Lighthouse
+      const formData = new FormData();
+      formData.append('audioFile', audioFile);
       if (coverArt) {
-        coverArtBase64 = await fileToBase64(coverArt);
+        formData.append('coverArt', coverArt);
       }
 
-      // Call the Edge Function with base64 encoded files
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
-        body: {
-          audioFile: {
-            name: audioFile.name,
-            type: audioFile.type,
-            data: audioBase64
-          },
-          coverArt: coverArt ? {
-            name: coverArt.name,
-            type: coverArt.type,
-            data: coverArtBase64
-          } : null
-        }
+        body: formData,
       });
 
       if (uploadError) throw uploadError;
@@ -103,24 +91,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
     } finally {
       setIsUploading(false);
     }
-  };
-
-  // Helper function to convert File to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          // Remove the data URL prefix (e.g., "data:image/png;base64,")
-          const base64 = reader.result.split(',')[1];
-          resolve(base64);
-        } else {
-          reject(new Error('Failed to convert file to base64'));
-        }
-      };
-      reader.onerror = error => reject(error);
-    });
   };
 
   return (
