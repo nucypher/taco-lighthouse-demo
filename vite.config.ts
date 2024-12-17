@@ -35,6 +35,11 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', 'buffer'],
+      output: {
+        manualChunks: {
+          vendor: ['arbundles', '@ardrive/turbo-sdk']
+        }
+      }
     }
   }
 }));
