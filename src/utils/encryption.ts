@@ -10,7 +10,7 @@ export async function encryptAudioFile(
   
   // Use Amoy testnet provider
   const amoyProvider = new ethers.providers.JsonRpcProvider(
-    'https://polygon-amoy.infura.io/v3/c5d90293c2ddcb8e467deb6484b19f9b',
+    'https://rpc-amoy.polygon.technology',
     {
       name: 'amoy',
       chainId: 80002, // Amoy testnet chainId
