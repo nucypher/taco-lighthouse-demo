@@ -10,6 +10,7 @@ import { ConditionType } from '@/types/taco';
 // Use the provided contract address as the default
 const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
 const DEFAULT_MIN_BALANCE = '1';
+const DEFAULT_CHAIN_ID = 11155111; // Sepolia
 
 interface TacoConditionsFormProps {
   onChange: (condition: conditions.condition.Condition | null) => void;
@@ -19,7 +20,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const [conditionType, setConditionType] = useState<ConditionType>('erc20');
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [minBalance, setMinBalance] = useState(DEFAULT_MIN_BALANCE);
-  const [chain, setChain] = useState('sepolia');
+  const [chainId, setChainId] = useState(DEFAULT_CHAIN_ID);
 
   const createCondition = () => {
     if (!contractAddress || !minBalance) {
@@ -27,13 +28,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       return;
     }
 
-    // Map chain names to their correct chain IDs for TACo
-    const chainIdMap = {
-      sepolia: 11155111,
-      polygon_amoy: 80001
-    };
-
-    const chainId = chainIdMap[chain as keyof typeof chainIdMap];
     console.log('Creating condition with chainId:', chainId);
 
     let condition;
@@ -82,9 +76,9 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         />
 
         <ChainSelector 
-          value={chain} 
+          value={chainId} 
           onChange={(value) => {
-            setChain(value);
+            setChainId(value);
             handleChange();
           }} 
         />

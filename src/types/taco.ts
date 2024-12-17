@@ -2,9 +2,10 @@ import { conditions } from '@nucypher/taco';
 
 export type ConditionType = 'erc20' | 'erc721';
 
+// Using direct chain IDs instead of string mappings
 export const SUPPORTED_CHAINS = {
-  sepolia: 'Sepolia Testnet',
-  polygon_amoy: 'Polygon Amoy Testnet'
+  11155111: 'Sepolia Testnet',
+  80001: 'Polygon Amoy Testnet'
 } as const;
 
 // Re-export the conditions we need
