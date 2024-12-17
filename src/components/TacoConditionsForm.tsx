@@ -5,11 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from './ui/scroll-area';
 import { ChainSelector } from './taco/ChainSelector';
 import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
-import { TacoCondition, ConditionType } from '@/types/taco';
-import { TokenBalanceCondition, TimeCondition } from '@nucypher/taco';
+import { ConditionType, ERC20Ownership, TimeCondition } from '@/types/taco';
 
 interface TacoConditionsFormProps {
-  onChange: (conditions: TacoCondition[]) => void;
+  onChange: (conditions: any[]) => void;
 }
 
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
@@ -18,30 +17,26 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
   const [value, setValue] = useState('');
   const [chain, setChain] = useState('sepolia');
   const [standardContractType, setStandardContractType] = useState<'ERC20' | 'ERC721' | 'ERC1155'>('ERC20');
-  const [comparator, setComparator] = useState<'>=' | '<=' | '>' | '<' | '=' | '!='>('>=');
 
   const handleChange = () => {
     if (!value) return;
 
-    let condition: TacoCondition;
+    let condition;
 
     switch (conditionType) {
       case 'token':
         if (!contractAddress) return;
-        condition = TokenBalanceCondition.create({
-          chain,
+        condition = new ERC20Ownership({
           contractAddress,
-          standardContractType,
-          comparator,
-          value,
+          parameters: [value], // Amount of tokens required
+          chain: chain === 'sepolia' ? 11155111 : 80002, // Chain IDs for Sepolia and Polygon Amoy
         });
         break;
 
       case 'time':
-        condition = TimeCondition.create({
-          chain,
-          comparator,
-          timestamp: Math.floor(new Date(value).getTime() / 1000).toString()
+        condition = new TimeCondition({
+          chain: chain === 'sepolia' ? 11155111 : 80002,
+          timestamp: Math.floor(new Date(value).getTime() / 1000)
         });
         break;
 
@@ -103,26 +98,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
             </div>
           </>
         )}
-
-        <div className="space-y-2">
-          <Label>Comparator</Label>
-          <Select value={comparator} onValueChange={(value: '>=' | '<=' | '>' | '<' | '=' | '!=') => {
-            setComparator(value);
-            handleChange();
-          }}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select comparator" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value=">=">Greater than or equal (≥)</SelectItem>
-              <SelectItem value="<=">Less than or equal (≤)</SelectItem>
-              <SelectItem value=">">Greater than (&gt;)</SelectItem>
-              <SelectItem value="<">Less than (&lt;)</SelectItem>
-              <SelectItem value="=">Equal (=)</SelectItem>
-              <SelectItem value="!=">Not equal (≠)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
         <div className="space-y-2">
           <Label>{conditionType === 'time' ? 'Date and Time' : 'Value'}</Label>

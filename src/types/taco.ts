@@ -1,20 +1,12 @@
-export interface ReturnValueTest {
-  comparator: '>=' | '<=' | '>' | '<' | '=' | '!=';
-  value: string;
-}
-
-export interface TacoCondition {
-  chain: string;
-  contractAddress: string;
-  standardContractType: 'ERC20' | 'ERC721' | 'ERC1155' | null;
-  method: string;
-  parameters: string[];
-  returnValueTest: ReturnValueTest;
-}
+import { conditions } from '@nucypher/taco';
 
 export type ConditionType = 'token' | 'time';
 
 export const SUPPORTED_CHAINS = {
   sepolia: 'Sepolia Testnet',
-  amoy: 'Amoy (Polygon Testnet)'
+  polygon_amoy: 'Polygon Amoy Testnet'
 } as const;
+
+// Re-export the conditions we need
+export const { ERC721Ownership, ERC20Ownership } = conditions.predefined.erc721;
+export const { TimeCondition } = conditions.predefined.time;
