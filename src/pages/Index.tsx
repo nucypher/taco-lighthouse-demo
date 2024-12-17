@@ -64,7 +64,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={handleSearch} />
+      <Header onSearch={handleSearch} onUploadSuccess={() => fetchTracks(searchQuery)} />
       <main className="container mx-auto px-4 pt-24 pb-16">
         <section>
           <div className="flex items-center justify-between mb-6">
