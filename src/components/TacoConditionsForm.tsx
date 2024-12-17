@@ -32,7 +32,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
 
     let condition;
     if (conditionType === 'erc20') {
-      condition = conditions.predefined.erc20.ERC20Balance.create({
+      condition = new conditions.predefined.erc20.ERC20Balance({
         contractAddress,
         chain: chainId,
         returnValueTest: {
@@ -41,7 +41,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         }
       });
     } else {
-      condition = conditions.predefined.erc721.ERC721Balance.create({
+      condition = new conditions.predefined.erc721.ERC721Balance({
         contractAddress,
         chain: chainId,
         returnValueTest: {
