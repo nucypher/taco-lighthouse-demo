@@ -43,6 +43,11 @@ const Index = () => {
     fetchRandomTracks();
   }, []);
 
+  const getArtworkUrl = (cid: string | null) => {
+    if (!cid) return "/placeholder.svg";
+    return `https://gateway.lighthouse.storage/ipfs/${cid}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -65,7 +70,7 @@ const Index = () => {
                   trackId={track.id}
                   title={track.title}
                   artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
-                  coverUrl={track.cover_art_cid || "/placeholder.svg"}
+                  coverUrl={getArtworkUrl(track.cover_art_cid)}
                 />
               ))
             ) : (

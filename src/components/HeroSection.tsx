@@ -40,6 +40,11 @@ export const HeroSection = () => {
     fetchRandomTrack();
   }, []);
 
+  const getArtworkUrl = (cid: string | null) => {
+    if (!cid) return "/placeholder.svg";
+    return `https://gateway.lighthouse.storage/ipfs/${cid}`;
+  };
+
   if (isLoading) {
     return (
       <div className="relative h-[500px] rounded-sm overflow-hidden mb-8 border border-border">
@@ -63,7 +68,7 @@ export const HeroSection = () => {
   return (
     <div className="relative h-[500px] rounded-sm overflow-hidden mb-8 border border-border">
       <img
-        src={randomTrack.cover_art_cid || "/placeholder.svg"}
+        src={getArtworkUrl(randomTrack.cover_art_cid)}
         alt={randomTrack.title}
         className="w-full h-full object-cover"
       />
