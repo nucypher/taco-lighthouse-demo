@@ -1,7 +1,9 @@
-import { TurboFactory, DataItem } from '@ardrive/turbo-sdk';
+import { TurboFactory, createData } from '@ardrive/turbo-sdk';
 
-// Initialize Turbo SDK
-const turbo = TurboFactory.authenticated({ authType: 'local-wallet' });
+// Initialize Turbo SDK with the correct configuration
+const turbo = TurboFactory.authenticated({
+  privateKey: 'your-private-key', // This should be obtained from the user's wallet
+});
 
 export interface UploadTrackOptions {
   file: File;
@@ -27,9 +29,12 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
       timestamp: Date.now(),
     };
 
-    // Create DataItem with TACo access conditions
-    const dataItem = await DataItem.create(
-      new Uint8Array(await file.arrayBuffer()),
+    // Convert file to Uint8Array
+    const fileData = new Uint8Array(await file.arrayBuffer());
+
+    // Create data item with metadata and TACo access conditions
+    const data = createData(
+      fileData,
       {
         tags: [
           { name: 'Content-Type', value: file.type },
@@ -38,12 +43,12 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
           { name: 'Artist', value: artist },
           { name: 'Type', value: 'audio' },
         ],
-        accessConditions,
-      }
+      },
+      accessConditions
     );
 
     // Upload to Arweave using Turbo
-    const uploadResponse = await turbo.uploadDataItem(dataItem);
+    const uploadResponse = await turbo.uploadData(data);
 
     return {
       id: uploadResponse.id,
@@ -57,7 +62,7 @@ export const uploadTrack = async ({ file, title, artist, accessConditions }: Upl
 
 export const getTrack = async (id: string) => {
   try {
-    const response = await turbo.getDataItem(id);
+    const response = await turbo.getData(id);
     return response;
   } catch (error) {
     console.error('Error fetching track:', error);

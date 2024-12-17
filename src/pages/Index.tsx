@@ -8,26 +8,31 @@ const FEATURED_TRACKS = [
     title: "I'm the One",
     artist: "DJ Khaled ft. Justin Bieber",
     coverUrl: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
+    trackId: "track-1", // Added trackId
   },
   {
     title: "The Wind",
     artist: "Cat Stevens",
     coverUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    trackId: "track-2", // Added trackId
   },
   {
     title: "Happiness",
     artist: "Pharrell Williams",
     coverUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+    trackId: "track-3", // Added trackId
   },
   {
     title: "Havana",
     artist: "Camila Cabello",
     coverUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475",
+    trackId: "track-4", // Added trackId
   },
   {
     title: "Bad Guy",
     artist: "Billie Eilish",
     coverUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e",
+    trackId: "track-5", // Added trackId
   },
 ];
 
@@ -44,7 +49,7 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {FEATURED_TRACKS.map((track) => (
-              <TrackCard key={track.title} {...track} />
+              <TrackCard key={track.trackId} {...track} />
             ))}
           </div>
         </section>
