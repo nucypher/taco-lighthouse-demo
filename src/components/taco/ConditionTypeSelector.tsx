@@ -10,14 +10,14 @@ interface ConditionTypeSelectorProps {
 export const ConditionTypeSelector = ({ value, onChange }: ConditionTypeSelectorProps) => {
   return (
     <div className="space-y-2">
-      <Label>Condition Type</Label>
+      <Label>Token Type</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Select condition type" />
+          <SelectValue placeholder="Select token type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="token">Token Balance</SelectItem>
-          <SelectItem value="time">Time-based</SelectItem>
+          <SelectItem value="erc20">ERC20 Balance</SelectItem>
+          <SelectItem value="erc721">ERC721 Token</SelectItem>
         </SelectContent>
       </Select>
     </div>

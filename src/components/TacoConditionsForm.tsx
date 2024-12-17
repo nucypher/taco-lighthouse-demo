@@ -5,54 +5,57 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from './ui/scroll-area';
 import { ChainSelector } from './taco/ChainSelector';
 import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
-import { ConditionType, ERC20Balance, TimeCondition } from '@/types/taco';
+import { ConditionType, ERC20Balance, ERC721Balance, ERC721Ownership } from '@/types/taco';
 
 interface TacoConditionsFormProps {
   onChange: (conditions: any[]) => void;
 }
 
 export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
-  const [conditionType, setConditionType] = useState<ConditionType>('token');
+  const [conditionType, setConditionType] = useState<ConditionType>('erc20');
   const [contractAddress, setContractAddress] = useState('');
-  const [value, setValue] = useState('');
+  const [tokenId, setTokenId] = useState('');
+  const [minBalance, setMinBalance] = useState('');
   const [chain, setChain] = useState('sepolia');
-  const [standardContractType, setStandardContractType] = useState<'ERC20' | 'ERC721' | 'ERC1155'>('ERC20');
+  const [erc721Mode, setErc721Mode] = useState<'balance' | 'ownership'>('ownership');
 
   const handleChange = () => {
-    if (!value) return;
+    if (!contractAddress) return;
 
     let condition;
+    const chainId = chain === 'sepolia' ? 11155111 : 80002;
 
-    switch (conditionType) {
-      case 'token':
-        if (!contractAddress) return;
-        condition = new ERC20Balance({
+    if (conditionType === 'erc20') {
+      if (!minBalance) return;
+      condition = new ERC20Balance({
+        contractAddress,
+        chain: chainId,
+        method: 'balanceOf',
+        returnValueTest: {
+          comparator: ">=",
+          value: minBalance
+        }
+      });
+    } else {
+      if (erc721Mode === 'ownership') {
+        if (!tokenId) return;
+        condition = new ERC721Ownership({
           contractAddress,
-          chain: chain === 'sepolia' ? 11155111 : 80002, // Chain IDs for Sepolia and Polygon Amoy
-          parameters: [value],
+          chain: chainId,
+          tokenId
+        });
+      } else {
+        if (!minBalance) return;
+        condition = new ERC721Balance({
+          contractAddress,
+          chain: chainId,
           method: 'balanceOf',
           returnValueTest: {
             comparator: ">=",
-            value: "0"
+            value: minBalance
           }
         });
-        break;
-
-      case 'time':
-        const timestamp = Math.floor(new Date(value).getTime() / 1000);
-        condition = new TimeCondition({
-          conditionType: 'time',
-          method: 'getTimestamp',
-          returnValueTest: {
-            comparator: ">=",
-            value: timestamp.toString()
-          },
-          chain: chain === 'sepolia' ? 11155111 : 80002,
-        });
-        break;
-
-      default:
-        return;
+      }
     }
 
     onChange([condition]);
@@ -77,55 +80,65 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
           }} 
         />
 
-        {conditionType === 'token' && (
-          <>
-            <div className="space-y-2">
-              <Label>Contract Address</Label>
-              <Input
-                placeholder="0x..."
-                value={contractAddress}
-                onChange={(e) => {
-                  setContractAddress(e.target.value);
-                  handleChange();
-                }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Token Standard</Label>
-              <Select value={standardContractType} onValueChange={(value: 'ERC20' | 'ERC721' | 'ERC1155') => {
-                setStandardContractType(value);
-                handleChange();
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select token standard" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ERC20">ERC20</SelectItem>
-                  <SelectItem value="ERC721">ERC721</SelectItem>
-                  <SelectItem value="ERC1155">ERC1155</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        )}
-
         <div className="space-y-2">
-          <Label>{conditionType === 'time' ? 'Date and Time' : 'Value'}</Label>
+          <Label>Contract Address</Label>
           <Input
-            type={conditionType === 'time' ? 'datetime-local' : 'text'}
-            placeholder={
-              conditionType === 'token' ? 'Enter minimum balance' :
-              conditionType === 'time' ? 'Select date and time' :
-              'Enter expected value'
-            }
-            value={value}
+            placeholder="0x..."
+            value={contractAddress}
             onChange={(e) => {
-              setValue(e.target.value);
+              setContractAddress(e.target.value);
               handleChange();
             }}
           />
         </div>
+
+        {conditionType === 'erc721' && (
+          <div className="space-y-2">
+            <Label>ERC721 Mode</Label>
+            <Select value={erc721Mode} onValueChange={(value: 'balance' | 'ownership') => {
+              setErc721Mode(value);
+              handleChange();
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ownership">Token Ownership</SelectItem>
+                <SelectItem value="balance">Token Balance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {(conditionType === 'erc20' || (conditionType === 'erc721' && erc721Mode === 'balance')) && (
+          <div className="space-y-2">
+            <Label>Minimum Balance</Label>
+            <Input
+              type="text"
+              placeholder="Enter minimum balance"
+              value={minBalance}
+              onChange={(e) => {
+                setMinBalance(e.target.value);
+                handleChange();
+              }}
+            />
+          </div>
+        )}
+
+        {conditionType === 'erc721' && erc721Mode === 'ownership' && (
+          <div className="space-y-2">
+            <Label>Token ID</Label>
+            <Input
+              type="text"
+              placeholder="Enter token ID"
+              value={tokenId}
+              onChange={(e) => {
+                setTokenId(e.target.value);
+                handleChange();
+              }}
+            />
+          </div>
+        )}
       </div>
     </ScrollArea>
   );
