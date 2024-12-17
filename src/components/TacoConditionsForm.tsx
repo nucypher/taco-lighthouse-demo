@@ -27,11 +27,12 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
       return;
     }
 
-    const chainId = chain === 'sepolia' ? 11155111 : 80002;
+    // Use the correct chain ID for TACo conditions
+    const chainId = chain === 'sepolia' ? 11155111 : 80001;
 
     let condition;
     if (conditionType === 'erc20') {
-      condition = new conditions.predefined.erc20.ERC20Balance({
+      condition = conditions.predefined.erc20.ERC20Balance.create({
         contractAddress,
         chain: chainId,
         returnValueTest: {
@@ -40,7 +41,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
         }
       });
     } else {
-      condition = new conditions.predefined.erc721.ERC721Balance({
+      condition = conditions.predefined.erc721.ERC721Balance.create({
         contractAddress,
         chain: chainId,
         returnValueTest: {
