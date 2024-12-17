@@ -22,7 +22,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for wallet connection first
     if (!wallet) {
       toast({
         title: 'Error',
@@ -32,7 +31,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       return;
     }
 
-    // Check for audio file
     if (!audioFile) {
       toast({
         title: 'Error',
@@ -44,7 +42,23 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      // Upload files to Lighthouse
+      // First verify the user exists in our database
+      const walletAddress = wallet.accounts[0].address;
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (userError) {
+        throw new Error('User not found. Please try reconnecting your wallet.');
+      }
+
+      if (!userData) {
+        throw new Error('User account not properly set up. Please try reconnecting your wallet.');
+      }
+
+      // Now that we've verified the user exists, proceed with the upload
       const formData = new FormData();
       formData.append('audioFile', audioFile);
       if (coverArt) {
@@ -56,30 +70,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       });
 
       if (uploadError) throw uploadError;
-
-      // First, ensure user exists in the database
-      const walletAddress = wallet.accounts[0].address;
-      let { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('wallet_address', walletAddress)
-        .maybeSingle(); // Use maybeSingle() instead of single()
-
-      if (!userData) {
-        // Create user if doesn't exist
-        const { data: newUser, error: createError } = await supabase
-          .from('users')
-          .insert({
-            wallet_address: walletAddress,
-          })
-          .select('id')
-          .single();
-
-        if (createError) throw createError;
-        userData = newUser;
-      }
-
-      if (!userData) throw new Error('Failed to get or create user');
 
       // Save track information to database using the user's ID
       const { error: dbError } = await supabase

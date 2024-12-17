@@ -16,33 +16,40 @@ export const Header = () => {
   const handleConnect = async () => {
     try {
       const connectedWallet = await connectWallet();
-      setWallet(connectedWallet);
+      
+      if (!connectedWallet) {
+        throw new Error('Failed to connect wallet');
+      }
 
-      // Sign up or sign in the user with their wallet address
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: `${connectedWallet.label}@placeholder.com`,
-        password: connectedWallet.label,
-        options: {
-          data: {
-            wallet_address: connectedWallet.label,
-          }
-        }
-      });
+      const walletAddress = connectedWallet.accounts[0].address;
 
-      if (authError) {
-        // If user already exists, try to sign in
-        if (authError.message.includes('already registered')) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: `${connectedWallet.label}@placeholder.com`,
-            password: connectedWallet.label,
-          });
+      // First check if user exists
+      const { data: existingUser, error: fetchError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
 
-          if (signInError) throw signInError;
-        } else {
-          throw authError;
+      if (fetchError) throw fetchError;
+
+      if (!existingUser) {
+        // Create new user if they don't exist
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            wallet_address: walletAddress,
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        
+        if (!newUser) {
+          throw new Error('Failed to create user');
         }
       }
 
+      setWallet(connectedWallet);
       toast({
         title: "Connected",
         description: "Wallet connected successfully",
@@ -51,20 +58,28 @@ export const Header = () => {
       console.error('Connection error:', error);
       toast({
         title: "Error",
-        description: "Failed to connect wallet",
+        description: error.message || "Failed to connect wallet",
         variant: "destructive",
       });
     }
   };
 
   const handleDisconnect = async () => {
-    if (wallet) {
-      await disconnectWallet(wallet);
-      await supabase.auth.signOut();
-      setWallet(null);
+    try {
+      if (wallet) {
+        await disconnectWallet(wallet);
+        setWallet(null);
+        toast({
+          title: "Disconnected",
+          description: "Wallet disconnected successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Disconnection error:', error);
       toast({
-        title: "Disconnected",
-        description: "Wallet disconnected successfully",
+        title: "Error",
+        description: "Failed to disconnect wallet",
+        variant: "destructive",
       });
     }
   };
@@ -100,7 +115,7 @@ export const Header = () => {
           </Button>
           {wallet ? (
             <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
-              {wallet.label.slice(0, 6)}...{wallet.label.slice(-4)}
+              {wallet.accounts[0].address.slice(0, 6)}...{wallet.accounts[0].address.slice(-4)}
             </Button>
           ) : (
             <Button onClick={handleConnect} className="rounded-sm font-medium">
