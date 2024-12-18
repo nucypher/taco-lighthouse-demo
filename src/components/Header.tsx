@@ -1,4 +1,4 @@
-import { Search, Upload } from "lucide-react";
+import { Search, Upload, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
@@ -89,35 +89,47 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-[2px] border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <h1 className="text-xl font-bold tracking-tight">D-Sound</h1>
-          <div className="relative w-64">
+          <h1 className="text-xl font-bold tracking-tight">TACo</h1>
+          <div className="relative w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tracks..."
-              className="pl-10 bg-secondary rounded-sm"
+              className="pl-10 bg-secondary rounded-full border-0"
               value={searchQuery}
               onChange={handleSearch}
             />
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handleUploadClick} className="rounded-sm">
-            <Upload className="h-5 w-5" />
+          <Button 
+            variant="primary" 
+            onClick={handleUploadClick} 
+            className="rounded-full font-medium"
+          >
+            Upload
           </Button>
           {wallet ? (
-            <Button variant="outline" onClick={handleDisconnect} className="rounded-sm font-medium">
-              {wallet.accounts[0].address.slice(0, 6)}...{wallet.accounts[0].address.slice(-4)}
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              onClick={handleDisconnect} 
+              className="rounded-full"
+            >
+              <User className="h-5 w-5" />
             </Button>
           ) : (
-            <Button onClick={handleConnect} className="rounded-sm font-medium">
-              Connect Wallet
+            <Button 
+              onClick={handleConnect} 
+              className="rounded-full font-medium"
+            >
+              Profile
             </Button>
           )}
         </div>
       </div>
 
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="sm:max-w-[600px] rounded-sm">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Upload Track</DialogTitle>
           </DialogHeader>

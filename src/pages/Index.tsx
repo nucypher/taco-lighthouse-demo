@@ -18,6 +18,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<any>(null);
+  const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
 
   const fetchTracks = async (query: string = "") => {
     try {
@@ -30,8 +31,6 @@ const Index = () => {
 
       if (query) {
         queryBuilder = queryBuilder.ilike('title', `%${query}%`);
-      } else {
-        queryBuilder = queryBuilder.limit(10);
       }
 
       const { data, error: supabaseError } = await queryBuilder;
@@ -42,7 +41,12 @@ const Index = () => {
       }
 
       if (data) {
-        setTracks(data);
+        if (!query && data.length > 0) {
+          setFeaturedTrack(data[0]);
+          setTracks(data.slice(1));
+        } else {
+          setTracks(data);
+        }
       }
     } catch (err) {
       setError(err);
@@ -70,17 +74,38 @@ const Index = () => {
       <Header onSearch={handleSearch} onUploadSuccess={() => fetchTracks(searchQuery)} />
       <main className="container mx-auto px-4 pt-24 pb-16">
         {error && <ErrorDisplay error={error} />}
+        
+        {featuredTrack && !searchQuery && (
+          <section className="mb-12">
+            <div className="relative h-[400px] rounded-xl overflow-hidden">
+              <img
+                src={getArtworkUrl(featuredTrack.cover_art_cid)}
+                alt={featuredTrack.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent">
+                <div className="absolute bottom-0 left-0 p-8">
+                  <h1 className="text-4xl font-bold mb-2">{featuredTrack.title}</h1>
+                  <p className="text-lg text-muted-foreground mb-4">
+                    {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
+                  </p>
+                  <Button className="rounded-full">Start Listening</Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">
-              {searchQuery ? `Search Results for "${searchQuery}"` : "Latest Tracks"}
+              {searchQuery ? `Search Results for "${searchQuery}"` : "Discover"}
             </h2>
-            <Button variant="ghost">View All</Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {isLoading ? (
               Array(5).fill(null).map((_, index) => (
-                <div key={index} className="h-64 rounded-sm bg-muted animate-pulse" />
+                <div key={index} className="h-64 rounded-xl bg-muted animate-pulse" />
               ))
             ) : tracks.length > 0 ? (
               tracks.map((track) => (
