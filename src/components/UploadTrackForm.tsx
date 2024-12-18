@@ -63,28 +63,50 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         signer: await web3Provider.getSigner().getAddress()
       });
 
-      let encryptedData;
+      // Read and encrypt the audio file
+      console.log('📂 Reading audio file...');
+      let encryptedAudioData;
+      let coverArtBuffer;
+
       if (devMode) {
         // Create a test buffer for dev mode
         console.log('🔧 Creating test data in dev mode...');
         const testBuffer = new ArrayBuffer(1024); // 1KB of test data
         const testView = new Uint8Array(testBuffer);
         testView.fill(0); // Fill with zeros
-        encryptedData = await encryptAudioFile(testBuffer, condition, web3Provider);
+        encryptedAudioData = await encryptAudioFile(testBuffer, condition, web3Provider);
+        coverArtBuffer = testBuffer; // Use same test buffer for cover art in dev mode
+        
+        console.log('📊 File sizes (dev mode):', {
+          originalAudio: testBuffer.byteLength / 1024, 'KB',
+          encryptedAudio: encryptedAudioData.byteLength / 1024, 'KB',
+          coverArt: coverArtBuffer.byteLength / 1024, 'KB'
+        });
       } else {
         // Read and encrypt the actual audio file
-        console.log('📂 Reading audio file...');
         const audioBuffer = await audioFile!.arrayBuffer();
-        console.log('✅ Audio file read, size:', audioBuffer.byteLength, 'bytes');
-        encryptedData = await encryptAudioFile(audioBuffer, condition, web3Provider);
+        console.log('✅ Audio file read, size:', (audioBuffer.byteLength / (1024 * 1024)).toFixed(2), 'MB');
+        encryptedAudioData = await encryptAudioFile(audioBuffer, condition, web3Provider);
+        
+        // Read cover art separately (unencrypted)
+        coverArtBuffer = coverArt ? await coverArt.arrayBuffer() : null;
+        
+        console.log('📊 File sizes:', {
+          originalAudio: (audioBuffer.byteLength / (1024 * 1024)).toFixed(2) + ' MB',
+          encryptedAudio: (encryptedAudioData.byteLength / (1024 * 1024)).toFixed(2) + ' MB',
+          coverArt: coverArtBuffer ? (coverArtBuffer.byteLength / (1024 * 1024)).toFixed(2) + ' MB' : 'Not provided'
+        });
       }
 
-      // Send the encrypted data to the Edge Function
-      console.log('📤 Uploading encrypted data to Lighthouse via Edge Function...');
+      // Send both the encrypted audio and unencrypted cover art to the Edge Function
+      console.log('📤 Uploading files to Lighthouse via Edge Function...');
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
-        body: encryptedData,
+        body: {
+          encryptedAudio: encryptedAudioData,
+          coverArt: coverArtBuffer ? Array.from(new Uint8Array(coverArtBuffer)) : null,
+        },
         headers: {
-          'Content-Type': 'application/octet-stream',
+          'Content-Type': 'application/json',
         },
       });
 
