@@ -1,4 +1,4 @@
-import { Search, Upload, User } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
@@ -87,24 +87,24 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-[2px] border-b border-border">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <h1 className="text-xl font-bold tracking-tight">TACo</h1>
-          <div className="relative w-96">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 md:gap-8 flex-1">
+          <h1 className="text-xl font-bold tracking-tight whitespace-nowrap">TACo</h1>
+          <div className="relative flex-1 max-w-[400px] hidden sm:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tracks..."
-              className="pl-10 bg-secondary rounded-full border-0"
+              className="pl-10 bg-secondary rounded-full border-0 w-full"
               value={searchQuery}
               onChange={handleSearch}
             />
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <Button 
             variant="secondary" 
             onClick={handleUploadClick} 
-            className="rounded-full font-medium"
+            className="rounded-full font-medium hidden xs:inline-flex"
           >
             Upload
           </Button>
@@ -121,11 +121,26 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
             <Button 
               variant="default"
               onClick={handleConnect} 
-              className="rounded-full font-medium"
+              className="rounded-full font-medium whitespace-nowrap text-sm"
             >
               Connect Wallet
             </Button>
           )}
+        </div>
+      </div>
+
+      {/* Mobile Search Bar */}
+      <div className="sm:hidden border-t border-border">
+        <div className="container mx-auto px-4 py-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tracks..."
+              className="pl-10 bg-secondary rounded-full border-0 w-full"
+              value={searchQuery}
+              onChange={handleSearch}
+            />
+          </div>
         </div>
       </div>
 

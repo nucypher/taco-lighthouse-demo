@@ -47,7 +47,7 @@ export const TrackCard = ({
         alt={`${title} by ${artist}`}
         className="w-full aspect-square object-cover"
       />
-      <div className="absolute inset-0 glass-overlay opacity-0 group-hover:opacity-100 flex items-center justify-center">
+      <div className="absolute inset-0 glass-overlay opacity-0 group-hover:opacity-100 touch-device:opacity-100 flex items-center justify-center">
         <Button 
           onClick={handleClick}
           size="icon"
@@ -68,4 +68,4 @@ export const TrackCard = ({
       </div>
     </div>
   );
-};
+}
