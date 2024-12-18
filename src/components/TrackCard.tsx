@@ -46,6 +46,16 @@ export const TrackCard = ({
       return;
     }
 
+    // Check if wallet is connected
+    if (!window.ethereum?.selectedAddress) {
+      toast({
+        title: 'Connect Wallet',
+        description: 'Please connect your wallet to play encrypted tracks',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setIsDecrypting(true);
       
@@ -89,7 +99,7 @@ export const TrackCard = ({
 
       console.log('🔓 Starting decryption...');
       const decryptedData = await decrypt(
-        amoyProvider, // Use Amoy provider for decryption
+        amoyProvider,
         domains.DEVNET,
         messageKit,
         conditionContext

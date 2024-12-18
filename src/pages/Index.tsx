@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { useAudioPlayer } from "@/App";
+import { useToast } from "@/hooks/use-toast";
 
 interface Track {
   id: string;
@@ -21,6 +22,7 @@ const Index = () => {
   const [error, setError] = useState<any>(null);
   const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
   const { playTrack } = useAudioPlayer();
+  const { toast } = useToast();
 
   const fetchTracks = async (query: string = "") => {
     try {
@@ -72,6 +74,16 @@ const Index = () => {
   };
 
   const handlePlayFeatured = () => {
+    // Check if wallet is connected
+    if (!window.ethereum?.selectedAddress) {
+      toast({
+        title: 'Connect Wallet',
+        description: 'Please connect your wallet to play encrypted tracks',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (featuredTrack) {
       playTrack({
         title: featuredTrack.title,
