@@ -5,7 +5,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { ChainSelector } from './taco/ChainSelector';
 import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
 import { conditions } from '@nucypher/taco';
-import { ConditionType } from '@/types/taco';
+import { ConditionType, createERC20Balance, createERC721Balance } from '@/types/taco';
 
 const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
 const DEFAULT_MIN_BALANCE = '1';
@@ -43,21 +43,18 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
     }
 
     try {
-      let condition;
       const params = {
         contractAddress,
         chain: chainIdNumber,
         returnValueTest: {
-          comparator: '>=',
+          comparator: ">=" as const,
           value: minBalanceNumber
         }
       };
 
-      if (conditionType === 'erc20') {
-        condition = new conditions.predefined.erc20.ERC20Balance(params);
-      } else {
-        condition = new conditions.predefined.erc721.ERC721Balance(params);
-      }
+      const condition = conditionType === 'erc20' 
+        ? createERC20Balance(params)
+        : createERC721Balance(params);
 
       console.log('Created condition:', condition);
       onChange(condition);
