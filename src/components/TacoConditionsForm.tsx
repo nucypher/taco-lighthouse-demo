@@ -48,7 +48,7 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
         contractAddress,
         chain: chainIdNumber,
         returnValueTest: {
-          comparator: '>=',
+          comparator: ">=" as const,
           value: minBalanceNumber
         }
       };
