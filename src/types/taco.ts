@@ -9,11 +9,8 @@ export const SUPPORTED_CHAINS = {
 } as const;
 
 // Re-export the conditions with proper type definitions
-export const ERC721Balance = (params: conditions.predefined.erc721.ERC721BalanceParams) => 
-  new conditions.predefined.erc721.ERC721Balance(params);
+export const ERC721Balance = conditions.predefined.erc721.ERC721Balance
 
-export const ERC721Ownership = (params: conditions.predefined.erc721.ERC721OwnershipParams) => 
-  new conditions.predefined.erc721.ERC721Ownership(params);
+export const ERC721Ownership = conditions.predefined.erc721.ERC721Ownership
 
-export const ERC20Balance = (params: conditions.predefined.erc20.ERC20BalanceParams) => 
-  new conditions.predefined.erc20.ERC20Balance(params);
+export const ERC20Balance = conditions.predefined.erc20.ERC20Balance
