@@ -54,6 +54,12 @@ export const createSiweMessage = (address: string, chainId: number) => {
   return message.prepareMessage();
 };
 
+const createPasswordFromSignature = (signature: string, address: string) => {
+  // Create a deterministic password by combining the signature with the address
+  // and taking the first 72 characters of the hash
+  return ethers.utils.id(signature + address).slice(0, 72);
+};
+
 export const connectWallet = async (): Promise<WalletState | null> => {
   try {
     const wallets = await web3Onboard.connectWallet();
@@ -67,18 +73,21 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     // Create and sign SIWE message
     const message = createSiweMessage(address, chainId);
     const signature = await signer.signMessage(message);
+    
+    // Create a password that's less than 72 characters
+    const password = createPasswordFromSignature(signature, address);
 
     // Try to sign up first (for new users)
     const { error: signUpError } = await supabase.auth.signUp({
       email: `${address.toLowerCase()}@ethereum.org`,
-      password: signature,
+      password: password,
     });
 
     // If sign up fails (user exists), try to sign in
     if (signUpError) {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: `${address.toLowerCase()}@ethereum.org`,
-        password: signature,
+        password: password,
       });
 
       if (signInError) {
