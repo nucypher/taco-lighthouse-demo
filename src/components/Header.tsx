@@ -23,9 +23,13 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
+    if (isConnecting) return;
+    
     try {
+      setIsConnecting(true);
       const connectedWallet = await connectWallet();
       if (!connectedWallet) {
         throw new Error('Failed to connect wallet');
@@ -34,7 +38,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
       setWallet(connectedWallet);
       toast({
         title: "Connected",
-        description: "Wallet connected successfully",
+        description: "Wallet connected and verified successfully",
       });
     } catch (error) {
       console.error('Connection error:', error);
@@ -43,6 +47,8 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
         description: error.message || "Failed to connect wallet",
         variant: "destructive",
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -120,16 +126,16 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
           ) : (
             <Button 
               variant="default"
-              onClick={handleConnect} 
+              onClick={handleConnect}
+              disabled={isConnecting}
               className="rounded-full font-medium whitespace-nowrap text-sm"
             >
-              Connect Wallet
+              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
             </Button>
           )}
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
       <div className="sm:hidden border-t border-border">
         <div className="container mx-auto px-4 py-2">
           <div className="relative">
