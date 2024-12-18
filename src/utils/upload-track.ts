@@ -1,7 +1,4 @@
-import { conditions } from '@nucypher/taco';
-import { ethers } from "ethers";
 import { supabase } from "@/integrations/supabase/client";
-import { encryptAudioFile } from './encryption';
 
 export async function uploadTrackToLighthouse(
   audioData: ArrayBuffer,

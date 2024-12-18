@@ -12,65 +12,56 @@ serve(async (req) => {
   }
 
   try {
-    // Parse the JSON payload containing both encrypted audio and cover art
-    const { encryptedAudio, coverArt } = await req.json();
-    
-    // Convert encryptedAudio back to Uint8Array
-    const audioData = new Uint8Array(encryptedAudio);
-    
-    // Create a blob from the encrypted audio data
-    const audioBlob = new Blob([audioData], { type: 'application/octet-stream' });
-    
-    // Create FormData for Lighthouse
-    const formData = new FormData();
-    formData.append('file', audioBlob, 'encrypted-audio.bin');
+    const formData = await req.formData()
+    const audioData = formData.get('audioData')
+    const coverArt = formData.get('coverArt')
+
+    if (!audioData) {
+      throw new Error('No audio data provided')
+    }
 
     // Upload encrypted audio to Lighthouse
-    console.log('Uploading encrypted audio to Lighthouse...');
+    const audioFormData = new FormData()
+    audioFormData.append('file', audioData)
+
+    console.log('Uploading encrypted audio to Lighthouse...')
     const audioUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
       },
-      body: formData,
-    });
+      body: audioFormData
+    })
 
     if (!audioUploadResponse.ok) {
-      throw new Error('Failed to upload encrypted audio to Lighthouse');
+      throw new Error(`Failed to upload audio: ${audioUploadResponse.statusText}`)
     }
 
-    const audioUploadData = await audioUploadResponse.json();
-    console.log('Audio upload successful:', audioUploadData);
+    const audioUploadData = await audioUploadResponse.json()
+    console.log('Audio upload successful:', audioUploadData)
 
-    let coverArtCid = null;
+    let coverArtCid = null
     if (coverArt) {
-      // Convert coverArt back to Uint8Array
-      const coverArtData = new Uint8Array(coverArt);
-      
-      // Create a blob from the cover art data
-      const coverArtBlob = new Blob([coverArtData], { type: 'image/jpeg' });
-      
-      // Create new FormData for cover art
-      const coverArtFormData = new FormData();
-      coverArtFormData.append('file', coverArtBlob, 'cover-art.jpg');
-
       // Upload cover art to Lighthouse
-      console.log('Uploading cover art to Lighthouse...');
+      const coverArtFormData = new FormData()
+      coverArtFormData.append('file', coverArt)
+
+      console.log('Uploading cover art to Lighthouse...')
       const coverArtUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
+          'Authorization': `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
         },
-        body: coverArtFormData,
-      });
+        body: coverArtFormData
+      })
 
       if (!coverArtUploadResponse.ok) {
-        throw new Error('Failed to upload cover art to Lighthouse');
+        throw new Error(`Failed to upload cover art: ${coverArtUploadResponse.statusText}`)
       }
 
-      const coverArtUploadData = await coverArtUploadResponse.json();
-      coverArtCid = coverArtUploadData.Hash;
-      console.log('Cover art upload successful:', coverArtUploadData);
+      const coverArtUploadData = await coverArtUploadResponse.json()
+      coverArtCid = coverArtUploadData.Hash
+      console.log('Cover art upload successful:', coverArtUploadData)
     }
 
     return new Response(
@@ -78,18 +69,19 @@ serve(async (req) => {
         audioCid: audioUploadData.Hash,
         coverArtCid
       }),
-      {
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
       }
-    );
+    )
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Upload error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 500
       }
-    );
+    )
   }
-});
+})
