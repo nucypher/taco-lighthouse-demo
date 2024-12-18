@@ -68,7 +68,15 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const address = await signer.getAddress();
     const chainId = (await web3Provider.getNetwork()).chainId;
     
-    // First, get or create user record to store nonce
+    // Generate new nonce
+    const nonce = generateNonce();
+    const authData = { 
+      genNonce: nonce,
+      lastAuth: new Date().toISOString(),
+      lastAuthStatus: 'pending'
+    };
+
+    // Check if user exists
     const { data: existingUser, error: queryError } = await supabase
       .from('users')
       .select('*')
@@ -80,23 +88,14 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Failed to check user existence');
     }
 
-    // Generate new nonce
-    const nonce = generateNonce();
-
     if (!existingUser) {
-      // Generate a UUID for the new user
-      const userId = crypto.randomUUID();
-      
+      // Create new user
       const { error: insertError } = await supabase
         .from('users')
         .insert({
-          id: userId,
+          id: crypto.randomUUID(),
           address: address.toLowerCase(),
-          auth: { 
-            genNonce: nonce,
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'pending'
-          }
+          auth: authData
         });
 
       if (insertError) {
@@ -104,21 +103,15 @@ export const connectWallet = async (): Promise<WalletState | null> => {
         throw new Error('Failed to create user record');
       }
     } else {
-      // Update existing user's nonce
+      // Update existing user's auth data
       const { error: updateError } = await supabase
         .from('users')
-        .update({ 
-          auth: { 
-            genNonce: nonce,
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'pending'
-          }
-        })
+        .update({ auth: authData })
         .eq('address', address.toLowerCase());
 
       if (updateError) {
-        console.error('Error updating nonce:', updateError);
-        throw new Error('Failed to update nonce');
+        console.error('Error updating user:', updateError);
+        throw new Error('Failed to update user record');
       }
     }
 
