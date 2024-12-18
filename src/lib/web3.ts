@@ -76,44 +76,12 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       lastAuthStatus: 'pending'
     };
 
-    // Check if user exists
-    const { data: existingUser, error: queryError } = await supabase
+    // Check if user exists and get their data
+    const { data: existingUser } = await supabase
       .from('users')
       .select('*')
       .eq('address', address.toLowerCase())
-      .maybeSingle();
-
-    if (queryError) {
-      console.error('Error querying user:', queryError);
-      throw new Error('Failed to check user existence');
-    }
-
-    if (!existingUser) {
-      // Create new user
-      const { error: insertError } = await supabase
-        .from('users')
-        .insert({
-          id: crypto.randomUUID(),
-          address: address.toLowerCase(),
-          auth: authData
-        });
-
-      if (insertError) {
-        console.error('Error creating user:', insertError);
-        throw new Error('Failed to create user record');
-      }
-    } else {
-      // Update existing user's auth data
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ auth: authData })
-        .eq('address', address.toLowerCase());
-
-      if (updateError) {
-        console.error('Error updating user:', updateError);
-        throw new Error('Failed to update user record');
-      }
-    }
+      .single();
 
     // Create and sign SIWE message
     const message = createSiweMessage(address, chainId, nonce);
@@ -130,21 +98,31 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw signInError || new Error('No session created');
     }
 
-    // Update auth status
-    const { error: finalUpdateError } = await supabase
-      .from('users')
-      .update({ 
-        auth: { 
-          lastAuth: new Date().toISOString(),
-          lastAuthStatus: 'success',
-          genNonce: generateNonce() // Generate new nonce for next login
-        }
-      })
-      .eq('address', address.toLowerCase());
-
-    if (finalUpdateError) {
-      console.error('Error updating auth status:', finalUpdateError);
-      throw new Error('Failed to update auth status');
+    if (existingUser) {
+      // Update existing user's auth data
+      await supabase
+        .from('users')
+        .update({ 
+          auth: { 
+            lastAuth: new Date().toISOString(),
+            lastAuthStatus: 'success',
+            genNonce: generateNonce() // Generate new nonce for next login
+          }
+        })
+        .eq('address', address.toLowerCase());
+    } else {
+      // Create new user
+      await supabase
+        .from('users')
+        .insert({
+          id: crypto.randomUUID(),
+          address: address.toLowerCase(),
+          auth: {
+            lastAuth: new Date().toISOString(),
+            lastAuthStatus: 'success',
+            genNonce: generateNonce() // Generate new nonce for next login
+          }
+        });
     }
 
     return wallets[0];
