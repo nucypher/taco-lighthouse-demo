@@ -37,15 +37,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       return;
     }
 
-    if (!devMode && !audioFile) {
-      toast({
-        title: 'Error',
-        description: 'Please select an audio file',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     if (!condition) {
       toast({
         title: 'Error',
@@ -57,56 +48,52 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
     setIsUploading(true);
     try {
-      let uploadData;
-      
+      console.log('🎵 Starting track upload process...');
+      console.log('📋 Upload details:', {
+        title: devMode ? 'Test Track' : title,
+        description: devMode ? 'Test Description' : description,
+        condition
+      });
+
+      // Initialize Web3 provider and signer
+      console.log('🔗 Setting up Web3 provider...');
+      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+      console.log('✅ Web3 provider ready:', {
+        network: await web3Provider.getNetwork(),
+        signer: await web3Provider.getSigner().getAddress()
+      });
+
+      let encryptedData;
       if (devMode) {
-        uploadData = {
-          audioCid: 'test-audio-cid',
-          coverArtCid: 'test-cover-art-cid',
-        };
+        // Create a test buffer for dev mode
+        console.log('🔧 Creating test data in dev mode...');
+        const testBuffer = new ArrayBuffer(1024); // 1KB of test data
+        const testView = new Uint8Array(testBuffer);
+        testView.fill(0); // Fill with zeros
+        encryptedData = await encryptAudioFile(testBuffer, condition, web3Provider);
       } else {
-        console.log('🎵 Starting track upload process...');
-        console.log('📋 Upload details:', {
-          title,
-          description,
-          audioFileName: audioFile?.name,
-          coverArtFileName: coverArt?.name,
-          condition
-        });
-
-        // Initialize Web3 provider and signer
-        console.log('🔗 Setting up Web3 provider...');
-        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-        console.log('✅ Web3 provider ready:', {
-          network: await web3Provider.getNetwork(),
-          signer: await web3Provider.getSigner().getAddress()
-        });
-
-        // Read the audio file as ArrayBuffer
+        // Read and encrypt the actual audio file
         console.log('📂 Reading audio file...');
         const audioBuffer = await audioFile!.arrayBuffer();
         console.log('✅ Audio file read, size:', audioBuffer.byteLength, 'bytes');
-        
-        // Encrypt the audio file
-        const encryptedData = await encryptAudioFile(audioBuffer, condition, web3Provider);
-
-        // Send the encrypted data to the Edge Function
-        console.log('📤 Uploading encrypted data to Lighthouse via Edge Function...');
-        const { data, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
-          body: encryptedData,
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        });
-
-        if (uploadError) {
-          console.error('❌ Upload error:', uploadError);
-          throw uploadError;
-        }
-        
-        console.log('✅ Upload successful:', data);
-        uploadData = data;
+        encryptedData = await encryptAudioFile(audioBuffer, condition, web3Provider);
       }
+
+      // Send the encrypted data to the Edge Function
+      console.log('📤 Uploading encrypted data to Lighthouse via Edge Function...');
+      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-lighthouse', {
+        body: encryptedData,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+      });
+
+      if (uploadError) {
+        console.error('❌ Upload error:', uploadError);
+        throw uploadError;
+      }
+      
+      console.log('✅ Upload successful:', uploadData);
 
       console.log('💾 Saving track metadata to database...');
       const { error: dbError } = await supabase
