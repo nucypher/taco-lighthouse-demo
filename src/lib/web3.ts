@@ -59,7 +59,7 @@ export const createSiweMessage = (address: string, chainId: number, nonce: strin
 };
 
 const createPasswordFromSignature = (signature: string, address: string) => {
-  return ethers.utils.id(signature + address).slice(0, 72);
+  return ethers.utils.id(signature + address).slice(2, 66); // Use first 32 bytes only
 };
 
 export const connectWallet = async (): Promise<WalletState | null> => {
@@ -71,11 +71,41 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
     const chainId = (await web3Provider.getNetwork()).chainId;
-
-    // Generate and store nonce
     const nonce = generateNonce();
+
+    // Create and sign SIWE message with nonce
+    const message = createSiweMessage(address, chainId, nonce);
+    const signature = await signer.signMessage(message);
     
-    // Check if user exists
+    // Create a password from the signature
+    const password = createPasswordFromSignature(signature, address);
+    const email = `${address.toLowerCase()}@ethereum.org`;
+
+    // Try to sign up first (for new users)
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    // If sign up fails (user exists), try to sign in
+    if (signUpError) {
+      console.log('Sign up error, attempting sign in:', signUpError);
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        throw signInError;
+      }
+    }
+
+    // Get the authenticated user's ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user found after login');
+
+    // Check if user exists in our users table
     const { data: existingUser, error: queryError } = await supabase
       .from('users')
       .select('id')
@@ -87,15 +117,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Failed to check user existence');
     }
 
-    const userId = existingUser?.id || crypto.randomUUID();
-
+    // Create or update user record
     if (!existingUser) {
       const { error: insertError } = await supabase
         .from('users')
         .insert({
-          id: userId,
+          id: user.id,
           address: address.toLowerCase(),
-          auth: { genNonce: nonce }
+          auth: { 
+            lastAuth: new Date().toISOString(),
+            lastAuthStatus: 'success',
+            genNonce: null 
+          }
         });
 
       if (insertError) {
@@ -106,56 +139,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       const { error: updateError } = await supabase
         .from('users')
         .update({ 
-          auth: { genNonce: nonce }
+          auth: { 
+            lastAuth: new Date().toISOString(),
+            lastAuthStatus: 'success',
+            genNonce: null 
+          }
         })
-        .eq('id', userId);
+        .eq('id', user.id);
 
       if (updateError) {
         console.error('Error updating user:', updateError);
         throw new Error('Failed to update user record');
       }
-    }
-
-    // Create and sign SIWE message with nonce
-    const message = createSiweMessage(address, chainId, nonce);
-    const signature = await signer.signMessage(message);
-    
-    // Create a password from the signature
-    const password = createPasswordFromSignature(signature, address);
-
-    // Try to sign up first (for new users)
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: `${address.toLowerCase()}@ethereum.org`,
-      password: password,
-    });
-
-    // If sign up fails (user exists), try to sign in
-    if (signUpError) {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: `${address.toLowerCase()}@ethereum.org`,
-        password: password,
-      });
-
-      if (signInError) {
-        console.error('Sign in error:', signInError);
-        throw signInError;
-      }
-    }
-
-    // Update auth status
-    const { error: finalUpdateError } = await supabase
-      .from('users')
-      .update({ 
-        auth: { 
-          lastAuth: new Date().toISOString(),
-          lastAuthStatus: 'success',
-          genNonce: null 
-        }
-      })
-      .eq('id', userId);
-
-    if (finalUpdateError) {
-      console.error('Error updating auth status:', finalUpdateError);
     }
 
     return wallets[0];
