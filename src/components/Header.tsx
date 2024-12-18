@@ -102,7 +102,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
         </div>
         <div className="flex items-center gap-4">
           <Button 
-            variant="primary" 
+            variant="secondary" 
             onClick={handleUploadClick} 
             className="rounded-full font-medium"
           >
@@ -119,10 +119,11 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
             </Button>
           ) : (
             <Button 
+              variant="default"
               onClick={handleConnect} 
               className="rounded-full font-medium"
             >
-              Profile
+              Connect Wallet
             </Button>
           )}
         </div>
