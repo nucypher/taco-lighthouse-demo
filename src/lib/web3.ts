@@ -38,7 +38,8 @@ const web3Onboard = init({
   }
 });
 
-export const createSiweMessage = async (address: string, chainId: number) => {
+export const createSiweMessage = (address: string, chainId: number) => {
+  const now = new Date();
   const message = new SiweMessage({
     domain: window.location.host,
     address,
@@ -46,7 +47,9 @@ export const createSiweMessage = async (address: string, chainId: number) => {
     uri: window.location.origin,
     version: '1',
     chainId,
-    nonce: Math.floor(Math.random() * 1000000).toString(),
+    nonce: Math.random().toString(36).substring(2, 15),
+    issuedAt: now.toISOString(),
+    expirationTime: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
   });
   return message.prepareMessage();
 };
@@ -62,7 +65,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const chainId = (await web3Provider.getNetwork()).chainId;
 
     // Create and sign SIWE message
-    const message = await createSiweMessage(address, chainId);
+    const message = createSiweMessage(address, chainId);
     const signature = await signer.signMessage(message);
 
     // Sign in to Supabase with the SIWE message
