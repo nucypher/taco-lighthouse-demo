@@ -4,7 +4,7 @@ import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
-import { useAudioPlayer } from "@/App";
+import { useTrackPlayback } from "@/hooks/use-track-playback";
 
 interface Track {
   id: string;
@@ -20,7 +20,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<any>(null);
   const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
-  const { playTrack } = useAudioPlayer();
+  const { handlePlay, isDecrypting, getArtworkUrl } = useTrackPlayback();
 
   const fetchTracks = async (query: string = "") => {
     try {
@@ -66,25 +66,9 @@ const Index = () => {
     fetchTracks(query);
   };
 
-  const getArtworkUrl = (cid: string | null) => {
-    if (!cid) return "/placeholder.svg";
-    return `https://gateway.lighthouse.storage/ipfs/${cid}`;
-  };
-
   const handlePlayFeatured = () => {
     if (featuredTrack) {
-      const audioUrl = featuredTrack.ipfs_cid 
-        ? `https://gateway.lighthouse.storage/ipfs/${featuredTrack.ipfs_cid}`
-        : null;
-        
-      if (audioUrl) {
-        playTrack({
-          title: featuredTrack.title,
-          artist: featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist',
-          coverUrl: getArtworkUrl(featuredTrack.cover_art_cid),
-          audioUrl,
-        });
-      }
+      handlePlay(featuredTrack);
     }
   };
 
@@ -108,8 +92,12 @@ const Index = () => {
                   <p className="text-lg text-muted-foreground mb-4">
                     {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
                   </p>
-                  <Button className="rounded-full" onClick={handlePlayFeatured}>
-                    Start Listening
+                  <Button 
+                    className="rounded-full" 
+                    onClick={handlePlayFeatured}
+                    disabled={isDecrypting}
+                  >
+                    {isDecrypting ? 'Decrypting...' : 'Start Listening'}
                   </Button>
                 </div>
               </div>
@@ -137,6 +125,8 @@ const Index = () => {
                   artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
                   coverUrl={getArtworkUrl(track.cover_art_cid)}
                   ipfsCid={track.ipfs_cid}
+                  owner_id={track.owner_id}
+                  cover_art_cid={track.cover_art_cid}
                 />
               ))
             ) : (
