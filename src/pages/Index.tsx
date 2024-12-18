@@ -75,12 +75,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header onSearch={handleSearch} onUploadSuccess={() => fetchTracks(searchQuery)} />
-      <main className="container mx-auto px-4 pt-20 md:pt-24 pb-16">
+      <main className="container mx-auto px-2 sm:px-4 pt-20 md:pt-24 pb-16">
         {error && <ErrorDisplay error={error} />}
         
         {featuredTrack && !searchQuery && (
-          <section className="mb-8 md:mb-12">
-            <div className="relative h-[250px] md:h-[400px] rounded-xl overflow-hidden">
+          <section className="mb-6 md:mb-12">
+            <div className="relative h-[200px] md:h-[400px] rounded-xl overflow-hidden">
               <img
                 src={getArtworkUrl(featuredTrack.cover_art_cid)}
                 alt={featuredTrack.title}
@@ -88,8 +88,8 @@ const Index = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent">
                 <div className="absolute bottom-0 left-0 p-4 md:p-8">
-                  <h1 className="text-2xl md:text-4xl font-bold mb-2">{featuredTrack.title}</h1>
-                  <p className="text-base md:text-lg text-muted-foreground mb-4">
+                  <h1 className="text-xl md:text-4xl font-bold mb-2">{featuredTrack.title}</h1>
+                  <p className="text-sm md:text-lg text-muted-foreground mb-4">
                     {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
                   </p>
                   <Button 
@@ -107,14 +107,14 @@ const Index = () => {
 
         <section>
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h2 className="text-xl md:text-2xl font-bold">
+            <h2 className="text-lg md:text-2xl font-bold">
               {searchQuery ? `Search Results for "${searchQuery}"` : "Discover"}
             </h2>
           </div>
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6">
             {isLoading ? (
               Array(5).fill(null).map((_, index) => (
-                <div key={index} className="h-64 rounded-xl bg-muted animate-pulse" />
+                <div key={index} className="h-32 sm:h-64 rounded-xl bg-muted animate-pulse" />
               ))
             ) : tracks.length > 0 ? (
               tracks.map((track) => (

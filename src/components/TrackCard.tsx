@@ -41,7 +41,7 @@ export const TrackCard = ({
   const isThisTrackPlaying = currentTrack?.title === title && currentTrack?.artist === artist && isPlaying;
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border hover-scale">
+    <div className="group relative overflow-hidden rounded-lg border border-border hover-scale">
       <img
         src={coverUrl}
         alt={`${title} by ${artist}`}
@@ -51,20 +51,20 @@ export const TrackCard = ({
         <Button 
           onClick={handleClick}
           size="icon"
-          className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90"
+          className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-primary hover:bg-primary/90"
         >
           {isDecrypting ? (
-            <Lock className="h-6 w-6" />
+            <Lock className="h-4 w-4 sm:h-6 sm:w-6" />
           ) : isThisTrackPlaying ? (
-            <Pause className="h-6 w-6" />
+            <Pause className="h-4 w-4 sm:h-6 sm:w-6" />
           ) : (
-            <Play className="h-6 w-6" />
+            <Play className="h-4 w-4 sm:h-6 sm:w-6" />
           )}
         </Button>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 p-4 glass-overlay">
-        <h3 className="font-medium text-sm truncate">{title}</h3>
-        <p className="text-sm text-muted-foreground truncate">{artist}</p>
+      <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 glass-overlay">
+        <h3 className="font-medium text-xs sm:text-sm truncate">{title}</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground truncate">{artist}</p>
       </div>
     </div>
   );
