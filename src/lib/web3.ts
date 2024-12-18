@@ -73,10 +73,10 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const message = createSiweMessage(address, chainId, nonce);
     const signature = await signer.signMessage(message);
 
-    // Sign in with the SIWE message and signature
-    const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
-      email: `${address.toLowerCase()}@ethereum.org`,
-      password: signature, // Using the signature as the password
+    // Create a JWT token using the SIWE message and signature
+    const { data: { session }, error: signInError } = await supabase.auth.signInWithJwt({
+      jwt: signature,
+      nonce: nonce,
     });
 
     if (signInError || !session) {
