@@ -38,7 +38,11 @@ const web3Onboard = init({
   }
 });
 
-export const createSiweMessage = (address: string, chainId: number) => {
+const generateNonce = () => {
+  return Math.random().toString(36).substring(2, 15);
+};
+
+export const createSiweMessage = (address: string, chainId: number, nonce: string) => {
   const now = new Date();
   const message = new SiweMessage({
     domain: window.location.host,
@@ -47,7 +51,7 @@ export const createSiweMessage = (address: string, chainId: number) => {
     uri: window.location.origin,
     version: '1',
     chainId,
-    nonce: Math.random().toString(36).substring(2, 15),
+    nonce,
     issuedAt: now.toISOString(),
     expirationTime: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
   });
@@ -55,8 +59,6 @@ export const createSiweMessage = (address: string, chainId: number) => {
 };
 
 const createPasswordFromSignature = (signature: string, address: string) => {
-  // Create a deterministic password by combining the signature with the address
-  // and taking the first 72 characters of the hash
   return ethers.utils.id(signature + address).slice(0, 72);
 };
 
@@ -70,11 +72,37 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const address = await signer.getAddress();
     const chainId = (await web3Provider.getNetwork()).chainId;
 
-    // Create and sign SIWE message
-    const message = createSiweMessage(address, chainId);
+    // Generate and store nonce
+    const nonce = generateNonce();
+    
+    // Create user record if it doesn't exist
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('address', address.toLowerCase())
+      .single();
+
+    if (!existingUser) {
+      await supabase
+        .from('users')
+        .insert([{ 
+          address: address.toLowerCase(),
+          auth: { genNonce: nonce }
+        }]);
+    } else {
+      await supabase
+        .from('users')
+        .update({ 
+          auth: { genNonce: nonce }
+        })
+        .eq('address', address.toLowerCase());
+    }
+
+    // Create and sign SIWE message with nonce
+    const message = createSiweMessage(address, chainId, nonce);
     const signature = await signer.signMessage(message);
     
-    // Create a password that's less than 72 characters
+    // Create a password from the signature
     const password = createPasswordFromSignature(signature, address);
 
     // Try to sign up first (for new users)
@@ -96,15 +124,41 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       }
     }
 
+    // Update auth status
+    await supabase
+      .from('users')
+      .update({ 
+        auth: { 
+          lastAuth: new Date().toISOString(),
+          lastAuthStatus: 'success',
+          genNonce: null 
+        }
+      })
+      .eq('address', address.toLowerCase());
+
     return wallets[0];
   } catch (error) {
     console.error('Connection error:', error);
+    // Update auth status on failure
+    if (error.address) {
+      await supabase
+        .from('users')
+        .update({ 
+          auth: { 
+            lastAuth: new Date().toISOString(),
+            lastAuthStatus: 'failed',
+            genNonce: null 
+          }
+        })
+        .eq('address', error.address.toLowerCase());
+    }
     throw error;
   }
 };
 
 export const disconnectWallet = async (wallet: WalletState) => {
   await web3Onboard.disconnectWallet(wallet);
+  await supabase.auth.signOut();
 };
 
 export default web3Onboard;

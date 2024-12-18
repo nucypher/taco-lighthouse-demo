@@ -42,6 +42,30 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          address: string
+          auth: Json | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          auth?: Json | null
+          created_at?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          auth?: Json | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
