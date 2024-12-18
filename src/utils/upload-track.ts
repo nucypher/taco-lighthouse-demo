@@ -39,7 +39,7 @@ export async function encryptAudioData(
     signer // signer parameter
   );
   
-  return result.toBinary();
+  return result.toBytes();
 }
 
 export async function saveTrackMetadata(
