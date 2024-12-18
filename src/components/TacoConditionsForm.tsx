@@ -7,16 +7,16 @@ import { ConditionTypeSelector } from './taco/ConditionTypeSelector';
 import { conditions } from '@nucypher/taco';
 import { ConditionType } from '@/types/taco';
 
-// Use the provided contract address as the default
 const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
 const DEFAULT_MIN_BALANCE = '1';
 const DEFAULT_CHAIN_ID = 11155111; // Sepolia
 
 interface TacoConditionsFormProps {
   onChange: (condition: conditions.condition.Condition | null) => void;
+  disabled?: boolean;
 }
 
-export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
+export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormProps) => {
   const [conditionType, setConditionType] = useState<ConditionType>('erc20');
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [minBalance, setMinBalance] = useState(DEFAULT_MIN_BALANCE);
@@ -55,7 +55,6 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
     onChange(condition);
   };
 
-  // Set initial condition on mount
   useEffect(() => {
     createCondition();
   }, []);
@@ -92,6 +91,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
               setContractAddress(e.target.value);
               handleChange();
             }}
+            disabled={disabled}
           />
         </div>
 
@@ -105,6 +105,7 @@ export const TacoConditionsForm = ({ onChange }: TacoConditionsFormProps) => {
               setMinBalance(e.target.value);
               handleChange();
             }}
+            disabled={disabled}
           />
         </div>
       </div>

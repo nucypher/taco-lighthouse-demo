@@ -4,8 +4,10 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { TacoConditionsForm } from "./TacoConditionsForm";
-import { conditions, encrypt, domains, initialize } from '@nucypher/taco';
+import { conditions, initialize } from '@nucypher/taco';
 import { ethers } from "ethers";
+import { createTestBuffer } from "@/utils/dev-mode";
+import { encryptAudioData, saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -24,7 +26,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
   const [condition, setCondition] = useState<conditions.condition.Condition | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const devMode = false; // Set to true to use test data
+  const devMode = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,91 +62,46 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       setIsUploading(true);
       console.log('🚀 Starting upload process...');
 
-      // Initialize TACo
-      console.log('🌮 Initializing TACo...');
       await initialize();
       console.log('✅ TACo initialized successfully');
 
-      // Setup Web3 provider
-      console.log('🔗 Setting up Web3 provider...');
       const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
       console.log('✅ Web3 provider ready');
 
-      // Read and encrypt the audio file
-      console.log('📂 Reading audio file...');
       let encryptedAudioData: ArrayBuffer;
       let coverArtBuffer: ArrayBuffer | null = null;
 
       if (devMode) {
-        // Create a test buffer for dev mode
-        const testBuffer = new ArrayBuffer(1024);
-        const testView = new Uint8Array(testBuffer);
-        for (let i = 0; i < testView.length; i++) {
-          testView[i] = i % 256;
-        }
+        const testBuffer = createTestBuffer();
         encryptedAudioData = testBuffer;
-        coverArtBuffer = testBuffer; // Use same test buffer for cover art in dev mode
-        
-        console.log('📊 File sizes (dev mode):', {
-          originalAudio: `${testBuffer.byteLength / 1024} KB`,
-          encryptedAudio: `${encryptedAudioData.byteLength / 1024} KB`,
-          coverArt: `${coverArtBuffer.byteLength / 1024} KB`
-        });
+        coverArtBuffer = testBuffer;
       } else {
-        // Read and encrypt the actual audio file
         const audioBuffer = await audioFile!.arrayBuffer();
         console.log('✅ Audio file read, size:', audioBuffer.byteLength / 1024, 'KB');
 
-        // Encrypt the audio data
-        console.log('🔐 Encrypting audio data...');
-        const { messageKit } = await encrypt(
-          web3Provider,
-          domains.DEVNET,
-          new Uint8Array(audioBuffer),
-          condition
-        );
-        encryptedAudioData = messageKit.toBytes();
+        encryptedAudioData = await encryptAudioData(audioBuffer, condition, web3Provider);
         console.log('✅ Audio encrypted, size:', encryptedAudioData.byteLength / 1024, 'KB');
 
-        // Read cover art if provided
         if (coverArt) {
           coverArtBuffer = await coverArt.arrayBuffer();
           console.log('✅ Cover art read, size:', coverArtBuffer.byteLength / 1024, 'KB');
         }
       }
 
-      // Upload to Lighthouse via Supabase Edge Function
-      console.log('📤 Uploading to Lighthouse...');
       const formData = new FormData();
-      formData.append('audioData', new Blob([encryptedAudioData]));
-      if (coverArtBuffer) {
-        formData.append('coverArt', new Blob([coverArtBuffer]));
-      }
-
-      const response = await fetch('/functions/v1/upload-to-lighthouse', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      const { audioCid, coverArtCid } = await response.json();
+      const { audioCid, coverArtCid } = await uploadTrackToLighthouse(
+        encryptedAudioData,
+        coverArtBuffer,
+        formData
+      );
       console.log('✅ Upload successful:', { audioCid, coverArtCid });
 
-      // Save track metadata to Supabase
-      console.log('💾 Saving track metadata...');
-      const { error: insertError } = await supabase
-        .from('tracks')
-        .insert({
-          title,
-          owner_id: wallet.accounts[0].address,
-          ipfs_cid: audioCid,
-          cover_art_cid: coverArtCid
-        });
-
-      if (insertError) throw insertError;
+      await saveTrackMetadata(
+        title,
+        wallet.accounts[0].address,
+        audioCid,
+        coverArtCid
+      );
       console.log('✅ Track metadata saved successfully');
 
       toast({
@@ -152,7 +109,6 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         description: "Track uploaded successfully",
       });
 
-      // Reset form
       setTitle("");
       setAudioFile(null);
       setCoverArt(null);
@@ -210,7 +166,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       </div>
 
       <TacoConditionsForm
-        onConditionCreated={setCondition}
+        onChange={setCondition}
         disabled={isUploading}
       />
 
