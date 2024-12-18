@@ -54,6 +54,16 @@ export const TrackCard = ({
       await initialize();
       console.log('✅ TACo initialized successfully');
       
+      // Use Amoy testnet provider for RPC access
+      const amoyProvider = new ethers.providers.JsonRpcProvider(
+        'https://rpc-amoy.polygon.technology',
+        {
+          name: 'amoy',
+          chainId: 80002, // Amoy testnet chainId
+        }
+      );
+
+      // Get web3 provider and signer from the connected wallet for authentication
       const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
       console.log('✅ Web3 provider ready:', {
         network: await web3Provider.getNetwork(),
@@ -79,7 +89,7 @@ export const TrackCard = ({
 
       console.log('🔓 Starting decryption...');
       const decryptedData = await decrypt(
-        web3Provider,
+        amoyProvider, // Use Amoy provider for decryption
         domains.DEVNET,
         messageKit,
         conditionContext
