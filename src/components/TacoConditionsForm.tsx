@@ -30,6 +30,14 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
 
     console.log('Creating condition with chainId:', chainId);
 
+    // Convert minBalance to a number for the condition
+    const minBalanceNumber = Number(minBalance);
+    if (isNaN(minBalanceNumber)) {
+      console.error('Invalid minimum balance value');
+      onChange(null);
+      return;
+    }
+
     let condition;
     if (conditionType === 'erc20') {
       condition = new conditions.predefined.erc20.ERC20Balance({
@@ -37,7 +45,7 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
         chain: chainId,
         returnValueTest: {
           comparator: '>=',
-          value: minBalance
+          value: minBalanceNumber // Pass as number instead of string
         }
       });
     } else {
@@ -46,7 +54,7 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
         chain: chainId,
         returnValueTest: {
           comparator: '>=',
-          value: minBalance
+          value: minBalanceNumber // Pass as number instead of string
         }
       });
     }
@@ -98,7 +106,9 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
         <div className="space-y-2">
           <Label>Minimum Balance</Label>
           <Input
-            type="text"
+            type="number"
+            min="0"
+            step="1"
             placeholder="Enter minimum balance"
             value={minBalance}
             onChange={(e) => {
