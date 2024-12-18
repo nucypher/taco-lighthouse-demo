@@ -10,16 +10,15 @@ export async function uploadTrackToLighthouse(
     formData.append('coverArt', new Blob([coverArtData]));
   }
 
-  const response = await fetch('/functions/v1/upload-to-lighthouse', {
-    method: 'POST',
+  const { data, error } = await supabase.functions.invoke('upload-to-lighthouse', {
     body: formData
   });
 
-  if (!response.ok) {
-    throw new Error(`Upload failed: ${response.statusText}`);
+  if (error) {
+    throw new Error(`Upload failed: ${error.message}`);
   }
 
-  return response.json();
+  return data;
 }
 
 export async function saveTrackMetadata(
