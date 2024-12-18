@@ -1,4 +1,4 @@
-import { Search, Upload, User } from "lucide-react";
+import { Search, Upload } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
@@ -45,7 +45,12 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const handleDisconnect = async () => {
     try {
       if (wallet) {
-        await disconnectWallet(wallet);
+        // Only pass the label and accounts array which are required for disconnection
+        const walletInfo = {
+          label: wallet.label,
+          accounts: wallet.accounts
+        };
+        await disconnectWallet(walletInfo);
         await supabase.auth.signOut();
         setWallet(null);
         toast({
