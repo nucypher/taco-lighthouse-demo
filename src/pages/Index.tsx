@@ -4,6 +4,7 @@ import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { useAudioPlayer } from "@/App";
 
 interface Track {
   id: string;
@@ -19,6 +20,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<any>(null);
   const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
+  const { playTrack } = useAudioPlayer();
 
   const fetchTracks = async (query: string = "") => {
     try {
@@ -69,6 +71,17 @@ const Index = () => {
     return `https://gateway.lighthouse.storage/ipfs/${cid}`;
   };
 
+  const handlePlayFeatured = () => {
+    if (featuredTrack) {
+      playTrack({
+        title: featuredTrack.title,
+        artist: featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist',
+        coverUrl: getArtworkUrl(featuredTrack.cover_art_cid),
+        audioUrl: `https://gateway.lighthouse.storage/ipfs/${featuredTrack.ipfs_cid}`,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header onSearch={handleSearch} onUploadSuccess={() => fetchTracks(searchQuery)} />
@@ -89,7 +102,7 @@ const Index = () => {
                   <p className="text-lg text-muted-foreground mb-4">
                     {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
                   </p>
-                  <Button className="rounded-full">Start Listening</Button>
+                  <Button onClick={handlePlayFeatured} className="rounded-full">Start Listening</Button>
                 </div>
               </div>
             </div>
