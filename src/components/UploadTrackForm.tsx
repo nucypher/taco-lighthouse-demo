@@ -12,7 +12,11 @@ import { encryptAudioFile } from '@/utils/encryption';
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
-  wallet: any;
+  wallet: {
+    accounts?: Array<{
+      address: string;
+    }>;
+  };
 }
 
 export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => {
@@ -65,8 +69,8 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
 
       // Read and encrypt the audio file
       console.log('📂 Reading audio file...');
-      let encryptedAudioData;
-      let coverArtBuffer;
+      let encryptedAudioData: ArrayBuffer;
+      let coverArtBuffer: ArrayBuffer | null;
 
       if (devMode) {
         // Create a test buffer for dev mode
@@ -78,9 +82,9 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         coverArtBuffer = testBuffer; // Use same test buffer for cover art in dev mode
         
         console.log('📊 File sizes (dev mode):', {
-          originalAudio: testBuffer.byteLength / 1024, 'KB',
-          encryptedAudio: encryptedAudioData.byteLength / 1024, 'KB',
-          coverArt: coverArtBuffer.byteLength / 1024, 'KB'
+          originalAudio: testBuffer.byteLength / 1024 + ' KB',
+          encryptedAudio: encryptedAudioData.byteLength / 1024 + ' KB',
+          coverArt: coverArtBuffer.byteLength / 1024 + ' KB'
         });
       } else {
         // Read and encrypt the actual audio file
@@ -145,7 +149,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
       setCoverArt(null);
       setCondition(null);
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Upload error:', error);
       console.error('Error details:', {
         name: error.name,
