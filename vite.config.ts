@@ -20,5 +20,21 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     'process.env': {},
+    global: 'globalThis',
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
+  },
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+    rollupOptions: {
+      external: ['@web3-onboard/core', '@web3-onboard/react', '@web3-onboard/injected-wallets', '@web3-onboard/walletconnect'],
+    }
+  }
 }));

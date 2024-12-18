@@ -1,9 +1,11 @@
-import { init } from '@web3-onboard/react';
+import { init } from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
 import walletConnectModule from '@web3-onboard/walletconnect';
 
 const injected = injectedModule();
-const walletConnect = walletConnectModule();
+const walletConnect = walletConnectModule({
+  projectId: 'c5d90293c2ddcb8e467deb6484b19f9b'
+});
 
 interface WalletState {
   label: string;
@@ -26,6 +28,11 @@ const web3Onboard = init({
       rpcUrl: 'https://sepolia.infura.io/v3/',
     },
   ],
+  appMetadata: {
+    name: 'D-Sound',
+    icon: '/favicon.ico',
+    description: 'Decentralized Sound Platform'
+  }
 });
 
 export const connectWallet = async (): Promise<WalletState | null> => {
