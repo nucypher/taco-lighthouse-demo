@@ -81,7 +81,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       .from('users')
       .select('*')
       .eq('address', address.toLowerCase())
-      .single();
+      .maybeSingle();
 
     // Create and sign SIWE message
     const message = createSiweMessage(address, chainId, nonce);
