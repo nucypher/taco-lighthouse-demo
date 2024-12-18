@@ -1,6 +1,7 @@
-import { conditions, encrypt, domains } from '@nucypher/taco';
+import { conditions } from '@nucypher/taco';
 import { ethers } from "ethers";
 import { supabase } from "@/integrations/supabase/client";
+import { encryptAudioFile } from './encryption';
 
 export async function uploadTrackToLighthouse(
   audioData: ArrayBuffer,
@@ -29,17 +30,7 @@ export async function encryptAudioData(
   condition: conditions.condition.Condition,
   provider: ethers.providers.Web3Provider
 ): Promise<ArrayBuffer> {
-  const signer = provider.getSigner();
-  const result = await encrypt(
-    provider,
-    domains.DEVNET,
-    new Uint8Array(audioBuffer),
-    condition,
-    27, // ritualsToTry parameter
-    signer // signer parameter
-  );
-  
-  return result.toBytes();
+  return encryptAudioFile(audioBuffer, condition, provider);
 }
 
 export async function saveTrackMetadata(
