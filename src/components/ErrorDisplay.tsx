@@ -31,7 +31,7 @@ export function ErrorDisplay({ error }: ErrorDisplayProps) {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 border-destructive/50 hover:bg-destructive/10"
+          className="h-8 border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
           onClick={copyToClipboard}
         >
           <Copy className="h-4 w-4 mr-2" />
