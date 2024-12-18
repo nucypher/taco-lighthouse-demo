@@ -39,7 +39,7 @@ const web3Onboard = init({
 });
 
 const generateNonce = () => {
-  return Math.random().toString(36).substring(2, 15);
+  return Math.floor(Math.random() * 1000000).toString();
 };
 
 export const createSiweMessage = (address: string, chainId: number, nonce: string) => {
@@ -67,24 +67,8 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
     const chainId = (await web3Provider.getNetwork()).chainId;
-    const nonce = generateNonce();
-
-    // Create and sign SIWE message
-    const message = createSiweMessage(address, chainId, nonce);
-    const signature = await signer.signMessage(message);
-
-    // Create a JWT token using the SIWE message and signature
-    const { data: { session }, error: signInError } = await supabase.auth.signInWithJwt({
-      jwt: signature,
-      nonce: nonce,
-    });
-
-    if (signInError || !session) {
-      console.error('Sign in error:', signInError);
-      throw signInError || new Error('No session created');
-    }
-
-    // Get or create user record
+    
+    // First, get or create user record to store nonce
     const { data: existingUser, error: queryError } = await supabase
       .from('users')
       .select('id')
@@ -96,16 +80,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Failed to check user existence');
     }
 
+    // Generate new nonce
+    const nonce = generateNonce();
+
     if (!existingUser) {
       const { error: insertError } = await supabase
         .from('users')
         .insert({
-          id: session.user.id,
           address: address.toLowerCase(),
           auth: { 
+            genNonce: nonce,
             lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'success',
-            genNonce: nonce 
+            lastAuthStatus: 'pending'
           }
         });
 
@@ -118,17 +104,49 @@ export const connectWallet = async (): Promise<WalletState | null> => {
         .from('users')
         .update({ 
           auth: { 
+            genNonce: nonce,
             lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'success',
-            genNonce: nonce 
+            lastAuthStatus: 'pending'
           }
         })
-        .eq('id', session.user.id);
+        .eq('address', address.toLowerCase());
 
       if (updateError) {
-        console.error('Error updating user:', updateError);
-        throw new Error('Failed to update user record');
+        console.error('Error updating nonce:', updateError);
+        throw new Error('Failed to update nonce');
       }
+    }
+
+    // Create and sign SIWE message
+    const message = createSiweMessage(address, chainId, nonce);
+    const signature = await signer.signMessage(message);
+
+    // Sign in with the signature
+    const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
+      email: `${address.toLowerCase()}@ethereum.org`,
+      password: signature,
+    });
+
+    if (signInError || !session) {
+      console.error('Sign in error:', signInError);
+      throw signInError || new Error('No session created');
+    }
+
+    // Update auth status
+    const { error: finalUpdateError } = await supabase
+      .from('users')
+      .update({ 
+        auth: { 
+          lastAuth: new Date().toISOString(),
+          lastAuthStatus: 'success',
+          genNonce: generateNonce() // Generate new nonce for next login
+        }
+      })
+      .eq('address', address.toLowerCase());
+
+    if (finalUpdateError) {
+      console.error('Error updating auth status:', finalUpdateError);
+      throw new Error('Failed to update auth status');
     }
 
     return wallets[0];
