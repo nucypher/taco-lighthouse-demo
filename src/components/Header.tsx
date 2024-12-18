@@ -139,6 +139,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
               setShowUploadDialog(false);
               onUploadSuccess?.();
             }} 
+            onClose={() => setShowUploadDialog(false)}
             wallet={wallet}
           />
         </DialogContent>
