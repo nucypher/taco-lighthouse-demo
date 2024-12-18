@@ -7,6 +7,7 @@ interface VolumeControlProps {
   isMuted: boolean;
   onVolumeChange: (value: number[]) => void;
   onToggleMute: () => void;
+  className?: string;
 }
 
 export function VolumeControl({
@@ -14,9 +15,10 @@ export function VolumeControl({
   isMuted,
   onVolumeChange,
   onToggleMute,
+  className,
 }: VolumeControlProps) {
   return (
-    <div className="flex items-center gap-2 min-w-[200px] justify-end">
+    <div className={`flex items-center gap-2 min-w-[200px] justify-end ${className || ''}`}>
       <Button
         variant="ghost"
         size="icon"
