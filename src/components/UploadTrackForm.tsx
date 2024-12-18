@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { TacoConditionsForm } from "./TacoConditionsForm";
 import { conditions, initialize } from '@nucypher/taco';
@@ -10,6 +8,7 @@ import { createTestBuffer } from "@/utils/dev-mode";
 import { encryptAudioFile } from "@/utils/encryption";
 import { saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track";
 import { toast } from "sonner";
+import { UploadFormFields } from "./upload/UploadFormFields";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -155,45 +154,19 @@ export const UploadTrackForm = ({ onSuccess, wallet, onClose }: UploadTrackFormP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={isUploading}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="audio">Audio File</Label>
-        <Input
-          id="audio"
-          type="file"
-          accept="audio/*"
-          onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-          disabled={isUploading}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="cover">Cover Art (optional)</Label>
-        <Input
-          id="cover"
-          type="file"
-          accept="image/*"
-          onChange={(e) => setCoverArt(e.target.files?.[0] || null)}
-          disabled={isUploading}
-        />
-      </div>
+      <UploadFormFields
+        title={title}
+        setTitle={setTitle}
+        setAudioFile={setAudioFile}
+        setCoverArt={setCoverArt}
+      />
 
       <TacoConditionsForm
         onChange={setCondition}
-        disabled={isUploading}
       />
 
-      <Button type="submit" disabled={isUploading} className="w-full">
-        {isUploading ? "Uploading..." : "Upload Track"}
+      <Button type="submit" className="w-full">
+        Upload Track
       </Button>
     </form>
   );
