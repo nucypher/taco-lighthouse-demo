@@ -25,14 +25,6 @@ export async function uploadTrackToLighthouse(
   return response.json();
 }
 
-export async function encryptAudioData(
-  audioBuffer: ArrayBuffer,
-  condition: conditions.condition.Condition,
-  provider: ethers.providers.Web3Provider
-): Promise<ArrayBuffer> {
-  return encryptAudioFile(audioBuffer, condition, provider);
-}
-
 export async function saveTrackMetadata(
   title: string,
   ownerId: string,
