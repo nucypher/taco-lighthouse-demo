@@ -71,7 +71,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     // First, get or create user record to store nonce
     const { data: existingUser, error: queryError } = await supabase
       .from('users')
-      .select('id')
+      .select('*')
       .eq('address', address.toLowerCase())
       .maybeSingle();
 
@@ -104,6 +104,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
         throw new Error('Failed to create user record');
       }
     } else {
+      // Update existing user's nonce
       const { error: updateError } = await supabase
         .from('users')
         .update({ 
