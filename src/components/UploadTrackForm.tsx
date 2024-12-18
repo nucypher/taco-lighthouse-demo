@@ -7,7 +7,8 @@ import { TacoConditionsForm } from "./TacoConditionsForm";
 import { conditions, initialize } from '@nucypher/taco';
 import { ethers } from "ethers";
 import { createTestBuffer } from "@/utils/dev-mode";
-import { encryptAudioData, saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track";
+import { encryptAudioFile } from "@/utils/encryption";
+import { saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -79,7 +80,7 @@ export const UploadTrackForm = ({ onSuccess, wallet }: UploadTrackFormProps) => 
         const audioBuffer = await audioFile!.arrayBuffer();
         console.log('✅ Audio file read, size:', audioBuffer.byteLength / 1024, 'KB');
 
-        encryptedAudioData = await encryptAudioData(audioBuffer, condition, web3Provider);
+        encryptedAudioData = await encryptAudioFile(audioBuffer, condition, web3Provider);
         console.log('✅ Audio encrypted, size:', encryptedAudioData.byteLength / 1024, 'KB');
 
         if (coverArt) {
