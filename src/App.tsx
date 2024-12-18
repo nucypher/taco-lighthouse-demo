@@ -38,26 +38,18 @@ const App = () => {
   const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const playTrack = (track: CurrentTrack) => {
-    setCurrentTrack(track);
-    setIsPlaying(true);
-  };
-
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const stopPlayback = () => {
-    setCurrentTrack(null);
-    setIsPlaying(false);
-  };
-
   const audioPlayerValue = {
     currentTrack,
     isPlaying,
-    playTrack,
-    togglePlayPause,
-    stopPlayback,
+    playTrack: (track: CurrentTrack) => {
+      setCurrentTrack(track);
+      setIsPlaying(true);
+    },
+    togglePlayPause: () => setIsPlaying(!isPlaying),
+    stopPlayback: () => {
+      setCurrentTrack(null);
+      setIsPlaying(false);
+    },
   };
 
   return (
@@ -67,7 +59,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <div className="pb-24"> {/* Add padding to prevent content from being hidden behind the player */}
+            <div className="pb-24">
               <Routes>
                 <Route path="/" element={<Index />} />
               </Routes>
@@ -79,8 +71,8 @@ const App = () => {
                 coverUrl={currentTrack.coverUrl}
                 audioUrl={currentTrack.audioUrl}
                 isPlaying={isPlaying}
-                onPlayPause={togglePlayPause}
-                onClose={stopPlayback}
+                onPlayPause={audioPlayerValue.togglePlayPause}
+                onClose={audioPlayerValue.stopPlayback}
               />
             )}
           </BrowserRouter>

@@ -13,8 +13,13 @@ interface HeaderProps {
   onUploadSuccess?: () => void;
 }
 
+interface WalletState {
+  label: string;
+  accounts: { address: string }[];
+}
+
 export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
-  const [wallet, setWallet] = useState<any>(null);
+  const [wallet, setWallet] = useState<WalletState | null>(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
@@ -22,7 +27,6 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const handleConnect = async () => {
     try {
       const connectedWallet = await connectWallet();
-      
       if (!connectedWallet) {
         throw new Error('Failed to connect wallet');
       }
@@ -45,7 +49,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const handleDisconnect = async () => {
     try {
       if (wallet) {
-        await disconnectWallet(wallet.label);
+        await disconnectWallet(wallet);
         await supabase.auth.signOut();
         setWallet(null);
         toast({
