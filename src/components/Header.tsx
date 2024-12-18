@@ -45,7 +45,6 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const handleDisconnect = async () => {
     try {
       if (wallet) {
-        // Only pass the wallet label which is required for disconnection
         await disconnectWallet(wallet.label);
         await supabase.auth.signOut();
         setWallet(null);

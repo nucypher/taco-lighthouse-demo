@@ -30,8 +30,8 @@ export const connectWallet = async () => {
   return wallets[0];
 };
 
-export const disconnectWallet = async (wallet: any) => {
-  await web3Onboard.disconnectWallet(wallet);
+export const disconnectWallet = async (label: string) => {
+  await web3Onboard.disconnectWallet({ label });
 };
 
 export default web3Onboard;
