@@ -68,15 +68,23 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const message = createSiweMessage(address, chainId);
     const signature = await signer.signMessage(message);
 
-    // Sign in to Supabase with the SIWE message
-    const { error } = await supabase.auth.signInWithPassword({
+    // Try to sign up first (for new users)
+    const { error: signUpError } = await supabase.auth.signUp({
       email: `${address.toLowerCase()}@ethereum.org`,
       password: signature,
     });
 
-    if (error) {
-      console.error('Supabase auth error:', error);
-      throw error;
+    // If sign up fails (user exists), try to sign in
+    if (signUpError) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: `${address.toLowerCase()}@ethereum.org`,
+        password: signature,
+      });
+
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        throw signInError;
+      }
     }
 
     return wallets[0];
