@@ -84,9 +84,13 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const nonce = generateNonce();
 
     if (!existingUser) {
+      // Generate a UUID for the new user
+      const userId = crypto.randomUUID();
+      
       const { error: insertError } = await supabase
         .from('users')
         .insert({
+          id: userId,
           address: address.toLowerCase(),
           auth: { 
             genNonce: nonce,
