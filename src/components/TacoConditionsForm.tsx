@@ -45,7 +45,7 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
         chain: chainId,
         returnValueTest: {
           comparator: '>=',
-          value: minBalanceNumber // Pass as number instead of string
+          value: minBalanceNumber
         }
       });
     } else {
@@ -54,7 +54,7 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
         chain: chainId,
         returnValueTest: {
           comparator: '>=',
-          value: minBalanceNumber // Pass as number instead of string
+          value: minBalanceNumber
         }
       });
     }
@@ -63,13 +63,10 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
     onChange(condition);
   };
 
+  // Call createCondition on mount and when dependencies change
   useEffect(() => {
     createCondition();
-  }, []);
-
-  const handleChange = () => {
-    createCondition();
-  };
+  }, [contractAddress, minBalance, chainId, conditionType]);
 
   return (
     <ScrollArea className="h-[400px] rounded-md border p-4">
@@ -78,7 +75,6 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
           value={conditionType} 
           onChange={(value) => {
             setConditionType(value as ConditionType);
-            handleChange();
           }} 
         />
 
@@ -86,7 +82,6 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
           value={chainId} 
           onChange={(value) => {
             setChainId(value);
-            handleChange();
           }} 
         />
 
@@ -97,7 +92,6 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
             value={contractAddress}
             onChange={(e) => {
               setContractAddress(e.target.value);
-              handleChange();
             }}
             disabled={disabled}
           />
@@ -113,7 +107,6 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
             value={minBalance}
             onChange={(e) => {
               setMinBalance(e.target.value);
-              handleChange();
             }}
             disabled={disabled}
           />
