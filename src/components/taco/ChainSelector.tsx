@@ -3,8 +3,8 @@ import { Label } from '../ui/label';
 import { SUPPORTED_CHAINS } from '@/types/taco';
 
 interface ChainSelectorProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export const ChainSelector = ({ value, onChange }: ChainSelectorProps) => {
@@ -12,8 +12,8 @@ export const ChainSelector = ({ value, onChange }: ChainSelectorProps) => {
     <div className="space-y-2">
       <Label>Chain</Label>
       <Select 
-        value={value.toString()} 
-        onValueChange={(val) => onChange(parseInt(val, 10))}
+        value={value} 
+        onValueChange={onChange}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select chain" />

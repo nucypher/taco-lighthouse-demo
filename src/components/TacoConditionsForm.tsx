@@ -9,7 +9,7 @@ import { ConditionType } from '@/types/taco';
 
 const DEFAULT_CONTRACT_ADDRESS = '0x46abDF5aD1726ba700794539C3dB8fE591854729';
 const DEFAULT_MIN_BALANCE = '1';
-const DEFAULT_CHAIN_ID = 11155111; // Sepolia
+const DEFAULT_CHAIN_ID = '11155111'; // Sepolia as string
 
 interface TacoConditionsFormProps {
   onChange: (condition: conditions.condition.Condition | null) => void;
@@ -21,52 +21,57 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [minBalance, setMinBalance] = useState(DEFAULT_MIN_BALANCE);
   const [chainId, setChainId] = useState(DEFAULT_CHAIN_ID);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
 
   const createCondition = () => {
-    if (!contractAddress || !minBalance) {
+    if (!isInitialized || !contractAddress || !minBalance) {
       onChange(null);
       return;
     }
 
-    console.log('Creating condition with chainId:', chainId);
+    const chainIdNumber = parseInt(chainId, 10);
+    const minBalanceNumber = parseFloat(minBalance);
 
-    // Convert minBalance to a number for the condition
-    const minBalanceNumber = Number(minBalance);
-    if (isNaN(minBalanceNumber)) {
-      console.error('Invalid minimum balance value');
+    if (isNaN(chainIdNumber) || isNaN(minBalanceNumber)) {
+      console.error('Invalid chain ID or minimum balance value');
       onChange(null);
       return;
     }
 
-    let condition;
-    if (conditionType === 'erc20') {
-      condition = new conditions.predefined.erc20.ERC20Balance({
+    try {
+      let condition;
+      const params = {
         contractAddress,
-        chain: chainId,
+        chain: chainIdNumber,
         returnValueTest: {
           comparator: '>=',
           value: minBalanceNumber
         }
-      });
-    } else {
-      condition = new conditions.predefined.erc721.ERC721Balance({
-        contractAddress,
-        chain: chainId,
-        returnValueTest: {
-          comparator: '>=',
-          value: minBalanceNumber
-        }
-      });
-    }
+      };
 
-    console.log('Created condition:', condition);
-    onChange(condition);
+      if (conditionType === 'erc20') {
+        condition = new conditions.predefined.erc20.ERC20Balance(params);
+      } else {
+        condition = new conditions.predefined.erc721.ERC721Balance(params);
+      }
+
+      console.log('Created condition:', condition);
+      onChange(condition);
+    } catch (error) {
+      console.error('Error creating condition:', error);
+      onChange(null);
+    }
   };
 
-  // Call createCondition on mount and when dependencies change
   useEffect(() => {
-    createCondition();
-  }, [contractAddress, minBalance, chainId, conditionType]);
+    if (isInitialized) {
+      createCondition();
+    }
+  }, [contractAddress, minBalance, chainId, conditionType, isInitialized]);
 
   return (
     <ScrollArea className="h-[400px] rounded-md border p-4">
@@ -102,7 +107,7 @@ export const TacoConditionsForm = ({ onChange, disabled }: TacoConditionsFormPro
           <Input
             type="number"
             min="0"
-            step="1"
+            step="any"
             placeholder="Enter minimum balance"
             value={minBalance}
             onChange={(e) => {
