@@ -85,10 +85,11 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     if (!existingUser) {
       await supabase
         .from('users')
-        .insert([{ 
+        .insert({
+          id: crypto.randomUUID(), // Generate a UUID for the new user
           address: address.toLowerCase(),
           auth: { genNonce: nonce }
-        }]);
+        });
     } else {
       await supabase
         .from('users')
