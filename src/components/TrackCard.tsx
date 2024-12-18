@@ -46,16 +46,6 @@ export const TrackCard = ({
       return;
     }
 
-    // Check if wallet is connected
-    if (!window.ethereum?.selectedAddress) {
-      toast({
-        title: 'Connect Wallet',
-        description: 'Please connect your wallet to play encrypted tracks',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     try {
       setIsDecrypting(true);
       
@@ -81,9 +71,6 @@ export const TrackCard = ({
       });
 
       const response = await fetch(trackUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch encrypted data: ${response.statusText}`);
-      }
       const encryptedData = await response.arrayBuffer();
       console.log('✅ Encrypted data fetched, size:', encryptedData.byteLength, 'bytes');
       
@@ -102,28 +89,16 @@ export const TrackCard = ({
 
       console.log('🔓 Starting decryption...');
       const decryptedData = await decrypt(
-        amoyProvider,
+        amoyProvider, // Use Amoy provider for decryption
         domains.DEVNET,
         messageKit,
         conditionContext
       );
       console.log('✅ Decryption successful, decrypted size:', decryptedData.byteLength, 'bytes');
 
-      // Create a Blob with the correct MIME type
       const blob = new Blob([decryptedData], { type: 'audio/mpeg' });
       const decryptedUrl = URL.createObjectURL(blob);
-      console.log('✅ Blob URL created for decrypted audio:', decryptedUrl);
-
-      // Verify the blob is valid audio before playing
-      const audio = new Audio();
-      audio.src = decryptedUrl;
-      
-      await new Promise((resolve, reject) => {
-        audio.oncanplaythrough = resolve;
-        audio.onerror = () => reject(new Error('Failed to load audio'));
-        // Set a timeout in case the audio fails to load
-        setTimeout(() => reject(new Error('Audio load timeout')), 5000);
-      });
+      console.log('✅ Blob URL created for decrypted audio');
 
       playTrack({
         title,
@@ -145,7 +120,7 @@ export const TrackCard = ({
       });
       toast({
         title: 'Access Denied',
-        description: error.message || 'You do not meet the required conditions to play this track',
+        description: 'You do not meet the required conditions to play this track',
         variant: 'destructive',
       });
     } finally {
