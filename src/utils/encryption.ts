@@ -29,8 +29,7 @@ export async function encryptAudioFile(
     domains.DEVNET,
     new Uint8Array(audioBuffer),
     condition,
-    27,
-    amoyProvider.getSigner() // Add the signer as the 6th argument
+    27
   );
   
   // Convert ThresholdMessageKit to binary format
