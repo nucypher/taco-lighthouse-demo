@@ -67,7 +67,7 @@ export const TrackCard = ({
       const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
       console.log('✅ Web3 provider ready:', {
         network: await web3Provider.getNetwork(),
-        currentAccount: await web3Provider.getSigner().getAddress()
+        currentAccount: web3Provider.getSigner()
       });
 
       const response = await fetch(trackUrl);
