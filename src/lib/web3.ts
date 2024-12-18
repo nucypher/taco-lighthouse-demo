@@ -75,28 +75,45 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     // Generate and store nonce
     const nonce = generateNonce();
     
-    // Create user record if it doesn't exist
-    const { data: existingUser } = await supabase
+    // Check if user exists
+    const { data: existingUser, error: queryError } = await supabase
       .from('users')
       .select('id')
       .eq('address', address.toLowerCase())
-      .single();
+      .maybeSingle();
+
+    if (queryError) {
+      console.error('Error querying user:', queryError);
+      throw new Error('Failed to check user existence');
+    }
+
+    const userId = existingUser?.id || crypto.randomUUID();
 
     if (!existingUser) {
-      await supabase
+      const { error: insertError } = await supabase
         .from('users')
         .insert({
-          id: crypto.randomUUID(), // Generate a UUID for the new user
+          id: userId,
           address: address.toLowerCase(),
           auth: { genNonce: nonce }
         });
+
+      if (insertError) {
+        console.error('Error creating user:', insertError);
+        throw new Error('Failed to create user record');
+      }
     } else {
-      await supabase
+      const { error: updateError } = await supabase
         .from('users')
         .update({ 
           auth: { genNonce: nonce }
         })
-        .eq('address', address.toLowerCase());
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('Error updating user:', updateError);
+        throw new Error('Failed to update user record');
+      }
     }
 
     // Create and sign SIWE message with nonce
@@ -126,7 +143,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     }
 
     // Update auth status
-    await supabase
+    const { error: finalUpdateError } = await supabase
       .from('users')
       .update({ 
         auth: { 
@@ -135,24 +152,15 @@ export const connectWallet = async (): Promise<WalletState | null> => {
           genNonce: null 
         }
       })
-      .eq('address', address.toLowerCase());
+      .eq('id', userId);
+
+    if (finalUpdateError) {
+      console.error('Error updating auth status:', finalUpdateError);
+    }
 
     return wallets[0];
   } catch (error) {
     console.error('Connection error:', error);
-    // Update auth status on failure
-    if (error.address) {
-      await supabase
-        .from('users')
-        .update({ 
-          auth: { 
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'failed',
-            genNonce: null 
-          }
-        })
-        .eq('address', error.address.toLowerCase());
-    }
     throw error;
   }
 };
