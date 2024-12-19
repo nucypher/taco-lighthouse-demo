@@ -102,22 +102,31 @@ serve(async (req) => {
       console.log('Updated existing user:', user);
     }
 
-    // Create a new session for the user
-    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
-      userId: user.id
+    // Generate access token for the user
+    const { data: { token }, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+      options: {
+        redirectTo: '/'
+      }
     })
 
-    if (sessionError) {
-      console.error('Error creating session:', sessionError);
-      throw sessionError;
+    if (tokenError) {
+      console.error('Error generating token:', tokenError);
+      throw tokenError;
     }
 
-    console.log('Created new session successfully');
+    console.log('Generated authentication tokens successfully');
 
+    // Return the user and session data
     return new Response(
       JSON.stringify({ 
         user,
-        session: sessionData
+        session: {
+          access_token: token.accessToken,
+          refresh_token: token.refreshToken,
+          user
+        }
       }),
       { 
         status: 200, 
