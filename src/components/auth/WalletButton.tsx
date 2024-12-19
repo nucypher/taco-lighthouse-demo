@@ -17,7 +17,7 @@ export const WalletButton = () => {
     
     try {
       setIsConnecting(true);
-      console.log('Attempting to connect wallet...');
+      console.log('Attempting to connect wallet and establish session...');
       const connectedWallet = await connectWallet();
       
       if (!connectedWallet) {

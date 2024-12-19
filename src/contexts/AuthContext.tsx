@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useWallet } from "./WalletContext";
-import { disconnectWallet } from "@/lib/web3";
+import { connectWallet } from "@/lib/web3";
 
 interface AuthContextType {
   session: Session | null;
@@ -39,19 +39,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Effect to handle wallet-session cleanup
+  // Effect to handle wallet-session synchronization
   useEffect(() => {
-    const cleanup = async () => {
-      if (!session && wallet) {
-        // If we have a wallet but no session, disconnect the wallet
-        console.log('No session found with connected wallet, cleaning up...');
-        await disconnectWallet(wallet);
-        setWallet(null);
+    const syncWalletAndSession = async () => {
+      if (wallet && !session && !isLoading) {
+        console.log('Wallet connected but no session, attempting SIWE authentication...');
+        try {
+          // Attempt to establish session using the existing wallet
+          await connectWallet();
+        } catch (error) {
+          console.error('Failed to establish session:', error);
+          setWallet(null);
+        }
       }
     };
 
-    cleanup();
-  }, [session, wallet, setWallet]);
+    syncWalletAndSession();
+  }, [wallet, session, isLoading, setWallet]);
 
   return (
     <AuthContext.Provider value={{ session, isLoading }}>
