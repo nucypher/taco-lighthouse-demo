@@ -41,7 +41,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     if (nonceError || !nonce) {
       console.error('Failed to get nonce:', nonceError);
-      throw error;
+      throw new Error('Failed to get nonce for authentication');
     }
     
     console.log('Received nonce from edge function:', nonce);
