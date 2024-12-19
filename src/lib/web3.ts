@@ -34,7 +34,10 @@ const web3Onboard = init({
   appMetadata: {
     name: 'TACo',
     icon: '/favicon.ico',
-    description: 'Decentralized Music Platform'
+    description: 'Decentralized Music Platform',
+    recommendedInjectedWallets: [
+      { name: 'MetaMask', url: 'https://metamask.io' },
+    ],
   }
 });
 
@@ -70,18 +73,6 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     // Generate new nonce
     const nonce = generateNonce();
-    const authData = { 
-      genNonce: nonce,
-      lastAuth: new Date().toISOString(),
-      lastAuthStatus: 'pending'
-    };
-
-    // Check if user exists and get their data
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('*')
-      .eq('address', address.toLowerCase())
-      .maybeSingle();
 
     // Create and sign SIWE message
     const message = createSiweMessage(address, chainId, nonce);
@@ -97,6 +88,13 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       console.error('Sign in error:', signInError);
       throw signInError || new Error('No session created');
     }
+
+    // Check if user exists and get their data
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('address', address.toLowerCase())
+      .maybeSingle();
 
     if (existingUser) {
       // Update existing user's auth data
