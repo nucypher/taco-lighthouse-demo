@@ -8,6 +8,7 @@ import type { WalletState } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { SiweMessage } from 'siwe';
 import { ethers } from 'ethers';
+import { Provider } from '@supabase/supabase-js';
 
 // Extend the ProvidersOptions interface
 declare module '@supabase/auth-js/dist/module/lib/types' {
@@ -37,7 +38,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     // Get the nonce from Supabase
     const { data, error: nonceError } = await supabase.auth.signInWithOAuth({
-      provider: 'siwe' as unknown as Provider,
+      provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true
       }
@@ -68,7 +69,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     // Complete the OAuth flow with the signed message
     const { data: signInData, error: signInError } = await supabase.auth.signInWithOAuth({
-      provider: 'siwe' as unknown as Provider,
+      provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true,
         queryParams: {
