@@ -86,7 +86,24 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw signInError;
     }
 
-    console.log('Successfully signed in with SIWE:', signInData);
+    // Verify the session was created successfully
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Failed to get session after sign in:', sessionError);
+      throw sessionError;
+    }
+
+    if (!session) {
+      console.error('No session created after successful sign in');
+      throw new Error('Authentication failed: No session created');
+    }
+
+    console.log('Successfully signed in with SIWE and session verified:', {
+      user: session.user.id,
+      expiresAt: session.expires_at
+    });
+    
     return connectedWallet;
 
   } catch (error) {
