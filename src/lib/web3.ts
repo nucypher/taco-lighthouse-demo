@@ -71,18 +71,15 @@ async function createSiweMessage(address: string, statement: string) {
 
 async function signInWithEthereum(address: string) {
   try {
-    // Create SIWE message
     const message = await createSiweMessage(
       address,
       'Sign in with Ethereum to TACo'
     );
     console.log('Prepared message:', message);
 
-    // Get the provider and signer
     const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = web3Provider.getSigner();
 
-    // Request signature from user
     console.log('Requesting signature...');
     const signature = await signer.signMessage(message);
     console.log('Signature received:', signature);
@@ -117,12 +114,12 @@ export const connectWallet = async (): Promise<WalletState | null> => {
   try {
     console.log('Connecting wallet...');
     const wallets = await web3Onboard.connectWallet();
+    
     if (!wallets[0]) {
       console.log('No wallet connected');
       return null;
     }
 
-    // Request account access
     await window.ethereum.request({ method: 'eth_requestAccounts' });
     
     const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -135,15 +132,12 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     console.log('SIWE message signed:', { message, signature });
     
     const authResponse = await authenticateWithSupabase(address, message, signature);
-    console.log('Authenticated with Supabase successfully');
-    
-    // Set the session in Supabase client
-    const { session } = authResponse;
-    if (session) {
-      await supabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token
-      });
+    console.log('Authenticated with Supabase:', authResponse);
+
+    // Check if we have a session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Failed to establish session after authentication');
     }
 
     return wallets[0];

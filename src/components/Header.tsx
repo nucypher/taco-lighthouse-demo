@@ -1,7 +1,7 @@
 import { Search, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -26,6 +26,29 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const { session } = useAuth();
+
+  // Check session on mount and update wallet state
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && wallet) {
+        setWallet(null);
+      }
+    };
+    
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      if (!session && wallet) {
+        setWallet(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [wallet]);
 
   const handleConnect = async () => {
     if (isConnecting) return;
@@ -58,7 +81,6 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     try {
       if (wallet) {
         await disconnectWallet(wallet);
-        await supabase.auth.signOut();
         setWallet(null);
         toast({
           title: "Disconnected",
