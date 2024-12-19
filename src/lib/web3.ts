@@ -82,8 +82,12 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     console.log('SIWE auth successful, received data:', authData);
 
-    // The session data is already in the correct format from the edge function
-    // No need to call setSession as the edge function has already created the session
+    // Explicitly set the session with the data returned from the edge function
+    await supabase.auth.setSession({
+      access_token: authData.session.access_token,
+      refresh_token: authData.session.refresh_token
+    });
+
     return connectedWallet;
 
   } catch (error) {
