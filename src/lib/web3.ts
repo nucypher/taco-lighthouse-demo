@@ -81,15 +81,19 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       }
     });
 
-    if (authError || !authData) {
+    if (authError) {
       console.error('Failed to authenticate with SIWE:', authError);
-      throw new Error(`SIWE authentication failed: ${authError?.message || 'Unknown error'}`);
+      throw new Error(`SIWE authentication failed: ${authError.message || 'Unknown error'}`);
     }
 
     console.log('SIWE auth successful, received data:', authData);
 
+    // Store the wallet state in localStorage to persist it
+    localStorage.setItem('connectedWallet', JSON.stringify(connectedWallet));
+    console.log('Stored wallet state in localStorage:', connectedWallet);
+
     // Use the action_link from the session data to complete authentication
-    if (authData.session?.action_link) {
+    if (authData?.session?.action_link) {
       console.log('Redirecting to action link for authentication...');
       window.location.href = authData.session.action_link;
     } else {
@@ -97,14 +101,16 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Authentication failed: No action link received');
     }
 
-    console.log('Returning connected wallet state:', connectedWallet);
     return connectedWallet;
 
   } catch (error) {
     console.error('Wallet connection error:', error);
     // Don't disconnect the wallet on error, just sign out of Supabase
     await supabase.auth.signOut();
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error during wallet connection');
   }
 };
 
@@ -112,6 +118,7 @@ export const disconnectWallet = async (wallet: WalletState) => {
   console.log('Disconnecting wallet:', wallet);
   await disconnectWalletOnly(wallet);
   await supabase.auth.signOut();
+  localStorage.removeItem('connectedWallet');
   console.log('Wallet disconnected and signed out');
 };
 
