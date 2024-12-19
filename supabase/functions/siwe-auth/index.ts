@@ -34,18 +34,34 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Create a custom token and user first
-    const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
-      email: `${address.toLowerCase()}@ethereum.org`,
-      password: crypto.randomUUID(), // Generate a random password
-      email_confirm: true,
-      user_metadata: {
-        wallet_address: address.toLowerCase()
-      }
-    })
+    // First check if a user with this email already exists
+    const email = `${address.toLowerCase()}@ethereum.org`
+    const { data: existingAuthUser } = await supabaseAdmin.auth.admin.listUsers()
+    const authUser = existingAuthUser?.users?.find(u => u.email === email)
 
-    if (signInError) throw signInError
-    console.log('Created Supabase auth user:', user);
+    let user
+    if (!authUser) {
+      // Create new auth user if doesn't exist
+      console.log('Creating new auth user for:', email)
+      const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: email,
+        password: crypto.randomUUID(),
+        email_confirm: true,
+        user_metadata: {
+          wallet_address: address.toLowerCase()
+        }
+      })
+
+      if (createError) {
+        console.error('Error creating auth user:', createError)
+        throw createError
+      }
+      user = newUser
+      console.log('Created new auth user:', user)
+    } else {
+      user = authUser
+      console.log('Found existing auth user:', user)
+    }
 
     // Check if user exists in our users table
     const { data: existingUser, error: selectError } = await supabaseAdmin
@@ -65,7 +81,7 @@ serve(async (req) => {
       const { data: newUser, error: insertError } = await supabaseAdmin
         .from('users')
         .insert({
-          id: user.id, // Use the auth user's ID
+          id: user.id,
           wallet_address: address.toLowerCase(),
           auth: {
             lastAuth: new Date().toISOString(),
@@ -76,7 +92,10 @@ serve(async (req) => {
         .select()
         .single()
 
-      if (insertError) throw insertError
+      if (insertError) {
+        console.error('Error creating new user:', insertError)
+        throw insertError
+      }
       console.log('Created new user:', newUser);
     } else {
       // Update existing user's auth data
@@ -91,7 +110,10 @@ serve(async (req) => {
         })
         .eq('id', existingUser.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error('Error updating user:', updateError)
+        throw updateError
+      }
       console.log('Updated existing user auth data');
     }
 
