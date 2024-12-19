@@ -127,26 +127,27 @@ serve(async (req) => {
       console.log('Updated existing user:', user)
     }
 
-    // Generate new access and refresh tokens
-    const { data: tokens, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email,
+    // Create a new session
+    const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+      userId: user.id,
     })
 
-    if (tokenError || !tokens) {
-      console.error('Error generating tokens:', tokenError)
-      throw tokenError
+    if (sessionError) {
+      console.error('Error creating session:', sessionError)
+      throw sessionError
     }
 
-    console.log('Generated tokens successfully')
+    console.log('Created new session:', session)
 
-    // Return both the user and session data with access and refresh tokens
+    // Return the session data in the format expected by Supabase's client
     return new Response(
       JSON.stringify({ 
         user,
         session: {
-          access_token: tokens.properties.access_token,
-          refresh_token: tokens.properties.refresh_token,
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          expires_in: session.expires_in,
+          expires_at: session.expires_at,
           user: user
         }
       }),
