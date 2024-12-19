@@ -1,16 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { connectWallet } from "@/lib/web3";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
+import { formatWalletAddress } from "@/utils/format";
 
 export const WalletButton = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
   const { session } = useAuth();
   const { wallet, setWallet } = useWallet();
+
+  // Add logging for component state
+  useEffect(() => {
+    console.log('WalletButton state:', { 
+      wallet, 
+      session, 
+      isConnecting,
+      connectedAddress: wallet?.accounts?.[0]?.address 
+    });
+  }, [wallet, session, isConnecting]);
 
   const handleConnect = async () => {
     if (isConnecting) return;
@@ -50,9 +61,7 @@ export const WalletButton = () => {
 
   // Only show the connected address if we have both wallet and session
   const connectedAddress = wallet?.accounts?.[0]?.address;
-  const truncatedAddress = connectedAddress && session
-    ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
-    : '';
+  const truncatedAddress = connectedAddress ? formatWalletAddress(connectedAddress) : '';
 
   // Only show profile link if we have both wallet and session
   if (wallet && session) {
@@ -62,6 +71,19 @@ export const WalletButton = () => {
           {truncatedAddress}
         </Button>
       </Link>
+    );
+  }
+
+  // Show connected state even without session
+  if (wallet) {
+    return (
+      <Button 
+        variant="secondary"
+        className="rounded-full font-medium"
+        onClick={handleConnect}
+      >
+        {truncatedAddress}
+      </Button>
     );
   }
 
