@@ -7,6 +7,7 @@ import { useState, createContext, useContext } from "react";
 import Index from "./pages/Index";
 import { AudioPlayer } from "./components/AudioPlayer";
 import { AuthProvider } from "./contexts/AuthContext";
+import { WalletProvider } from "./contexts/WalletContext";
 
 const queryClient = new QueryClient();
 
@@ -56,30 +57,32 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AudioPlayerContext.Provider value={audioPlayerValue}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <div className="pb-24">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                </Routes>
-              </div>
-              {currentTrack && (
-                <AudioPlayer
-                  title={currentTrack.title}
-                  artist={currentTrack.artist}
-                  coverUrl={currentTrack.coverUrl}
-                  audioUrl={currentTrack.audioUrl}
-                  isPlaying={isPlaying}
-                  onPlayPause={audioPlayerValue.togglePlayPause}
-                  onClose={audioPlayerValue.stopPlayback}
-                />
-              )}
-            </BrowserRouter>
-          </TooltipProvider>
-        </AudioPlayerContext.Provider>
+        <WalletProvider>
+          <AudioPlayerContext.Provider value={audioPlayerValue}>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <div className="pb-24">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                  </Routes>
+                </div>
+                {currentTrack && (
+                  <AudioPlayer
+                    title={currentTrack.title}
+                    artist={currentTrack.artist}
+                    coverUrl={currentTrack.coverUrl}
+                    audioUrl={currentTrack.audioUrl}
+                    isPlaying={isPlaying}
+                    onPlayPause={audioPlayerValue.togglePlayPause}
+                    onClose={audioPlayerValue.stopPlayback}
+                  />
+                )}
+              </BrowserRouter>
+            </TooltipProvider>
+          </AudioPlayerContext.Provider>
+        </WalletProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

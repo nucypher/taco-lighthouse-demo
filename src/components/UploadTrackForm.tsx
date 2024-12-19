@@ -10,25 +10,21 @@ import { saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track
 import { toast } from "sonner";
 import { UploadFormFields } from "./upload/UploadFormFields";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWallet } from "@/contexts/WalletContext";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
-  wallet: {
-    label?: string;
-    accounts?: Array<{
-      address: string;
-    }>;
-  } | null;
   onClose?: () => void;
 }
 
-export const UploadTrackForm = ({ onSuccess, wallet, onClose }: UploadTrackFormProps) => {
+export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) => {
   const [title, setTitle] = useState("");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [condition, setCondition] = useState<conditions.condition.Condition | null>(null);
   const { toast: useToastHook } = useToast();
   const { session } = useAuth();
+  const { wallet } = useWallet();
   const devMode = false;
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -7,24 +7,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWallet } from "@/contexts/WalletContext";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
   onUploadSuccess?: () => void;
 }
 
-interface WalletState {
-  label: string;
-  accounts: { address: string }[];
-}
-
 export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
-  const [wallet, setWallet] = useState<WalletState | null>(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const { session } = useAuth();
+  const { wallet, setWallet } = useWallet();
 
   const handleConnect = async () => {
     if (isConnecting) return;
@@ -166,7 +162,6 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
               onUploadSuccess?.();
             }} 
             onClose={() => setShowUploadDialog(false)}
-            wallet={wallet}
           />
         </DialogContent>
       </Dialog>
