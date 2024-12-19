@@ -10,13 +10,6 @@ import { SiweMessage } from 'siwe';
 import { ethers } from 'ethers';
 import { Provider } from '@supabase/supabase-js';
 
-// Extend the ProvidersOptions interface
-declare module '@supabase/auth-js/dist/module/lib/types' {
-  interface ProvidersOptions {
-    siwe: Record<string, unknown>;
-  }
-}
-
 export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
   
@@ -37,17 +30,20 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     console.log('Using checksum address:', checksumAddress);
 
     // Get the nonce from Supabase
-    const { data, error: nonceError } = await supabase.auth.signInWithOAuth({
+    console.log('Initiating SIWE OAuth flow to get nonce...');
+    const { data: oauthData, error: nonceError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true
       }
     });
 
-    if (nonceError || !data) {
+    if (nonceError || !oauthData) {
       console.error('Failed to get nonce:', nonceError);
       throw nonceError;
     }
+
+    console.log('Got OAuth data:', oauthData);
 
     // Create and sign SIWE message
     const web3Provider = getWeb3Provider();
@@ -61,13 +57,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       version: '1',
       chainId: 1,
       // @ts-ignore - We know this exists in the SIWE flow
-      nonce: data.nonce
+      nonce: oauthData.nonce
     });
 
     const messageToSign = message.prepareMessage();
+    console.log('Prepared SIWE message:', messageToSign);
+    
+    console.log('Requesting signature from wallet...');
     const signature = await signer.signMessage(messageToSign);
+    console.log('Got signature:', signature);
 
     // Complete the OAuth flow with the signed message
+    console.log('Completing SIWE authentication...');
     const { data: signInData, error: signInError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
