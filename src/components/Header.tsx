@@ -1,4 +1,4 @@
-import { Search, User } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
@@ -6,7 +6,6 @@ import { connectWallet, disconnectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
@@ -92,10 +91,10 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     onSearch?.(query);
   };
 
-  // Get the ETH address from session metadata
-  const ethAddress = session?.user?.user_metadata?.eth_address;
-  const truncatedAddress = ethAddress 
-    ? `${ethAddress.slice(0, 6)}...${ethAddress.slice(-4)}`
+  // Get the connected address from the wallet state
+  const connectedAddress = wallet?.accounts[0]?.address;
+  const truncatedAddress = connectedAddress
+    ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
     : '';
 
   return (
@@ -121,7 +120,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
           >
             Upload
           </Button>
-          {session ? (
+          {wallet ? (
             <Button 
               variant="secondary" 
               onClick={handleDisconnect} 
