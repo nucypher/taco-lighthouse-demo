@@ -34,30 +34,25 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const checksumAddress = ethers.utils.getAddress(walletAddress);
     console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // First step: Get the challenge URL from Supabase
+    // First step: Get the nonce from initial OAuth request
     console.log('Initiating SIWE OAuth flow...');
-    const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
+    const { data: { properties }, error: initialError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
-        skipBrowserRedirect: true
+        skipBrowserRedirect: true,
+        queryParams: {
+          requestNonce: 'true'
+        }
       }
     });
 
-    if (oauthError || !oauthData?.url) {
-      console.error('Failed to start OAuth flow:', oauthError || 'No URL received');
+    if (initialError || !properties?.nonce) {
+      console.error('Failed to get nonce:', initialError || 'No nonce in response');
       throw new Error('Failed to start SIWE authentication');
     }
 
-    // Parse the nonce from the challenge URL
-    const challengeUrl = new URL(oauthData.url);
-    const nonce = challengeUrl.searchParams.get('nonce');
-    
-    if (!nonce) {
-      console.error('No nonce found in challenge URL:', oauthData.url);
-      throw new Error('No nonce received for SIWE authentication');
-    }
-
-    console.log('Got nonce from challenge URL:', nonce);
+    const nonce = properties.nonce;
+    console.log('Got nonce from initial request:', nonce);
 
     // Create and sign SIWE message
     const web3Provider = getWeb3Provider();
@@ -66,7 +61,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const message = new SiweMessage({
       domain: window.location.host,
       address: checksumAddress,
-      statement: 'Sign in with Ethereum to TACo',
+      statement: 'Sign in with TACo',
       uri: window.location.origin,
       version: '1',
       chainId: 1,
