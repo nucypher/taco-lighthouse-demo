@@ -92,6 +92,12 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     onSearch?.(query);
   };
 
+  // Get the ETH address from session metadata
+  const ethAddress = session?.user?.user_metadata?.eth_address;
+  const truncatedAddress = ethAddress 
+    ? `${ethAddress.slice(0, 6)}...${ethAddress.slice(-4)}`
+    : '';
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-[2px] border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -118,11 +124,10 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
           {session ? (
             <Button 
               variant="secondary" 
-              size="icon" 
               onClick={handleDisconnect} 
-              className="rounded-full"
+              className="rounded-full font-medium"
             >
-              <User className="h-5 w-5" />
+              {truncatedAddress}
             </Button>
           ) : (
             <Button 
