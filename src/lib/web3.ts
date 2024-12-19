@@ -21,11 +21,15 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
     
-    const { message, signature } = await signInWithEthereum(address);
-    const authResponse = await authenticateWithSupabase(address, message, signature);
+    // Only attempt SIWE if there's no active session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      const { message, signature } = await signInWithEthereum(address);
+      const authResponse = await authenticateWithSupabase(address, message, signature);
 
-    if (authResponse?.session) {
-      await setSupabaseSession(authResponse.session);
+      if (authResponse?.session) {
+        await setSupabaseSession(authResponse.session);
+      }
     }
 
     return wallet;
