@@ -66,11 +66,20 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     console.log('SIWE authentication successful, setting session...');
 
-    // Set the new session directly without signing out first
-    const { data, error: sessionError } = await supabase.auth.setSession({
+    // Construct a complete session object with all required fields
+    const sessionData = {
       access_token: authResponse.session.access_token,
-      refresh_token: authResponse.session.refresh_token
-    });
+      refresh_token: authResponse.session.refresh_token,
+      provider_token: null,
+      provider_refresh_token: null,
+      user: authResponse.user,
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer'
+    };
+
+    // Set the new session with complete session data
+    const { data, error: sessionError } = await supabase.auth.setSession(sessionData);
 
     if (sessionError) {
       console.error('Failed to set session:', sessionError);
