@@ -39,8 +39,8 @@ serve(async (req) => {
     }
 
     // Handle the actual authentication with message and signature
-    const { address, message, signature } = await req.json()
-    console.log('Received SIWE auth request:', { address, message })
+    const { address, message, signature, redirect_url } = await req.json()
+    console.log('Received SIWE auth request:', { address, message, redirect_url })
 
     // Verify SIWE message
     const siweMessage = new SiweMessage(message)
@@ -127,10 +127,13 @@ serve(async (req) => {
       console.log('Updated existing user:', user)
     }
 
-    // Generate sign-in link
+    // Generate sign-in link with the provided redirect URL
     const { data: { properties }, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
-      email: email
+      email: email,
+      options: {
+        redirectTo: redirect_url // Use the provided redirect URL
+      }
     })
 
     if (linkError) {
