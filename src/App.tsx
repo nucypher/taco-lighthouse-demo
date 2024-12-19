@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, createContext, useContext } from "react";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
@@ -57,13 +57,13 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WalletProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+      <AuthProvider>
+        <WalletProvider>
+          <BrowserRouter>
+            <TooltipProvider>
               <AudioPlayerContext.Provider value={audioPlayerValue}>
+                <Toaster />
+                <Sonner />
                 <div className="pb-24">
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -82,10 +82,10 @@ const App = () => {
                   />
                 )}
               </AudioPlayerContext.Provider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </WalletProvider>
+            </TooltipProvider>
+          </BrowserRouter>
+        </WalletProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

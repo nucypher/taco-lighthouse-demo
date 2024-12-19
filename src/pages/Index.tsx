@@ -24,10 +24,14 @@ const Index = () => {
   const { handlePlay, isDecrypting, getArtworkUrl } = useTrackPlayback();
   const { session, isLoading: authLoading } = useAuth();
 
+  console.log("Auth state:", { session, authLoading });
+
   const fetchTracks = async (query: string = "") => {
     try {
+      console.log("Fetching tracks with query:", query);
       setIsLoading(true);
       setError(null);
+      
       let queryBuilder = supabase
         .from('tracks')
         .select('*')
@@ -40,9 +44,12 @@ const Index = () => {
       const { data, error: supabaseError } = await queryBuilder;
 
       if (supabaseError) {
+        console.error("Error fetching tracks:", supabaseError);
         setError(supabaseError);
         return;
       }
+
+      console.log("Fetched tracks:", data);
 
       if (data) {
         if (!query && data.length > 0) {
@@ -53,6 +60,7 @@ const Index = () => {
         }
       }
     } catch (err) {
+      console.error("Error in fetchTracks:", err);
       setError(err);
     } finally {
       setIsLoading(false);
@@ -61,11 +69,13 @@ const Index = () => {
 
   useEffect(() => {
     if (!authLoading) {
+      console.log("Auth loading complete, fetching tracks");
       fetchTracks();
     }
   }, [authLoading]);
 
   const handleSearch = (query: string) => {
+    console.log("Search query:", query);
     setSearchQuery(query);
     fetchTracks(query);
   };
