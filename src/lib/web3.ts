@@ -10,6 +10,12 @@ import { SiweMessage } from 'siwe';
 import { ethers } from 'ethers';
 import { Provider } from '@supabase/supabase-js';
 
+interface SiweOAuthResponse {
+  provider: Provider;
+  url?: string | null;
+  nonce?: string;
+}
+
 export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
   
@@ -44,7 +50,8 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     console.log('[Web3] Current session state:', {
       hasSession: !!currentSession,
       sessionId: currentSession?.user?.id,
-      sessionExp: currentSession?.expires_at
+      sessionExp: currentSession?.expires_at,
+      accessToken: currentSession?.access_token ? 'present' : 'missing'
     });
 
     // Get the nonce from Supabase
@@ -64,9 +71,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw nonceError;
     }
 
+    // Type assertion to ensure we have the correct shape
+    const siweOAuthData = oauthData as unknown as SiweOAuthResponse;
+    
+    if (!siweOAuthData.nonce) {
+      console.error('[Web3] No nonce received in OAuth data:', siweOAuthData);
+      throw new Error('No nonce received from SIWE OAuth flow');
+    }
+
     console.log('[Web3] Got OAuth data:', {
-      hasNonce: !!oauthData.nonce,
-      provider: oauthData.provider
+      hasNonce: !!siweOAuthData.nonce,
+      nonceValue: siweOAuthData.nonce,
+      provider: siweOAuthData.provider
     });
 
     // Create and sign SIWE message
@@ -80,8 +96,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       uri: window.location.origin,
       version: '1',
       chainId: 1,
-      // @ts-ignore - We know this exists in the SIWE flow
-      nonce: oauthData.nonce
+      nonce: siweOAuthData.nonce
     });
 
     const messageToSign = message.prepareMessage();
