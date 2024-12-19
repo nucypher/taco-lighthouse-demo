@@ -21,18 +21,29 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedWallet = localStorage.getItem('connectedWallet');
     if (storedWallet) {
-      console.log('Restoring wallet state from localStorage:', storedWallet);
-      setWallet(JSON.parse(storedWallet));
+      console.log('[WALLET] Restoring wallet state from localStorage:', storedWallet);
+      try {
+        const parsedWallet = JSON.parse(storedWallet);
+        console.log('[WALLET] Parsed stored wallet:', parsedWallet);
+        setWallet(parsedWallet);
+      } catch (error) {
+        console.error('[WALLET] Error parsing stored wallet:', error);
+        localStorage.removeItem('connectedWallet');
+      }
+    } else {
+      console.log('[WALLET] No stored wallet found in localStorage');
     }
   }, []);
 
   // Update localStorage when wallet state changes
   useEffect(() => {
-    console.log('Wallet state changed:', wallet);
+    console.log('[WALLET] Wallet state changed:', wallet);
     if (wallet) {
       localStorage.setItem('connectedWallet', JSON.stringify(wallet));
+      console.log('[WALLET] Updated wallet in localStorage');
     } else {
       localStorage.removeItem('connectedWallet');
+      console.log('[WALLET] Removed wallet from localStorage');
     }
   }, [wallet]);
 
