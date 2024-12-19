@@ -37,12 +37,7 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', '@web3-onboard/core', '@web3-onboard/react', '@web3-onboard/injected-wallets', '@web3-onboard/walletconnect'],
-      output: {
-        manualChunks: {
-          vendor: ['arbundles', '@ardrive/turbo-sdk']
-        }
-      }
+      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib', '@web3-onboard/core', '@web3-onboard/react', '@web3-onboard/injected-wallets', '@web3-onboard/walletconnect']
     }
   }
 }));
