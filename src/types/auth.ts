@@ -1,7 +1,7 @@
-import { User, Session } from '@supabase/supabase-js'
+import { User } from '@supabase/supabase-js'
 
 export interface WalletState {
-  label: string;
+  label?: string;
   accounts: { address: string }[];
 }
 
