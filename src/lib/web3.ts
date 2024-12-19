@@ -134,10 +134,12 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const authResponse = await authenticateWithSupabase(address, message, signature);
     console.log('Authenticated with Supabase:', authResponse);
 
-    // Check if we have a session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error('Failed to establish session after authentication');
+    // Set session in Supabase client
+    if (authResponse?.session) {
+      await supabase.auth.setSession({
+        access_token: authResponse.session.access_token,
+        refresh_token: authResponse.session.refresh_token
+      });
     }
 
     return wallets[0];
