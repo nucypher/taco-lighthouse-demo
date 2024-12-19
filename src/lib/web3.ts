@@ -14,13 +14,15 @@ import type { WalletState } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 
 export const connectWallet = async (): Promise<WalletState | null> => {
+  let connectedWallet: WalletState | null = null;
+  
   try {
     // First connect the wallet
-    const wallet = await connectWalletOnly();
-    if (!wallet) return null;
+    connectedWallet = await connectWalletOnly();
+    if (!connectedWallet) return null;
 
     // Ensure we have a wallet address
-    const walletAddress = wallet.accounts?.[0]?.address;
+    const walletAddress = connectedWallet.accounts?.[0]?.address;
     if (!walletAddress) {
       console.error('No wallet address available');
       throw new Error('No wallet address available');
@@ -39,7 +41,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       
       if (sessionAddress === currentWalletAddress) {
         console.log('Wallet matches session, proceeding...');
-        return wallet;
+        return connectedWallet;
       } else {
         console.log('Wallet does not match session, signing out...', {
           sessionAddress,
@@ -65,12 +67,14 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     console.log('SIWE authentication successful, session created:', authResponse.session.user.id);
     await setSupabaseSession(authResponse.session);
 
-    return wallet;
+    return connectedWallet;
   } catch (error) {
     console.error('Connection error:', error);
     // Clean up on error
     await signOut();
-    await disconnectWalletOnly(wallet);
+    if (connectedWallet) {
+      await disconnectWalletOnly(connectedWallet);
+    }
     throw error;
   }
 };
