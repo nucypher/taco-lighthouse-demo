@@ -19,22 +19,32 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const wallet = await connectWalletOnly();
     if (!wallet) return null;
 
+    // Ensure we have a wallet address
+    const walletAddress = wallet.accounts?.[0]?.address;
+    if (!walletAddress) {
+      console.error('No wallet address available');
+      throw new Error('No wallet address available');
+    }
+
     // Then check if we already have a session
     const { data: { session: existingSession } } = await supabase.auth.getSession();
     
-    // If we have both a wallet and a valid session, we're done
-    if (existingSession && wallet.accounts?.[0]?.address) {
+    // If we have both a wallet and a valid session, verify they match
+    if (existingSession?.user) {
       console.log('Existing session found, verifying wallet match...');
       
-      // Verify the connected wallet matches the session
+      // The email in the session is walletAddress@ethereum.local
       const sessionAddress = existingSession.user.email?.split('@')[0];
-      const walletAddress = wallet.accounts[0].address.toLowerCase();
+      const currentWalletAddress = walletAddress.toLowerCase();
       
-      if (sessionAddress === walletAddress) {
+      if (sessionAddress === currentWalletAddress) {
         console.log('Wallet matches session, proceeding...');
         return wallet;
       } else {
-        console.log('Wallet does not match session, signing out...');
+        console.log('Wallet does not match session, signing out...', {
+          sessionAddress,
+          currentWalletAddress
+        });
         await signOut();
       }
     }
@@ -47,19 +57,20 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const { message, signature } = await signInWithEthereum(address);
     const authResponse = await authenticateWithSupabase(address, message, signature);
 
-    if (authResponse?.session) {
-      await setSupabaseSession(authResponse.session);
-      console.log('SIWE authentication successful');
-    } else {
+    if (!authResponse?.session) {
       console.error('Failed to authenticate with Supabase');
       throw new Error('Authentication failed');
     }
+
+    console.log('SIWE authentication successful, session created:', authResponse.session.user.id);
+    await setSupabaseSession(authResponse.session);
 
     return wallet;
   } catch (error) {
     console.error('Connection error:', error);
     // Clean up on error
     await signOut();
+    await disconnectWalletOnly(wallet);
     throw error;
   }
 };
