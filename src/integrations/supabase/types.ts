@@ -42,33 +42,6 @@ export type Database = {
         }
         Relationships: []
       }
-      users: {
-        Row: {
-          address: string
-          auth: Json | null
-          created_at: string | null
-          id: string
-          updated_at: string | null
-          wallet_address: string | null
-        }
-        Insert: {
-          address: string
-          auth?: Json | null
-          created_at?: string | null
-          id: string
-          updated_at?: string | null
-          wallet_address?: string | null
-        }
-        Update: {
-          address?: string
-          auth?: Json | null
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-          wallet_address?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never

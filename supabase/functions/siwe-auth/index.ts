@@ -43,13 +43,8 @@ serve(async (req) => {
     // Generate a deterministic email from the wallet address
     const email = `${address.toLowerCase()}@ethereum.local`
 
-    // First, check if user exists using the listUsers API
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers()
-    if (listError) {
-      console.error('Error listing users:', listError)
-      throw listError
-    }
-
+    // Check if user exists
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers()
     const existingUser = users.users.find(u => u.email === email)
     
     let user;
@@ -82,52 +77,6 @@ serve(async (req) => {
     if (sessionError) {
       console.error('Error creating session:', sessionError)
       throw sessionError
-    }
-
-    // Check if user exists in our users table
-    const { data: existingUserProfile } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('wallet_address', address.toLowerCase())
-      .maybeSingle()
-
-    if (!existingUserProfile) {
-      // Create new user profile if doesn't exist
-      const { error: insertError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: user.id,
-          wallet_address: address.toLowerCase(),
-          auth: {
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'success',
-            genNonce: siweMessage.nonce
-          }
-        })
-
-      if (insertError) {
-        console.error('Error creating user profile:', insertError)
-        throw insertError
-      }
-      console.log('Created new user profile');
-    } else {
-      // Update existing user's auth data
-      const { error: updateError } = await supabaseAdmin
-        .from('users')
-        .update({
-          auth: {
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'success',
-            genNonce: siweMessage.nonce
-          }
-        })
-        .eq('id', existingUserProfile.id)
-
-      if (updateError) {
-        console.error('Error updating user profile:', updateError)
-        throw updateError
-      }
-      console.log('Updated existing user profile');
     }
 
     return new Response(
