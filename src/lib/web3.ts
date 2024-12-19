@@ -34,31 +34,9 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const checksumAddress = ethers.utils.getAddress(walletAddress);
     console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // First step: Get the nonce from initial OAuth request
-    console.log('Initiating SIWE OAuth flow...');
-    const { data, error: initialError } = await supabase.auth.signInWithOAuth({
-      provider: 'siwe' as Provider,
-      options: {
-        skipBrowserRedirect: true,
-        queryParams: {
-          requestNonce: 'true'
-        }
-      }
-    });
-
-    if (initialError || !data) {
-      console.error('Failed to start OAuth flow:', initialError || 'No data received');
-      throw new Error('Failed to start SIWE authentication');
-    }
-
-    // Access nonce from the response data
-    const nonce = (data as any).properties?.nonce;
-    if (!nonce) {
-      console.error('No nonce in response:', data);
-      throw new Error('No nonce received for SIWE authentication');
-    }
-
-    console.log('Got nonce from initial request:', nonce);
+    // Generate nonce
+    const nonce = Math.floor(Math.random() * 1000000).toString();
+    console.log('Generated nonce:', nonce);
 
     // Create and sign SIWE message
     const web3Provider = getWeb3Provider();
@@ -81,23 +59,16 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const signature = await signer.signMessage(messageToSign);
     console.log('Got signature:', signature);
 
-    // Complete the OAuth flow with the signed message
-    console.log('Completing SIWE authentication...');
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithOAuth({
-      provider: 'siwe' as Provider,
-      options: {
-        skipBrowserRedirect: true,
-        queryParams: {
-          message: messageToSign,
-          signature,
-          redirect_to: window.location.origin
-        }
-      }
+    // Sign in with custom JWT
+    console.log('Signing in with custom JWT...');
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: `${checksumAddress.toLowerCase()}@ethereum.org`,
+      password: signature,
     });
 
     if (signInError || !signInData) {
       console.error('Failed to sign in:', signInError);
-      throw new Error(`SIWE authentication failed: ${signInError?.message || 'Unknown error'}`);
+      throw new Error(`Authentication failed: ${signInError?.message || 'Unknown error'}`);
     }
 
     // Verify the session was created successfully
@@ -113,7 +84,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Authentication failed: No session created');
     }
 
-    console.log('Successfully authenticated with SIWE:', {
+    console.log('Successfully authenticated:', {
       userId: session.user.id,
       expiresAt: session.expires_at
     });
