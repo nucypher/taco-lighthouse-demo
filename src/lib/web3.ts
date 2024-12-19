@@ -80,10 +80,13 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error(`SIWE authentication failed: ${authError?.message || 'Unknown error'}`);
     }
 
-    console.log('SIWE auth successful:', authData);
+    console.log('SIWE auth successful, received tokens:', authData);
+
+    // First sign out of any existing session
+    await supabase.auth.signOut();
 
     // Set the session with the received tokens
-    const { error: sessionError } = await supabase.auth.setSession({
+    const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token
     });
@@ -93,7 +96,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error(`Failed to set session: ${sessionError.message}`);
     }
 
-    console.log('Successfully set session');
+    console.log('Successfully set session:', sessionData);
     return connectedWallet;
 
   } catch (error) {
