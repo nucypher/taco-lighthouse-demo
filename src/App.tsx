@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, createContext, useContext } from "react";
 import Index from "./pages/Index";
+import Profile from "./pages/Profile";
 import { AudioPlayer } from "./components/AudioPlayer";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WalletProvider } from "./contexts/WalletContext";
@@ -66,6 +67,7 @@ const App = () => {
                 <div className="pb-24">
                   <Routes>
                     <Route path="/" element={<Index />} />
+                    <Route path="/profile" element={<Profile />} />
                   </Routes>
                 </div>
                 {currentTrack && (

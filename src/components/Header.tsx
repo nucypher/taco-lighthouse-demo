@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -97,7 +98,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-[2px] border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 md:gap-8 flex-1">
-          <h1 className="text-xl font-bold tracking-tight whitespace-nowrap">TACo</h1>
+          <Link to="/" className="text-xl font-bold tracking-tight whitespace-nowrap">TACo</Link>
           <div className="relative flex-1 max-w-[400px] hidden sm:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -117,13 +118,14 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
             Upload
           </Button>
           {wallet ? (
-            <Button 
-              variant="secondary" 
-              onClick={handleDisconnect} 
-              className="rounded-full font-medium"
-            >
-              {truncatedAddress}
-            </Button>
+            <Link to="/profile">
+              <Button 
+                variant="secondary" 
+                className="rounded-full font-medium"
+              >
+                {truncatedAddress}
+              </Button>
+            </Link>
           ) : (
             <Button 
               variant="default"
