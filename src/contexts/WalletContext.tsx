@@ -30,6 +30,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           // First restore the stored state
           const parsedWallet = JSON.parse(storedWallet);
           console.log('[WALLET] Parsed stored wallet:', parsedWallet);
+          setWallet(parsedWallet); // Set the wallet state immediately from storage
           
           // Then attempt to reconnect
           const reconnectedWallet = await connectWalletOnly();
@@ -39,10 +40,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           } else {
             console.log('[WALLET] Failed to reconnect wallet');
             localStorage.removeItem('connectedWallet');
+            setWallet(null);
           }
         } catch (error) {
           console.error('[WALLET] Error reconnecting wallet:', error);
           localStorage.removeItem('connectedWallet');
+          setWallet(null);
         }
       } else {
         console.log('[WALLET] No stored wallet found');

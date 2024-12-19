@@ -25,6 +25,10 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       return null;
     }
 
+    // Store the wallet state in localStorage to persist it
+    localStorage.setItem('connectedWallet', JSON.stringify(connectedWallet));
+    console.log('[WALLET] Stored wallet state in localStorage:', connectedWallet);
+
     // Ensure we have a wallet address
     const walletAddress = connectedWallet.accounts?.[0]?.address;
     if (!walletAddress) {
@@ -89,10 +93,6 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     console.log('[WALLET] SIWE auth successful, received data:', authData);
 
-    // Store the wallet state in localStorage to persist it
-    localStorage.setItem('connectedWallet', JSON.stringify(connectedWallet));
-    console.log('[WALLET] Stored wallet state in localStorage:', connectedWallet);
-
     // Use the action_link from the session data to complete authentication
     if (authData?.session?.action_link) {
       console.log('[WALLET] Redirecting to action link for authentication...');
@@ -106,8 +106,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
   } catch (error) {
     console.error('[WALLET] Wallet connection error:', error);
-    // Don't disconnect the wallet on error, just sign out of Supabase
-    await supabase.auth.signOut();
+    localStorage.removeItem('connectedWallet');
     if (error instanceof Error) {
       throw error;
     }
