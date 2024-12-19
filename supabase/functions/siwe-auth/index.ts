@@ -34,7 +34,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Check if user exists
+    // Create a custom token and user first
+    const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
+      email: `${address.toLowerCase()}@ethereum.org`,
+      password: crypto.randomUUID(), // Generate a random password
+      email_confirm: true,
+      user_metadata: {
+        wallet_address: address.toLowerCase()
+      }
+    })
+
+    if (signInError) throw signInError
+    console.log('Created Supabase auth user:', user);
+
+    // Check if user exists in our users table
     const { data: existingUser, error: selectError } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -47,13 +60,12 @@ serve(async (req) => {
       throw selectError
     }
 
-    let userId = existingUser?.id
-
     if (!existingUser) {
       // Create new user if doesn't exist
       const { data: newUser, error: insertError } = await supabaseAdmin
         .from('users')
         .insert({
+          id: user.id, // Use the auth user's ID
           wallet_address: address.toLowerCase(),
           auth: {
             lastAuth: new Date().toISOString(),
@@ -66,7 +78,6 @@ serve(async (req) => {
 
       if (insertError) throw insertError
       console.log('Created new user:', newUser);
-      userId = newUser.id
     } else {
       // Update existing user's auth data
       const { error: updateError } = await supabaseAdmin
@@ -83,19 +94,6 @@ serve(async (req) => {
       if (updateError) throw updateError
       console.log('Updated existing user auth data');
     }
-
-    // Create a custom token
-    const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
-      email: `${address.toLowerCase()}@ethereum.org`,
-      password: signature,
-      email_confirm: true,
-      user_metadata: {
-        wallet_address: address.toLowerCase()
-      }
-    })
-
-    if (signInError) throw signInError
-    console.log('Created Supabase auth user:', user);
 
     return new Response(
       JSON.stringify({ user }),
