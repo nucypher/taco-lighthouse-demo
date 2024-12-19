@@ -41,12 +41,7 @@ const web3Onboard = init({
   }
 });
 
-const generateNonce = () => {
-  return Math.floor(Math.random() * 1000000).toString();
-};
-
-export const createSiweMessage = (address: string, chainId: number, nonce: string) => {
-  const now = new Date();
+async function signInWithEthereum(address: string, chainId: number) {
   const message = new SiweMessage({
     domain: window.location.host,
     address,
@@ -54,12 +49,29 @@ export const createSiweMessage = (address: string, chainId: number, nonce: strin
     uri: window.location.origin,
     version: '1',
     chainId,
-    nonce,
-    issuedAt: now.toISOString(),
-    expirationTime: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+    nonce: Math.floor(Math.random() * 1000000).toString(),
   });
-  return message.prepareMessage();
-};
+
+  const messageToSign = message.prepareMessage();
+  const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = web3Provider.getSigner();
+  const signature = await signer.signMessage(messageToSign);
+
+  return { message: messageToSign, signature };
+}
+
+async function authenticateWithSupabase(address: string, message: string, signature: string) {
+  const { data, error } = await supabase.functions.invoke('siwe-auth', {
+    body: { address, message, signature }
+  });
+
+  if (error) {
+    console.error('Authentication error:', error);
+    throw error;
+  }
+
+  return data;
+}
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   try {
@@ -71,57 +83,8 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const address = await signer.getAddress();
     const chainId = (await web3Provider.getNetwork()).chainId;
     
-    // Generate new nonce
-    const nonce = generateNonce();
-
-    // Create and sign SIWE message
-    const message = createSiweMessage(address, chainId, nonce);
-    const signature = await signer.signMessage(message);
-
-    // Sign in with the signature
-    const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
-      email: `${address.toLowerCase()}@ethereum.org`,
-      password: signature,
-    });
-
-    if (signInError || !session) {
-      console.error('Sign in error:', signInError);
-      throw signInError || new Error('No session created');
-    }
-
-    // Check if user exists and get their data
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('*')
-      .eq('address', address.toLowerCase())
-      .maybeSingle();
-
-    if (existingUser) {
-      // Update existing user's auth data
-      await supabase
-        .from('users')
-        .update({ 
-          auth: { 
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'success',
-            genNonce: generateNonce() // Generate new nonce for next login
-          }
-        })
-        .eq('address', address.toLowerCase());
-    } else {
-      // Create new user
-      await supabase
-        .from('users')
-        .insert({
-          id: crypto.randomUUID(),
-          address: address.toLowerCase(),
-          auth: {
-            lastAuth: new Date().toISOString(),
-            lastAuthStatus: 'success',
-            genNonce: generateNonce() // Generate new nonce for next login
-          }
-        });
-    }
+    const { message, signature } = await signInWithEthereum(address, chainId);
+    await authenticateWithSupabase(address, message, signature);
 
     return wallets[0];
   } catch (error) {
