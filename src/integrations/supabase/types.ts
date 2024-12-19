@@ -16,7 +16,7 @@ export type Database = {
           description: string | null
           id: string
           ipfs_cid: string | null
-          owner_id: string | null
+          owner_id: string
           title: string
           updated_at: string | null
         }
@@ -26,7 +26,7 @@ export type Database = {
           description?: string | null
           id?: string
           ipfs_cid?: string | null
-          owner_id?: string | null
+          owner_id?: string
           title: string
           updated_at?: string | null
         }
@@ -36,7 +36,7 @@ export type Database = {
           description?: string | null
           id?: string
           ipfs_cid?: string | null
-          owner_id?: string | null
+          owner_id?: string
           title?: string
           updated_at?: string | null
         }
