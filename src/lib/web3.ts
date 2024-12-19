@@ -94,7 +94,7 @@ async function signInWithEthereum(address: string) {
   }
 }
 
-async function authenticateWithSupabase(address: string, message: string, signature: string): Promise<{ user: any, session: any }> {
+async function authenticateWithSupabase(address: string, message: string, signature: string) {
   try {
     console.log('Authenticating with Supabase...', { address, message, signature });
     const { data, error } = await supabase.functions.invoke('siwe-auth', {
