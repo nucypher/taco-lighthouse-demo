@@ -11,6 +11,7 @@ import {
   web3Onboard 
 } from '@/services/wallet';
 import type { WalletState } from '@/types/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   try {
