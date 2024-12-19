@@ -10,14 +10,6 @@ import { SiweMessage } from 'siwe';
 import { ethers } from 'ethers';
 import { Provider } from '@supabase/supabase-js';
 
-interface SiweOAuthResponse {
-  provider: Provider;
-  url: string | null;
-  properties?: {
-    nonce: string;
-  };
-}
-
 export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
   
@@ -42,30 +34,30 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const checksumAddress = ethers.utils.getAddress(walletAddress);
     console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // Start SIWE OAuth flow to get nonce
+    // First step: Get the challenge URL from Supabase
     console.log('Initiating SIWE OAuth flow...');
-    const { data: oauthData, error: nonceError } = await supabase.auth.signInWithOAuth({
+    const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true
       }
     });
 
-    console.log('OAuth response:', oauthData);
-
-    if (nonceError) {
-      console.error('Failed to get nonce:', nonceError);
-      throw new Error('Failed to get nonce for SIWE authentication');
+    if (oauthError || !oauthData?.url) {
+      console.error('Failed to start OAuth flow:', oauthError || 'No URL received');
+      throw new Error('Failed to start SIWE authentication');
     }
 
-    const typedOAuthData = oauthData as SiweOAuthResponse;
-    if (!typedOAuthData || !typedOAuthData.properties?.nonce) {
-      console.error('No nonce received in OAuth response:', typedOAuthData);
-      throw new Error('No nonce received from authentication service');
+    // Parse the nonce from the challenge URL
+    const challengeUrl = new URL(oauthData.url);
+    const nonce = challengeUrl.searchParams.get('nonce');
+    
+    if (!nonce) {
+      console.error('No nonce found in challenge URL:', oauthData.url);
+      throw new Error('No nonce received for SIWE authentication');
     }
 
-    const nonce = typedOAuthData.properties.nonce;
-    console.log('Got nonce for SIWE message:', nonce);
+    console.log('Got nonce from challenge URL:', nonce);
 
     // Create and sign SIWE message
     const web3Provider = getWeb3Provider();
