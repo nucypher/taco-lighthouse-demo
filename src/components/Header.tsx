@@ -2,13 +2,14 @@ import { Search } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
-import { connectWallet, disconnectWallet } from "@/lib/web3";
+import { connectWallet } from "@/lib/web3";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
+import { authenticateWithSupabase, signInWithEthereum, setSupabaseSession } from "@/services/auth";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -38,6 +39,23 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
 
       console.log('Wallet connected successfully:', connectedWallet);
       setWallet(connectedWallet);
+
+      // Get the connected address
+      const address = connectedWallet.accounts[0].address;
+      
+      // Sign in with Ethereum
+      console.log('Starting SIWE authentication...');
+      const { message, signature } = await signInWithEthereum(address);
+      
+      // Authenticate with Supabase
+      console.log('Authenticating with Supabase...');
+      const authResponse = await authenticateWithSupabase(address, message, signature);
+      
+      if (authResponse?.session) {
+        await setSupabaseSession(authResponse.session);
+        console.log('Authentication successful:', authResponse.session);
+      }
+      
       toast({
         title: "Connected",
         description: "Wallet connected and verified successfully",
@@ -67,6 +85,17 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
       });
       return;
     }
+
+    if (!session?.user) {
+      console.log('No session when trying to upload');
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in with your wallet to upload tracks",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setShowUploadDialog(true);
   };
 
