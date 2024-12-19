@@ -34,6 +34,7 @@ export const WalletButton = () => {
       });
     } catch (error) {
       console.error('Connection error:', error);
+      setWallet(null);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to connect wallet",
@@ -50,7 +51,7 @@ export const WalletButton = () => {
     ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
     : '';
 
-  if (wallet) {
+  if (wallet && session) {
     return (
       <Link to="/profile">
         <Button variant="secondary" className="rounded-full font-medium">
