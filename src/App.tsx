@@ -60,13 +60,13 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionContextProvider supabaseClient={supabase}>
-        <AuthProvider>
-          <WalletProvider>
-            <AudioPlayerContext.Provider value={audioPlayerValue}>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+        <WalletProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AudioPlayerContext.Provider value={audioPlayerValue}>
                   <div className="pb-24">
                     <Routes>
                       <Route path="/" element={<Index />} />
@@ -84,11 +84,11 @@ const App = () => {
                       onClose={audioPlayerValue.stopPlayback}
                     />
                   )}
-                </BrowserRouter>
-              </TooltipProvider>
-            </AudioPlayerContext.Provider>
-          </WalletProvider>
-        </AuthProvider>
+                </AudioPlayerContext.Provider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </WalletProvider>
       </SessionContextProvider>
     </QueryClientProvider>
   );
