@@ -42,17 +42,31 @@ const web3Onboard = init({
 });
 
 async function createSiweMessage(address: string, statement: string) {
-  const res = await fetch(`${window.location.origin}/api/nonce`);
-  const message = new SiweMessage({
-    domain: window.location.host,
-    address,
-    statement,
-    uri: window.location.origin,
-    version: '1',
-    chainId: 1,
-    nonce: await res.text()
-  });
-  return message.prepareMessage();
+  try {
+    console.log('Fetching nonce from Supabase function...');
+    const { data, error } = await supabase.functions.invoke('nonce');
+    
+    if (error) {
+      console.error('Error fetching nonce:', error);
+      throw error;
+    }
+
+    console.log('Received nonce:', data);
+    
+    const message = new SiweMessage({
+      domain: window.location.host,
+      address,
+      statement,
+      uri: window.location.origin,
+      version: '1',
+      chainId: 1,
+      nonce: data
+    });
+    return message.prepareMessage();
+  } catch (error) {
+    console.error('Error creating SIWE message:', error);
+    throw error;
+  }
 }
 
 async function signInWithEthereum(address: string) {
