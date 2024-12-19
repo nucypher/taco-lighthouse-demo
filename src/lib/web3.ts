@@ -78,17 +78,27 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       token_type: 'bearer'
     };
 
-    // Set the new session with complete session data
-    const { data, error: sessionError } = await supabase.auth.setSession(sessionData);
+    // Verify we have a complete session object before setting
+    if (!authResponse?.session?.access_token || !authResponse?.session?.refresh_token) {
+      console.error('Invalid auth response:', authResponse);
+      throw new Error('Authentication response missing required session tokens');
+    }
+
+    // Set the session with required fields
+    const { data, error: sessionError } = await supabase.auth.setSession({
+      access_token: authResponse.session.access_token,
+      refresh_token: authResponse.session.refresh_token
+    });
 
     if (sessionError) {
       console.error('Failed to set session:', sessionError);
-      throw sessionError;
+      throw new Error(`Failed to set session: ${sessionError.message}`);
     }
 
-    if (!data.session) {
-      console.error('No session data after setting session');
-      throw new Error('Failed to set session: No session data returned');
+    // Verify session was set successfully
+    const { data: { session: verifySession } } = await supabase.auth.getSession();
+    if (!verifySession) {
+      throw new Error('Session verification failed after setting');
     }
 
     console.log('Session set successfully:', {
