@@ -2,6 +2,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useWallet } from "@/contexts/WalletContext";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Home } from "lucide-react";
 
 export default function Profile() {
   const { wallet } = useWallet();
@@ -11,7 +14,15 @@ export default function Profile() {
     : "Not connected";
 
   return (
-    <div className="container max-w-2xl py-10">
+    <div className="container max-w-2xl py-10 relative">
+      <Link 
+        to="/" 
+        className="absolute top-4 left-4"
+      >
+        <Button variant="ghost" size="icon">
+          <Home className="h-5 w-5" />
+        </Button>
+      </Link>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-4">

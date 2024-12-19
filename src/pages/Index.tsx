@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Header } from "@/components/Header";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,9 +94,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onSearch={handleSearch} onUploadSuccess={() => fetchTracks(searchQuery)} />
-      <main className="container mx-auto px-2 sm:px-4 pt-20 md:pt-24 pb-16">
+    <>
         {error && <ErrorDisplay error={error} />}
         
         {featuredTrack && !searchQuery && (
@@ -158,8 +155,7 @@ const Index = () => {
             )}
           </div>
         </section>
-      </main>
-    </div>
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { Layout } from "@/components/Layout";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -94,12 +95,12 @@ const App = () => {
               <AudioPlayerContext.Provider value={audioPlayerValue}>
                 <Toaster />
                 <Sonner />
-                <div className="pb-24">
+                <Layout>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/profile" element={<Profile />} />
                   </Routes>
-                </div>
+                </Layout>
                 {currentTrack && (
                   <AudioPlayer
                     title={currentTrack.title}
