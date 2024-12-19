@@ -31,10 +31,19 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
     e.preventDefault();
 
     // Check both session and wallet state
-    if (!session?.user || !wallet?.accounts?.[0]?.address) {
+    if (!session?.user) {
       useToastHook({
         title: "Error",
-        description: "Please ensure your wallet is connected and you're signed in",
+        description: "Please sign in to upload tracks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!wallet?.accounts?.[0]?.address) {
+      useToastHook({
+        title: "Error",
+        description: "Please connect your wallet to upload tracks",
         variant: "destructive",
       });
       return;
