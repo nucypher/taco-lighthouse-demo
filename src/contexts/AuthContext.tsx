@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useWallet } from "./WalletContext";
 
 interface AuthContextType {
   session: Session | null;
@@ -12,10 +13,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { wallet } = useWallet();
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.id);
       setSession(session);
       setIsLoading(false);
     });
@@ -31,6 +34,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Effect to handle wallet disconnection
+  useEffect(() => {
+    if (!wallet && session) {
+      console.log("Wallet disconnected, signing out...");
+      supabase.auth.signOut();
+    }
+  }, [wallet, session]);
 
   return (
     <AuthContext.Provider value={{ session, isLoading }}>

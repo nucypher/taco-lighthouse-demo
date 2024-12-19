@@ -15,20 +15,31 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   try {
-    // First check if we already have a session
-    const { data: { session: existingSession } } = await supabase.auth.getSession();
-    
-    // Connect wallet regardless of session status
+    // First connect the wallet
     const wallet = await connectWalletOnly();
     if (!wallet) return null;
 
-    // If we already have a valid session, just return the wallet
-    if (existingSession) {
-      console.log('Existing session found, skipping SIWE');
-      return wallet;
+    // Then check if we already have a session
+    const { data: { session: existingSession } } = await supabase.auth.getSession();
+    
+    // If we have both a wallet and a valid session, we're done
+    if (existingSession && wallet.accounts?.[0]?.address) {
+      console.log('Existing session found, verifying wallet match...');
+      
+      // Verify the connected wallet matches the session
+      const sessionAddress = existingSession.user.email?.split('@')[0];
+      const walletAddress = wallet.accounts[0].address.toLowerCase();
+      
+      if (sessionAddress === walletAddress) {
+        console.log('Wallet matches session, proceeding...');
+        return wallet;
+      } else {
+        console.log('Wallet does not match session, signing out...');
+        await signOut();
+      }
     }
 
-    console.log('No existing session, proceeding with SIWE');
+    console.log('No valid session, proceeding with SIWE');
     const web3Provider = getWeb3Provider();
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
@@ -39,11 +50,16 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     if (authResponse?.session) {
       await setSupabaseSession(authResponse.session);
       console.log('SIWE authentication successful');
+    } else {
+      console.error('Failed to authenticate with Supabase');
+      throw new Error('Authentication failed');
     }
 
     return wallet;
   } catch (error) {
     console.error('Connection error:', error);
+    // Clean up on error
+    await signOut();
     throw error;
   }
 };
