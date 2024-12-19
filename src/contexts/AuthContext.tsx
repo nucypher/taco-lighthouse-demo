@@ -43,18 +43,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncWalletAndSession = async () => {
       if (wallet && !session && !isLoading) {
-        console.log('Wallet connected but no session, attempting SIWE authentication...');
+        console.log('Wallet connected but no session, attempting SIWE authentication...', {
+          walletAddress: wallet.accounts?.[0]?.address,
+          sessionStatus: session ? 'exists' : 'missing'
+        });
+        
         try {
-          // Attempt to establish session using the existing wallet
-          await connectWallet();
+          // Check current session first
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          
+          if (!currentSession) {
+            console.log('No valid session found, initiating SIWE flow...');
+            await connectWallet();
+            
+            // Verify session was established
+            const { data: { session: verifySession } } = await supabase.auth.getSession();
+            if (!verifySession) {
+              console.error('Failed to establish session after wallet connection');
+              throw new Error('Session verification failed');
+            }
+          } else {
+            console.log('Found existing valid session:', {
+              userId: currentSession.user.id,
+              expiresAt: currentSession.expires_at
+            });
+          }
         } catch (error) {
           console.error('Failed to establish session:', error);
-          setWallet(null);
+          // Only clear wallet if it's an authentication error
+          if (error.message.includes('Auth') || error.message.includes('session')) {
+            setWallet(null);
+          }
+          throw error; // Re-throw to be handled by error boundary
         }
       }
     };
 
-    syncWalletAndSession();
+    syncWalletAndSession().catch(error => {
+      console.error('Session sync failed:', error);
+    });
   }, [wallet, session, isLoading, setWallet]);
 
   return (
