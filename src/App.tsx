@@ -9,6 +9,8 @@ import Profile from "./pages/Profile";
 import { AudioPlayer } from "./components/AudioPlayer";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WalletProvider } from "./contexts/WalletContext";
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
@@ -57,35 +59,37 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WalletProvider>
-          <AudioPlayerContext.Provider value={audioPlayerValue}>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <div className="pb-24">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/profile" element={<Profile />} />
-                  </Routes>
-                </div>
-                {currentTrack && (
-                  <AudioPlayer
-                    title={currentTrack.title}
-                    artist={currentTrack.artist}
-                    coverUrl={currentTrack.coverUrl}
-                    audioUrl={currentTrack.audioUrl}
-                    isPlaying={isPlaying}
-                    onPlayPause={audioPlayerValue.togglePlayPause}
-                    onClose={audioPlayerValue.stopPlayback}
-                  />
-                )}
-              </BrowserRouter>
-            </TooltipProvider>
-          </AudioPlayerContext.Provider>
-        </WalletProvider>
-      </AuthProvider>
+      <SessionContextProvider supabaseClient={supabase}>
+        <AuthProvider>
+          <WalletProvider>
+            <AudioPlayerContext.Provider value={audioPlayerValue}>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <div className="pb-24">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/profile" element={<Profile />} />
+                    </Routes>
+                  </div>
+                  {currentTrack && (
+                    <AudioPlayer
+                      title={currentTrack.title}
+                      artist={currentTrack.artist}
+                      coverUrl={currentTrack.coverUrl}
+                      audioUrl={currentTrack.audioUrl}
+                      isPlaying={isPlaying}
+                      onPlayPause={audioPlayerValue.togglePlayPause}
+                      onClose={audioPlayerValue.stopPlayback}
+                    />
+                  )}
+                </BrowserRouter>
+              </TooltipProvider>
+            </AudioPlayerContext.Provider>
+          </WalletProvider>
+        </AuthProvider>
+      </SessionContextProvider>
     </QueryClientProvider>
   );
 };
