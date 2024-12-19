@@ -117,11 +117,15 @@ serve(async (req) => {
       email: session.user.email
     });
 
-    // Return the user and session data
+    // Return both the user and session data with access and refresh tokens
     return new Response(
       JSON.stringify({ 
         user,
-        session
+        session: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          user: session.user
+        }
       }),
       { 
         status: 200, 
