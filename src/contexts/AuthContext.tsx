@@ -19,7 +19,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session check:", session);
+      console.log("[AuthContext] Initial session check:", {
+        hasSession: !!session,
+        sessionId: session?.user?.id,
+        sessionExp: session?.expires_at,
+        accessToken: session?.access_token ? 'present' : 'missing'
+      });
       setSession(session);
       setIsLoading(false);
     });
@@ -28,9 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", _event, {
+      console.log("[AuthContext] Auth state changed:", {
+        event: _event,
+        hasSession: !!session,
         userId: session?.user?.id,
-        email: session?.user?.email
+        sessionExp: session?.expires_at,
+        accessToken: session?.access_token ? 'present' : 'missing'
       });
       setSession(session);
       setIsLoading(false);
@@ -43,12 +51,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncWalletAndSession = async () => {
       if (wallet && !session && !isLoading) {
-        console.log('Wallet connected but no session, attempting SIWE authentication...');
+        console.log('[AuthContext] Attempting session recovery:', {
+          hasWallet: !!wallet,
+          walletAddress: wallet?.accounts?.[0]?.address,
+          hasSession: !!session,
+          isLoading
+        });
         try {
           // Attempt to establish session using the existing wallet
           await connectWallet();
+          
+          // Double check session after connect attempt
+          const { data: { session: newSession } } = await supabase.auth.getSession();
+          console.log('[AuthContext] Session after recovery attempt:', {
+            hasNewSession: !!newSession,
+            newSessionId: newSession?.user?.id,
+            newSessionExp: newSession?.expires_at
+          });
+          
         } catch (error) {
-          console.error('Failed to establish session:', error);
+          console.error('[AuthContext] Session recovery failed:', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+          });
           setWallet(null);
         }
       }
