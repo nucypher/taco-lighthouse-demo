@@ -82,9 +82,6 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     console.log('SIWE auth successful, received tokens:', authData);
 
-    // First sign out of any existing session
-    await supabase.auth.signOut();
-
     // Set the session with the received tokens
     const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token: authData.session.access_token,
