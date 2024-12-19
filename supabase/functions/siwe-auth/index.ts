@@ -16,7 +16,7 @@ serve(async (req) => {
     const { address, message, signature } = await req.json()
     console.log('Received SIWE auth request:', { address, message, signature });
 
-    // Verify SIWE message
+    // Verify SIWE message first
     const siweMessage = new SiweMessage(message)
     const fields = await siweMessage.verify({ signature })
     console.log('SIWE verification result:', fields);
@@ -28,32 +28,48 @@ serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client with service role key
+    // Initialize Supabase admin client with service role key
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     )
 
     // Generate a deterministic email from the wallet address
     const email = `${address.toLowerCase()}@ethereum.local`
 
-    // Create a custom JWT token
-    const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      email_confirm: true,
-      user_metadata: {
-        wallet_address: address.toLowerCase(),
-        siwe_message: message,
-        siwe_signature: signature
-      }
-    })
+    // First, check if user exists
+    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(email)
+    
+    let user;
+    if (existingUser) {
+      user = existingUser
+      console.log('Found existing user:', user);
+    } else {
+      // Create new user if doesn't exist
+      const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: email,
+        email_confirm: true,
+        user_metadata: {
+          wallet_address: address.toLowerCase(),
+        }
+      })
 
-    if (signInError) {
-      console.error('Error creating JWT:', signInError)
-      throw signInError
+      if (createError) {
+        console.error('Error creating user:', createError)
+        throw createError
+      }
+      
+      user = newUser
+      console.log('Created new user:', user);
     }
 
-    // Generate session
+    // Generate session for the user
     const { data: { session }, error: sessionError } = await supabaseAdmin.auth.admin
       .createSession(user.id)
 
@@ -63,21 +79,15 @@ serve(async (req) => {
     }
 
     // Check if user exists in our users table
-    const { data: existingUser, error: selectError } = await supabaseAdmin
+    const { data: existingUserProfile } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('wallet_address', address.toLowerCase())
-      .single()
+      .maybeSingle()
 
-    console.log('Existing user check:', { existingUser, selectError });
-
-    if (selectError && selectError.code !== 'PGRST116') {
-      throw selectError
-    }
-
-    if (!existingUser) {
-      // Create new user if doesn't exist
-      const { data: newUser, error: insertError } = await supabaseAdmin
+    if (!existingUserProfile) {
+      // Create new user profile if doesn't exist
+      const { error: insertError } = await supabaseAdmin
         .from('users')
         .insert({
           id: user.id,
@@ -88,14 +98,12 @@ serve(async (req) => {
             genNonce: siweMessage.nonce
           }
         })
-        .select()
-        .single()
 
       if (insertError) {
-        console.error('Error creating new user:', insertError)
+        console.error('Error creating user profile:', insertError)
         throw insertError
       }
-      console.log('Created new user:', newUser);
+      console.log('Created new user profile');
     } else {
       // Update existing user's auth data
       const { error: updateError } = await supabaseAdmin
@@ -107,13 +115,13 @@ serve(async (req) => {
             genNonce: siweMessage.nonce
           }
         })
-        .eq('id', existingUser.id)
+        .eq('id', existingUserProfile.id)
 
       if (updateError) {
-        console.error('Error updating user:', updateError)
+        console.error('Error updating user profile:', updateError)
         throw updateError
       }
-      console.log('Updated existing user auth data');
+      console.log('Updated existing user profile');
     }
 
     return new Response(
