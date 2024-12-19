@@ -94,7 +94,7 @@ async function signInWithEthereum(address: string) {
   }
 }
 
-async function authenticateWithSupabase(address: string, message: string, signature: string) {
+async function authenticateWithSupabase(address: string, message: string, signature: string): Promise<{ user: any, session: any }> {
   try {
     console.log('Authenticating with Supabase...', { address, message, signature });
     const { data, error } = await supabase.functions.invoke('siwe-auth', {
@@ -134,8 +134,17 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const { message, signature } = await signInWithEthereum(address);
     console.log('SIWE message signed:', { message, signature });
     
-    await authenticateWithSupabase(address, message, signature);
+    const authResponse = await authenticateWithSupabase(address, message, signature);
     console.log('Authenticated with Supabase successfully');
+    
+    // Set the session in Supabase client
+    const { session } = authResponse;
+    if (session) {
+      await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token
+      });
+    }
 
     return wallets[0];
   } catch (error) {

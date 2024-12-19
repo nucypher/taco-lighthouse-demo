@@ -34,33 +34,27 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // First check if a user with this email already exists
-    const email = `${address.toLowerCase()}@ethereum.org`
-    const { data: existingAuthUser } = await supabaseAdmin.auth.admin.listUsers()
-    const authUser = existingAuthUser?.users?.find(u => u.email === email)
-
-    let user
-    if (!authUser) {
-      // Create new auth user if doesn't exist
-      console.log('Creating new auth user for:', email)
-      const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: email,
-        password: crypto.randomUUID(),
-        email_confirm: true,
-        user_metadata: {
-          wallet_address: address.toLowerCase()
-        }
-      })
-
-      if (createError) {
-        console.error('Error creating auth user:', createError)
-        throw createError
+    // Create a custom JWT token
+    const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
+      user_metadata: {
+        wallet_address: address.toLowerCase(),
+        siwe_message: message,
+        siwe_signature: signature
       }
-      user = newUser
-      console.log('Created new auth user:', user)
-    } else {
-      user = authUser
-      console.log('Found existing auth user:', user)
+    })
+
+    if (signInError) {
+      console.error('Error creating JWT:', signInError)
+      throw signInError
+    }
+
+    // Generate session
+    const { data: { session }, error: sessionError } = await supabaseAdmin.auth.admin
+      .createSession(user.id)
+
+    if (sessionError) {
+      console.error('Error creating session:', sessionError)
+      throw sessionError
     }
 
     // Check if user exists in our users table
