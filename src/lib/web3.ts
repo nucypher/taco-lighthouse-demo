@@ -42,29 +42,29 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const checksumAddress = ethers.utils.getAddress(walletAddress);
     console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // Start SIWE OAuth flow
+    // Start SIWE OAuth flow to get nonce
     console.log('Initiating SIWE OAuth flow...');
-    const { data, error: nonceError } = await supabase.auth.signInWithOAuth({
+    const { data: oauthData, error: nonceError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true
       }
     });
 
-    console.log('OAuth response:', data);
+    console.log('OAuth response:', oauthData);
 
     if (nonceError) {
       console.error('Failed to get nonce:', nonceError);
       throw new Error('Failed to get nonce for SIWE authentication');
     }
 
-    const oauthData = data as SiweOAuthResponse;
-    if (!oauthData || !oauthData.properties?.nonce) {
-      console.error('No nonce received in OAuth response:', oauthData);
+    const typedOAuthData = oauthData as SiweOAuthResponse;
+    if (!typedOAuthData || !typedOAuthData.properties?.nonce) {
+      console.error('No nonce received in OAuth response:', typedOAuthData);
       throw new Error('No nonce received from authentication service');
     }
 
-    const nonce = oauthData.properties.nonce;
+    const nonce = typedOAuthData.properties.nonce;
     console.log('Got nonce for SIWE message:', nonce);
 
     // Create and sign SIWE message

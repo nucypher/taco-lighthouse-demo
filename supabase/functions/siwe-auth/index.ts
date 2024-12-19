@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { SiweMessage } from "npm:siwe@2"
+import { generateNonce } from "npm:siwe@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,22 +15,46 @@ serve(async (req) => {
   }
 
   try {
+    // If no message/signature provided, this is the initial OAuth request
+    // Generate and return a nonce
+    if (req.method === 'GET') {
+      const nonce = generateNonce()
+      console.log('Generated nonce for initial OAuth request:', nonce)
+      
+      return new Response(
+        JSON.stringify({ 
+          provider: 'siwe',
+          url: null,
+          properties: {
+            nonce: nonce
+          }
+        }), 
+        { 
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+    }
+
+    // Handle the actual authentication with message and signature
     const { address, message, signature } = await req.json()
-    console.log('Received SIWE auth request:', { address, message });
+    console.log('Received SIWE auth request:', { address, message })
 
     // Verify SIWE message
     const siweMessage = new SiweMessage(message)
     const fields = await siweMessage.verify({ signature })
     
     if (!fields.success) {
-      console.error('SIWE verification failed:', fields);
+      console.error('SIWE verification failed:', fields)
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('SIWE verification successful:', fields);
+    console.log('SIWE verification successful:', fields)
 
     // Initialize Supabase admin client
     const supabaseAdmin = createClient(
@@ -55,15 +80,15 @@ serve(async (req) => {
     })
 
     if (getUserError) {
-      console.error('Error fetching user:', getUserError);
-      throw getUserError;
+      console.error('Error fetching user:', getUserError)
+      throw getUserError
     }
 
-    let user = users?.[0];
+    let user = users?.[0]
 
     if (!user) {
       // Create new user if doesn't exist
-      console.log('Creating new user with email:', email);
+      console.log('Creating new user with email:', email)
       const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: email,
         email_confirmed: true,
@@ -77,12 +102,12 @@ serve(async (req) => {
       })
 
       if (createError) {
-        console.error('Error creating user:', createError);
-        throw createError;
+        console.error('Error creating user:', createError)
+        throw createError
       }
 
-      user = newUser;
-      console.log('Created new user:', user);
+      user = newUser
+      console.log('Created new user:', user)
     } else {
       // Update existing user's metadata
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -96,10 +121,10 @@ serve(async (req) => {
       )
 
       if (updateError) {
-        console.error('Error updating user:', updateError);
-        throw updateError;
+        console.error('Error updating user:', updateError)
+        throw updateError
       }
-      console.log('Updated existing user:', user);
+      console.log('Updated existing user:', user)
     }
 
     // Create a new session using admin API
@@ -108,14 +133,14 @@ serve(async (req) => {
     })
 
     if (sessionError) {
-      console.error('Error creating session:', sessionError);
-      throw sessionError;
+      console.error('Error creating session:', sessionError)
+      throw sessionError
     }
 
     console.log('Generated session successfully:', {
       userId: session.user.id,
       email: session.user.email
-    });
+    })
 
     // Return both the user and session data with access and refresh tokens
     return new Response(
@@ -136,7 +161,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in SIWE auth:', error);
+    console.error('Error in SIWE auth:', error)
     return new Response(
       JSON.stringify({ 
         error: error.message,
