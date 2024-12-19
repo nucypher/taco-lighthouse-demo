@@ -54,12 +54,13 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
       if (authResponse?.session) {
         await setSupabaseSession(authResponse.session);
         console.log('Authentication successful:', authResponse.session);
+        toast({
+          title: "Connected",
+          description: "Wallet connected and verified successfully",
+        });
+      } else {
+        throw new Error('Authentication failed - no session returned');
       }
-      
-      toast({
-        title: "Connected",
-        description: "Wallet connected and verified successfully",
-      });
     } catch (error) {
       console.error('Connection error:', error);
       toast({
@@ -72,7 +73,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     }
   };
 
-  const handleUploadClick = () => {
+  const handleUploadClick = async () => {
     console.log('Upload clicked. Current wallet state:', wallet);
     console.log('Current session state:', session);
     
@@ -88,15 +89,30 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
 
     if (!session?.user) {
       console.log('No session when trying to upload');
-      toast({
-        title: "Sign In Required",
-        description: "Please sign in with your wallet to upload tracks",
-        variant: "destructive",
-      });
-      return;
+      try {
+        // Attempt to authenticate if wallet is connected but no session exists
+        const address = wallet.accounts[0].address;
+        const { message, signature } = await signInWithEthereum(address);
+        const authResponse = await authenticateWithSupabase(address, message, signature);
+        
+        if (authResponse?.session) {
+          await setSupabaseSession(authResponse.session);
+          setShowUploadDialog(true);
+        } else {
+          throw new Error('Authentication failed');
+        }
+      } catch (error) {
+        console.error('Authentication error:', error);
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in with your wallet to upload tracks",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      setShowUploadDialog(true);
     }
-
-    setShowUploadDialog(true);
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
