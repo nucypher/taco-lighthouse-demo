@@ -8,6 +8,7 @@ import type { WalletState } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { SiweMessage } from 'siwe';
 import { Provider } from '@supabase/auth-js/dist/module/lib/types';
+import { ethers } from 'ethers';
 
 // Extend the Provider enum
 declare module '@supabase/auth-js/dist/module/lib/types' {
@@ -31,6 +32,10 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('No wallet address available');
     }
 
+    // Convert to checksum address before creating message
+    const checksumAddress = ethers.utils.getAddress(walletAddress);
+    console.log('Using checksum address:', checksumAddress);
+
     // Get the nonce from Supabase
     const { data, error: nonceError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as unknown as Provider,
@@ -50,7 +55,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     const message = new SiweMessage({
       domain: window.location.host,
-      address: walletAddress,
+      address: checksumAddress, // Use checksum address here
       statement: 'Sign in with Ethereum to TACo',
       uri: window.location.origin,
       version: '1',
