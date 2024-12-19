@@ -15,22 +15,30 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   try {
+    // First check if we already have a session
+    const { data: { session: existingSession } } = await supabase.auth.getSession();
+    
+    // Connect wallet regardless of session status
     const wallet = await connectWalletOnly();
     if (!wallet) return null;
 
+    // If we already have a valid session, just return the wallet
+    if (existingSession) {
+      console.log('Existing session found, skipping SIWE');
+      return wallet;
+    }
+
+    console.log('No existing session, proceeding with SIWE');
     const web3Provider = getWeb3Provider();
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
     
-    // Only attempt SIWE if there's no active session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      const { message, signature } = await signInWithEthereum(address);
-      const authResponse = await authenticateWithSupabase(address, message, signature);
+    const { message, signature } = await signInWithEthereum(address);
+    const authResponse = await authenticateWithSupabase(address, message, signature);
 
-      if (authResponse?.session) {
-        await setSupabaseSession(authResponse.session);
-      }
+    if (authResponse?.session) {
+      await setSupabaseSession(authResponse.session);
+      console.log('SIWE authentication successful');
     }
 
     return wallet;

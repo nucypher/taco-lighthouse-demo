@@ -26,10 +26,12 @@ export const UploadButton = ({ onUploadSuccess }: UploadButtonProps) => {
       return;
     }
 
+    // Check if we have both wallet and session
     if (!session?.user) {
+      console.log('No session found, but wallet is connected. This should not happen.');
       toast({
-        title: "Authentication Required",
-        description: "Please sign in with your wallet to upload tracks",
+        title: "Session Error",
+        description: "Please try disconnecting and reconnecting your wallet",
         variant: "destructive",
       });
       return;
