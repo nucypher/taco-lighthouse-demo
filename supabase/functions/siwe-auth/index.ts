@@ -102,22 +102,33 @@ serve(async (req) => {
       console.log('Updated existing user:', user);
     }
 
-    // Create a session for the user using admin API
-    const { data: { session }, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
-      userId: user.id
+    // Generate a sign-in link for the user
+    const { data: { properties }, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+      options: {
+        redirectTo: '/'
+      }
     })
 
-    if (sessionError) {
-      console.error('Error creating session:', sessionError);
-      throw sessionError;
+    if (linkError) {
+      console.error('Error generating sign-in link:', linkError);
+      throw linkError;
     }
 
-    console.log('Created session successfully');
+    // Extract the tokens from the properties
+    const { accessToken, refreshToken } = properties;
+    
+    console.log('Generated sign-in tokens successfully');
 
     return new Response(
       JSON.stringify({ 
         user,
-        session
+        session: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          user
+        }
       }),
       { 
         status: 200, 
