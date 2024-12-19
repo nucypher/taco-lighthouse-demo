@@ -14,21 +14,23 @@ serve(async (req) => {
 
   try {
     const { address, message, signature } = await req.json()
-    console.log('Received SIWE auth request:', { address, message, signature });
+    console.log('Received SIWE auth request:', { address, message });
 
-    // Verify SIWE message first
+    // Verify SIWE message
     const siweMessage = new SiweMessage(message)
     const fields = await siweMessage.verify({ signature })
-    console.log('SIWE verification result:', fields);
-
+    
     if (!fields.success) {
+      console.error('SIWE verification failed:', fields);
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Initialize Supabase admin client with service role key
+    console.log('SIWE verification successful:', fields);
+
+    // Initialize Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -40,34 +42,63 @@ serve(async (req) => {
       }
     )
 
-    // Generate a deterministic email from the wallet address
-    const email = `${address.toLowerCase()}@ethereum.local`
+    // Normalize the wallet address
+    const normalizedAddress = address.toLowerCase()
+    const email = `${normalizedAddress}@ethereum.local`
 
-    // Check if user exists
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers()
-    const existingUser = users.users.find(u => u.email === email)
-    
-    let user;
-    if (existingUser) {
-      user = existingUser
-      console.log('Found existing user:', user);
-    } else {
+    // First try to get the user
+    const { data: { users }, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
+      filter: {
+        email: email
+      }
+    })
+
+    if (getUserError) {
+      console.error('Error fetching user:', getUserError);
+      throw getUserError;
+    }
+
+    let user = users?.[0];
+
+    if (!user) {
       // Create new user if doesn't exist
+      console.log('Creating new user with email:', email);
       const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: email,
         email_confirmed: true,
         user_metadata: {
-          wallet_address: address.toLowerCase(),
+          eth_address: normalizedAddress,
+          siwe_nonce: fields.data.nonce
+        },
+        app_metadata: {
+          provider: 'siwe'
         }
       })
 
       if (createError) {
-        console.error('Error creating user:', createError)
-        throw createError
+        console.error('Error creating user:', createError);
+        throw createError;
       }
-      
-      user = newUser
+
+      user = newUser;
       console.log('Created new user:', user);
+    } else {
+      // Update existing user's metadata
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        user.id,
+        {
+          user_metadata: {
+            eth_address: normalizedAddress,
+            siwe_nonce: fields.data.nonce
+          }
+        }
+      )
+
+      if (updateError) {
+        console.error('Error updating user:', updateError);
+        throw updateError;
+      }
+      console.log('Updated existing user:', user);
     }
 
     // Generate session for the user
@@ -75,19 +106,36 @@ serve(async (req) => {
       .createSession(user.id)
 
     if (sessionError) {
-      console.error('Error creating session:', sessionError)
-      throw sessionError
+      console.error('Error creating session:', sessionError);
+      throw sessionError;
     }
+
+    console.log('Created session successfully');
 
     return new Response(
       JSON.stringify({ user, session }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 200, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     )
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in SIWE auth:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack 
+      }),
+      { 
+        status: 500, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     )
   }
 })
