@@ -7,6 +7,14 @@ import {
 import type { WalletState } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { SiweMessage } from 'siwe';
+import { Provider } from '@supabase/supabase-js';
+
+// Extend the Provider type to include 'siwe'
+declare module '@supabase/supabase-js' {
+  interface Provider {
+    SIWE: 'siwe';
+  }
+}
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
@@ -24,14 +32,14 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     }
 
     // Get the nonce from Supabase
-    const { data: { nonce }, error: nonceError } = await supabase.auth.signInWithOAuth({
-      provider: 'siwe',
+    const { data, error: nonceError } = await supabase.auth.signInWithOAuth({
+      provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true
       }
     });
 
-    if (nonceError) {
+    if (nonceError || !data) {
       console.error('Failed to get nonce:', nonceError);
       throw nonceError;
     }
@@ -47,15 +55,16 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       uri: window.location.origin,
       version: '1',
       chainId: 1,
-      nonce
+      // @ts-ignore - We know this exists in the SIWE flow
+      nonce: data.nonce
     });
 
     const messageToSign = message.prepareMessage();
     const signature = await signer.signMessage(messageToSign);
 
     // Complete the OAuth flow with the signed message
-    const { data, error: signInError } = await supabase.auth.signInWithOAuth({
-      provider: 'siwe',
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithOAuth({
+      provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true,
         queryParams: {
@@ -71,7 +80,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw signInError;
     }
 
-    console.log('Successfully signed in with SIWE:', data);
+    console.log('Successfully signed in with SIWE:', signInData);
     return connectedWallet;
 
   } catch (error) {
