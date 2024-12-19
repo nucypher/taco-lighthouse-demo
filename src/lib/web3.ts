@@ -41,25 +41,28 @@ const web3Onboard = init({
   }
 });
 
+async function createSiweMessage(address: string, statement: string) {
+  const res = await fetch(`${window.location.origin}/api/nonce`);
+  const message = new SiweMessage({
+    domain: window.location.host,
+    address,
+    statement,
+    uri: window.location.origin,
+    version: '1',
+    chainId: 1,
+    nonce: await res.text()
+  });
+  return message.prepareMessage();
+}
+
 async function signInWithEthereum(address: string) {
   try {
-    // Generate a random nonce
-    const nonce = Math.floor(Math.random() * 1000000).toString();
-    console.log('Generated nonce:', nonce);
-
     // Create SIWE message
-    const message = new SiweMessage({
-      domain: window.location.host,
+    const message = await createSiweMessage(
       address,
-      statement: 'Sign in with Ethereum to TACo',
-      uri: window.location.origin,
-      version: '1',
-      chainId: 1,
-      nonce,
-    });
-
-    const messageToSign = message.prepareMessage();
-    console.log('Prepared message:', messageToSign);
+      'Sign in with Ethereum to TACo'
+    );
+    console.log('Prepared message:', message);
 
     // Get the provider and signer
     const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -67,10 +70,10 @@ async function signInWithEthereum(address: string) {
 
     // Request signature from user
     console.log('Requesting signature...');
-    const signature = await signer.signMessage(messageToSign);
+    const signature = await signer.signMessage(message);
     console.log('Signature received:', signature);
 
-    return { message: messageToSign, signature };
+    return { message, signature };
   } catch (error) {
     console.error('Error in signInWithEthereum:', error);
     throw error;
