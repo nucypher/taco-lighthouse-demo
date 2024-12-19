@@ -42,44 +42,72 @@ const web3Onboard = init({
 });
 
 async function signInWithEthereum(address: string) {
-  const nonce = Math.floor(Math.random() * 1000000).toString();
-  
-  const message = new SiweMessage({
-    domain: window.location.host,
-    address,
-    statement: 'Sign in with Ethereum to TACo',
-    uri: window.location.origin,
-    version: '1',
-    chainId: 1,
-    nonce,
-  });
+  try {
+    // Generate a random nonce
+    const nonce = Math.floor(Math.random() * 1000000).toString();
+    console.log('Generated nonce:', nonce);
 
-  const messageToSign = message.prepareMessage();
-  const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = web3Provider.getSigner();
-  const signature = await signer.signMessage(messageToSign);
+    // Create SIWE message
+    const message = new SiweMessage({
+      domain: window.location.host,
+      address,
+      statement: 'Sign in with Ethereum to TACo',
+      uri: window.location.origin,
+      version: '1',
+      chainId: 1,
+      nonce,
+    });
 
-  return { message: messageToSign, signature };
+    const messageToSign = message.prepareMessage();
+    console.log('Prepared message:', messageToSign);
+
+    // Get the provider and signer
+    const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = web3Provider.getSigner();
+
+    // Request signature from user
+    console.log('Requesting signature...');
+    const signature = await signer.signMessage(messageToSign);
+    console.log('Signature received:', signature);
+
+    return { message: messageToSign, signature };
+  } catch (error) {
+    console.error('Error in signInWithEthereum:', error);
+    throw error;
+  }
 }
 
 async function authenticateWithSupabase(address: string, message: string, signature: string) {
-  const { data, error } = await supabase.functions.invoke('siwe-auth', {
-    body: { address, message, signature }
-  });
+  try {
+    console.log('Authenticating with Supabase...', { address, message, signature });
+    const { data, error } = await supabase.functions.invoke('siwe-auth', {
+      body: { address, message, signature }
+    });
 
-  if (error) {
-    console.error('Authentication error:', error);
+    if (error) {
+      console.error('Authentication error:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in authenticateWithSupabase:', error);
     throw error;
   }
-
-  return data;
 }
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   try {
+    console.log('Connecting wallet...');
     const wallets = await web3Onboard.connectWallet();
-    if (!wallets[0]) return null;
+    if (!wallets[0]) {
+      console.log('No wallet connected');
+      return null;
+    }
 
+    // Request account access
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    
     const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
