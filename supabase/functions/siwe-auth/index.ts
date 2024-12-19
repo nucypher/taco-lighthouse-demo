@@ -102,20 +102,14 @@ serve(async (req) => {
       console.log('Updated existing user:', user);
     }
 
-    // Create a new session directly
-    const { data: { session }, error: signInError } = await supabaseAdmin.auth.admin.signInWithEmail({
-      email: email,
-      options: {
-        data: {
-          eth_address: normalizedAddress,
-          siwe_nonce: fields.data.nonce
-        }
-      }
+    // Create a new session using admin API
+    const { data: { session }, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+      userId: user.id
     })
 
-    if (signInError) {
-      console.error('Error signing in:', signInError);
-      throw signInError;
+    if (sessionError) {
+      console.error('Error creating session:', sessionError);
+      throw sessionError;
     }
 
     console.log('Generated session successfully:', {
