@@ -64,8 +64,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Authentication failed');
     }
 
-    console.log('SIWE authentication successful, session created:', authResponse.session.user.id);
+    console.log('SIWE authentication successful, session created:', {
+      userId: authResponse.session.user.id,
+      email: authResponse.session.user.email
+    });
+    
     await setSupabaseSession(authResponse.session);
+    
+    // Verify the session was set correctly
+    const { data: { session: finalSession } } = await supabase.auth.getSession();
+    if (!finalSession) {
+      throw new Error('Session was not set properly after authentication');
+    }
 
     return connectedWallet;
   } catch (error) {

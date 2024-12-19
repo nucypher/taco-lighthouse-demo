@@ -18,7 +18,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session check:", session?.user?.id);
+      console.log("Initial session check:", session);
+      if (session) {
+        console.log("Found existing session:", {
+          userId: session.user?.id,
+          email: session.user?.email
+        });
+      }
       setSession(session);
       setIsLoading(false);
     });
@@ -27,7 +33,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", _event, session?.user?.id);
+      console.log("Auth state changed:", _event, {
+        userId: session?.user?.id,
+        email: session?.user?.email
+      });
       setSession(session);
       setIsLoading(false);
     });
@@ -37,10 +46,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Effect to handle wallet disconnection
   useEffect(() => {
-    if (!wallet && session) {
-      console.log("Wallet disconnected, signing out...");
-      supabase.auth.signOut();
-    }
+    const checkSessionValidity = async () => {
+      if (!wallet && session) {
+        console.log("Wallet disconnected, signing out...");
+        await supabase.auth.signOut();
+      } else if (wallet && session) {
+        // Verify the wallet address matches the session
+        const sessionEmail = session.user?.email;
+        const walletAddress = wallet.accounts?.[0]?.address?.toLowerCase();
+        const expectedEmail = `${walletAddress}@ethereum.local`;
+
+        if (sessionEmail !== expectedEmail) {
+          console.log("Session-wallet mismatch, signing out...", {
+            sessionEmail,
+            expectedEmail
+          });
+          await supabase.auth.signOut();
+        }
+      }
+    };
+
+    checkSessionValidity();
   }, [wallet, session]);
 
   return (
