@@ -1,6 +1,6 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { SiweMessage } from 'npm:siwe@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { SiweMessage } from "npm:siwe@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,6 +8,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -59,6 +60,7 @@ serve(async (req) => {
     }
 
     let user = users?.[0];
+    let session;
 
     if (!user) {
       // Create new user if doesn't exist
@@ -101,19 +103,29 @@ serve(async (req) => {
       console.log('Updated existing user:', user);
     }
 
-    // Generate session for the user
-    const { data: { session }, error: sessionError } = await supabaseAdmin.auth.admin
-      .createSession(user.id)
+    // Generate access token and refresh token for the user
+    const { data: { session: newSession }, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+    })
 
-    if (sessionError) {
-      console.error('Error creating session:', sessionError);
-      throw sessionError;
+    if (signInError) {
+      console.error('Error generating session:', signInError);
+      throw signInError;
     }
 
     console.log('Created session successfully');
 
     return new Response(
-      JSON.stringify({ user, session }),
+      JSON.stringify({ 
+        user,
+        session: {
+          access_token: newSession.access_token,
+          refresh_token: newSession.refresh_token,
+          expires_in: newSession.expires_in,
+          user
+        }
+      }),
       { 
         status: 200, 
         headers: { 
