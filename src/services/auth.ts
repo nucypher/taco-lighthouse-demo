@@ -1,6 +1,7 @@
 import { SiweMessage } from 'siwe';
 import { supabase } from '@/integrations/supabase/client';
 import { getWeb3Provider } from './wallet';
+import { ethers } from 'ethers';
 import type { SignInResult, SiweAuthResponse } from '@/types/auth';
 
 export async function createSiweMessage(address: string, statement: string) {
@@ -11,9 +12,8 @@ export async function createSiweMessage(address: string, statement: string) {
     throw error;
   }
   
-  // Ensure the address is in checksum format
-  const web3Provider = getWeb3Provider();
-  const checksumAddress = web3Provider.utils.getAddress(address);
+  // Ensure the address is in checksum format using ethers utility
+  const checksumAddress = ethers.utils.getAddress(address);
   
   const message = new SiweMessage({
     domain: window.location.host,
@@ -29,14 +29,14 @@ export async function createSiweMessage(address: string, statement: string) {
 
 export async function signInWithEthereum(address: string): Promise<SignInResult> {
   // Convert to checksum address before creating message
-  const web3Provider = getWeb3Provider();
-  const checksumAddress = web3Provider.utils.getAddress(address);
+  const checksumAddress = ethers.utils.getAddress(address);
   
   const message = await createSiweMessage(
     checksumAddress,
     'Sign in with Ethereum to TACo'
   );
 
+  const web3Provider = getWeb3Provider();
   const signer = web3Provider.getSigner();
   const signature = await signer.signMessage(message);
 
@@ -49,8 +49,7 @@ export async function authenticateWithSupabase(
   signature: string
 ): Promise<SiweAuthResponse> {
   // Convert to checksum address before authentication
-  const web3Provider = getWeb3Provider();
-  const checksumAddress = web3Provider.utils.getAddress(address);
+  const checksumAddress = ethers.utils.getAddress(address);
   
   const { data, error } = await supabase.functions.invoke('siwe-auth', {
     body: { address: checksumAddress, message, signature }
