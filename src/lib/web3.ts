@@ -41,15 +41,17 @@ const web3Onboard = init({
   }
 });
 
-async function signInWithEthereum(address: string, chainId: number) {
+async function signInWithEthereum(address: string) {
+  const nonce = Math.floor(Math.random() * 1000000).toString();
+  
   const message = new SiweMessage({
     domain: window.location.host,
     address,
     statement: 'Sign in with Ethereum to TACo',
     uri: window.location.origin,
     version: '1',
-    chainId,
-    nonce: Math.floor(Math.random() * 1000000).toString(),
+    chainId: 1,
+    nonce,
   });
 
   const messageToSign = message.prepareMessage();
@@ -81,10 +83,14 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
-    const chainId = (await web3Provider.getNetwork()).chainId;
     
-    const { message, signature } = await signInWithEthereum(address, chainId);
+    console.log('Connected wallet address:', address);
+    
+    const { message, signature } = await signInWithEthereum(address);
+    console.log('SIWE message signed:', { message, signature });
+    
     await authenticateWithSupabase(address, message, signature);
+    console.log('Authenticated with Supabase successfully');
 
     return wallets[0];
   } catch (error) {

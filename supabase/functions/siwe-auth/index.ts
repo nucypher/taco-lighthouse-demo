@@ -8,17 +8,18 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const { address, message, signature } = await req.json()
+    console.log('Received SIWE auth request:', { address, message, signature });
 
     // Verify SIWE message
     const siweMessage = new SiweMessage(message)
     const fields = await siweMessage.verify({ signature })
+    console.log('SIWE verification result:', fields);
 
     if (!fields.success) {
       return new Response(
@@ -37,8 +38,10 @@ serve(async (req) => {
     const { data: existingUser, error: selectError } = await supabaseAdmin
       .from('users')
       .select('*')
-      .eq('address', address.toLowerCase())
+      .eq('wallet_address', address.toLowerCase())
       .single()
+
+    console.log('Existing user check:', { existingUser, selectError });
 
     if (selectError && selectError.code !== 'PGRST116') {
       throw selectError
@@ -51,7 +54,7 @@ serve(async (req) => {
       const { data: newUser, error: insertError } = await supabaseAdmin
         .from('users')
         .insert({
-          address: address.toLowerCase(),
+          wallet_address: address.toLowerCase(),
           auth: {
             lastAuth: new Date().toISOString(),
             lastAuthStatus: 'success',
@@ -62,6 +65,7 @@ serve(async (req) => {
         .single()
 
       if (insertError) throw insertError
+      console.log('Created new user:', newUser);
       userId = newUser.id
     } else {
       // Update existing user's auth data
@@ -77,16 +81,21 @@ serve(async (req) => {
         .eq('id', existingUser.id)
 
       if (updateError) throw updateError
+      console.log('Updated existing user auth data');
     }
 
     // Create a custom token
     const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
       email: `${address.toLowerCase()}@ethereum.org`,
       password: signature,
-      email_confirm: true
+      email_confirm: true,
+      user_metadata: {
+        wallet_address: address.toLowerCase()
+      }
     })
 
     if (signInError) throw signInError
+    console.log('Created Supabase auth user:', user);
 
     return new Response(
       JSON.stringify({ user }),
