@@ -45,12 +45,13 @@ export const WalletButton = () => {
     }
   };
 
-  // Get the connected address from the wallet state
+  // Only show the connected address if we have both wallet and session
   const connectedAddress = wallet?.accounts?.[0]?.address;
-  const truncatedAddress = connectedAddress
+  const truncatedAddress = connectedAddress && session
     ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
     : '';
 
+  // Only show profile link if we have both wallet and session
   if (wallet && session) {
     return (
       <Link to="/profile">

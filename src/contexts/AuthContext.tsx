@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useWallet } from "./WalletContext";
+import { disconnectWallet } from "@/lib/web3";
 
 interface AuthContextType {
   session: Session | null;
@@ -19,12 +20,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session check:", session);
-      if (session) {
-        console.log("Found existing session:", {
-          userId: session.user?.id,
-          email: session.user?.email
-        });
-      }
       setSession(session);
       setIsLoading(false);
     });
@@ -44,28 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Effect to handle wallet-session synchronization
+  // Effect to handle wallet-session cleanup
   useEffect(() => {
-    if (!wallet && session) {
-      // If we have a session but no wallet, sign out
-      console.log('Session exists without wallet, signing out...');
-      supabase.auth.signOut();
-    } else if (wallet && session) {
-      // Verify the wallet address matches the session
-      const sessionEmail = session.user?.email;
-      const walletAddress = wallet.accounts?.[0]?.address?.toLowerCase();
-      const expectedEmail = `${walletAddress}@ethereum.local`;
-
-      if (sessionEmail !== expectedEmail) {
-        console.log('Session-wallet mismatch, signing out...', {
-          sessionEmail,
-          expectedEmail
-        });
-        supabase.auth.signOut();
+    const cleanup = async () => {
+      if (!session && wallet) {
+        // If we have a wallet but no session, disconnect the wallet
+        console.log('No session found with connected wallet, cleaning up...');
+        await disconnectWallet(wallet);
         setWallet(null);
       }
-    }
-  }, [wallet, session, setWallet]);
+    };
+
+    cleanup();
+  }, [session, wallet, setWallet]);
 
   return (
     <AuthContext.Provider value={{ session, isLoading }}>
