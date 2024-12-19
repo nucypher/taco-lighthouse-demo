@@ -43,8 +43,14 @@ serve(async (req) => {
     // Generate a deterministic email from the wallet address
     const email = `${address.toLowerCase()}@ethereum.local`
 
-    // First, check if user exists
-    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(email)
+    // First, check if user exists using the listUsers API
+    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+    if (listError) {
+      console.error('Error listing users:', listError)
+      throw listError
+    }
+
+    const existingUser = users.users.find(u => u.email === email)
     
     let user;
     if (existingUser) {
@@ -54,7 +60,7 @@ serve(async (req) => {
       // Create new user if doesn't exist
       const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: email,
-        email_confirm: true,
+        email_confirmed: true,
         user_metadata: {
           wallet_address: address.toLowerCase(),
         }
