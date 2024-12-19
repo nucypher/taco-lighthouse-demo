@@ -36,7 +36,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     // First step: Get the nonce from initial OAuth request
     console.log('Initiating SIWE OAuth flow...');
-    const { data: { properties }, error: initialError } = await supabase.auth.signInWithOAuth({
+    const { data, error: initialError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true,
@@ -46,12 +46,18 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       }
     });
 
-    if (initialError || !properties?.nonce) {
-      console.error('Failed to get nonce:', initialError || 'No nonce in response');
+    if (initialError || !data) {
+      console.error('Failed to start OAuth flow:', initialError || 'No data received');
       throw new Error('Failed to start SIWE authentication');
     }
 
-    const nonce = properties.nonce;
+    // Access nonce from the response data
+    const nonce = (data as any).properties?.nonce;
+    if (!nonce) {
+      console.error('No nonce in response:', data);
+      throw new Error('No nonce received for SIWE authentication');
+    }
+
     console.log('Got nonce from initial request:', nonce);
 
     // Create and sign SIWE message
