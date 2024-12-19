@@ -38,6 +38,7 @@ export const useAudioPlayer = () => {
 };
 
 const App = () => {
+  console.log('Rendering App component');
   const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -57,9 +58,9 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WalletProvider>
-          <BrowserRouter>
+      <WalletProvider>
+        <BrowserRouter>
+          <AuthProvider>
             <TooltipProvider>
               <AudioPlayerContext.Provider value={audioPlayerValue}>
                 <Toaster />
@@ -83,9 +84,9 @@ const App = () => {
                 )}
               </AudioPlayerContext.Provider>
             </TooltipProvider>
-          </BrowserRouter>
-        </WalletProvider>
-      </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </WalletProvider>
     </QueryClientProvider>
   );
 };
