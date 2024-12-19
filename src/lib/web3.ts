@@ -8,7 +8,6 @@ import type { WalletState } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { SiweMessage } from 'siwe';
 import { ethers } from 'ethers';
-import { Provider } from '@supabase/supabase-js';
 
 export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
@@ -34,8 +33,8 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const checksumAddress = ethers.utils.getAddress(walletAddress);
     console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // Generate nonce
-    const nonce = Math.floor(Math.random() * 1000000).toString();
+    // Generate nonce using Math.random() and timestamp for uniqueness
+    const nonce = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     console.log('Generated nonce:', nonce);
 
     // Create and sign SIWE message
