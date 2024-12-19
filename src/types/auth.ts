@@ -2,7 +2,7 @@ import { User } from '@supabase/supabase-js'
 
 export interface WalletState {
   label?: string;
-  accounts: { address: string }[];
+  accounts?: { address: string }[];
 }
 
 export interface SiweAuthResponse {

@@ -47,5 +47,7 @@ export const connectWalletOnly = async (): Promise<WalletState | null> => {
 };
 
 export const disconnectWalletOnly = async (wallet: WalletState) => {
-  await web3Onboard.disconnectWallet(wallet);
+  if (wallet.label) {
+    await web3Onboard.disconnectWallet({ label: wallet.label });
+  }
 };

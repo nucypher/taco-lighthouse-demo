@@ -41,7 +41,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
       console.error('Connection error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to connect wallet",
+        description: error instanceof Error ? error.message : "Failed to connect wallet",
         variant: "destructive",
       });
     } finally {
@@ -88,7 +88,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   };
 
   // Get the connected address from the wallet state
-  const connectedAddress = wallet?.accounts[0]?.address;
+  const connectedAddress = wallet?.accounts?.[0]?.address;
   const truncatedAddress = connectedAddress
     ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
     : '';
