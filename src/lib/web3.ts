@@ -14,36 +14,41 @@ export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
   
   try {
+    console.log('Starting wallet connection process...');
+    
     // First connect the wallet
     connectedWallet = await connectWalletOnly();
-    if (!connectedWallet) return null;
+    if (!connectedWallet) {
+      console.log('No wallet connected during connectWalletOnly');
+      return null;
+    }
 
     // Ensure we have a wallet address
     const walletAddress = connectedWallet.accounts?.[0]?.address;
     if (!walletAddress) {
-      console.error('No wallet address available');
+      console.error('No wallet address available after connection');
       throw new Error('No wallet address available');
     }
 
     // Convert to checksum address before creating message
     const checksumAddress = ethers.utils.getAddress(walletAddress);
-    console.log('Using checksum address:', checksumAddress);
+    console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // Get the nonce from Supabase
-    console.log('Initiating SIWE OAuth flow to get nonce...');
-    const { data: oauthData, error: nonceError } = await supabase.auth.signInWithOAuth({
+    // Start SIWE OAuth flow
+    console.log('Initiating SIWE OAuth flow...');
+    const { data: { nonce }, error: nonceError } = await supabase.auth.signInWithOAuth({
       provider: 'siwe' as Provider,
       options: {
         skipBrowserRedirect: true
       }
     });
 
-    if (nonceError || !oauthData) {
+    if (nonceError || !nonce) {
       console.error('Failed to get nonce:', nonceError);
-      throw nonceError;
+      throw new Error('Failed to get nonce for SIWE authentication');
     }
 
-    console.log('Got OAuth data:', oauthData);
+    console.log('Got nonce for SIWE message:', nonce);
 
     // Create and sign SIWE message
     const web3Provider = getWeb3Provider();
@@ -56,8 +61,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       uri: window.location.origin,
       version: '1',
       chainId: 1,
-      // @ts-ignore - We know this exists in the SIWE flow
-      nonce: oauthData.nonce
+      nonce: nonce
     });
 
     const messageToSign = message.prepareMessage();
@@ -81,9 +85,9 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       }
     });
 
-    if (signInError) {
+    if (signInError || !signInData) {
       console.error('Failed to sign in:', signInError);
-      throw signInError;
+      throw new Error(`SIWE authentication failed: ${signInError?.message || 'Unknown error'}`);
     }
 
     // Verify the session was created successfully
@@ -91,7 +95,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     if (sessionError) {
       console.error('Failed to get session after sign in:', sessionError);
-      throw sessionError;
+      throw new Error(`Session verification failed: ${sessionError.message}`);
     }
 
     if (!session) {
@@ -99,15 +103,15 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Authentication failed: No session created');
     }
 
-    console.log('Successfully signed in with SIWE and session verified:', {
-      user: session.user.id,
+    console.log('Successfully authenticated with SIWE:', {
+      userId: session.user.id,
       expiresAt: session.expires_at
     });
     
     return connectedWallet;
 
   } catch (error) {
-    console.error('Connection error:', error);
+    console.error('Wallet connection error:', error);
     // Clean up on error
     if (connectedWallet) {
       await disconnectWalletOnly(connectedWallet);
