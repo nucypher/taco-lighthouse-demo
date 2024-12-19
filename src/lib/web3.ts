@@ -66,18 +66,6 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     console.log('SIWE authentication successful, setting session...');
 
-    // Construct a complete session object with all required fields
-    const sessionData = {
-      access_token: authResponse.session.access_token,
-      refresh_token: authResponse.session.refresh_token,
-      provider_token: null,
-      provider_refresh_token: null,
-      user: authResponse.user,
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      token_type: 'bearer'
-    };
-
     // Verify we have a complete session object before setting
     if (!authResponse?.session?.access_token || !authResponse?.session?.refresh_token) {
       console.error('Invalid auth response:', authResponse);
