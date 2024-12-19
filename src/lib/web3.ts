@@ -70,32 +70,24 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     await supabase.auth.signOut();
     
     // Then set the new session
-    const { error: sessionError } = await supabase.auth.setSession({
+    const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token: authResponse.session.access_token,
-      refresh_token: authResponse.session.refresh_token
+      refresh_token: authResponse.session.refresh_token,
     });
 
     if (sessionError) {
       console.error('Failed to set session:', sessionError);
-      throw new Error('Failed to set session: ' + sessionError.message);
+      throw sessionError;
     }
 
-    // Verify the session was set correctly
-    const { data: { session: finalSession }, error: verifyError } = await supabase.auth.getSession();
-    
-    if (verifyError) {
-      console.error('Session verification error:', verifyError);
-      throw new Error('Session verification failed: ' + verifyError.message);
+    if (!sessionData.session) {
+      console.error('No session data after setting session');
+      throw new Error('Failed to set session: No session data returned');
     }
 
-    if (!finalSession) {
-      console.error('No session found after setting');
-      throw new Error('Session was not set properly after authentication');
-    }
-
-    console.log('Session verified successfully:', {
-      userId: finalSession.user.id,
-      email: finalSession.user.email
+    console.log('Session set successfully:', {
+      userId: sessionData.session.user.id,
+      email: sessionData.session.user.email
     });
 
     return connectedWallet;
