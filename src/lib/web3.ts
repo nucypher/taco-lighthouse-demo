@@ -65,14 +65,17 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const signature = await signer.signMessage(messageToSign);
     console.log('Got signature:', signature);
 
-    // Call the SIWE auth edge function with the correct redirect URL
+    // Call the SIWE auth edge function with explicit port 8080
     console.log('Calling SIWE auth edge function...');
+    const redirectUrl = 'http://localhost:8080';
+    console.log('Using redirect URL:', redirectUrl);
+    
     const { data: authData, error: authError } = await supabase.functions.invoke('siwe-auth', {
       body: { 
         address: checksumAddress,
         message: messageToSign,
         signature,
-        redirect_url: window.location.origin // This ensures we use the current origin with correct port
+        redirect_url: redirectUrl
       }
     });
 

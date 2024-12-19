@@ -127,12 +127,16 @@ serve(async (req) => {
       console.log('Updated existing user:', user)
     }
 
+    // Ensure redirect_url is using port 8080
+    const finalRedirectUrl = redirect_url.replace(':3000', ':8080')
+    console.log('Using final redirect URL:', finalRedirectUrl)
+
     // Generate sign-in link with the provided redirect URL
     const { data: { properties }, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email: email,
       options: {
-        redirectTo: redirect_url // Use the provided redirect URL
+        redirectTo: finalRedirectUrl
       }
     })
 
