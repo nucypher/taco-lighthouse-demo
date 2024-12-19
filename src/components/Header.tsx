@@ -54,7 +54,6 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
                     <Button variant="ghost" size="icon" className="rounded-full">
                       <User className="h-5 w-5" />
                     </Button>
-                  </Link>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>View Profile</p>
