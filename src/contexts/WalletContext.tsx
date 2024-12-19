@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { connectWalletOnly } from "@/services/wallet";
 
 interface WalletState {
   label?: string;
@@ -17,22 +18,38 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState<WalletState | null>(null);
 
-  // Restore wallet state from localStorage on mount
+  // Attempt to restore and reconnect wallet on mount
   useEffect(() => {
-    const storedWallet = localStorage.getItem('connectedWallet');
-    if (storedWallet) {
-      console.log('[WALLET] Restoring wallet state from localStorage:', storedWallet);
-      try {
-        const parsedWallet = JSON.parse(storedWallet);
-        console.log('[WALLET] Parsed stored wallet:', parsedWallet);
-        setWallet(parsedWallet);
-      } catch (error) {
-        console.error('[WALLET] Error parsing stored wallet:', error);
-        localStorage.removeItem('connectedWallet');
+    const initializeWallet = async () => {
+      console.log('[WALLET] Initializing wallet provider...');
+      const storedWallet = localStorage.getItem('connectedWallet');
+      
+      if (storedWallet) {
+        console.log('[WALLET] Found stored wallet, attempting to reconnect...');
+        try {
+          // First restore the stored state
+          const parsedWallet = JSON.parse(storedWallet);
+          console.log('[WALLET] Parsed stored wallet:', parsedWallet);
+          
+          // Then attempt to reconnect
+          const reconnectedWallet = await connectWalletOnly();
+          if (reconnectedWallet) {
+            console.log('[WALLET] Successfully reconnected wallet:', reconnectedWallet);
+            setWallet(reconnectedWallet);
+          } else {
+            console.log('[WALLET] Failed to reconnect wallet');
+            localStorage.removeItem('connectedWallet');
+          }
+        } catch (error) {
+          console.error('[WALLET] Error reconnecting wallet:', error);
+          localStorage.removeItem('connectedWallet');
+        }
+      } else {
+        console.log('[WALLET] No stored wallet found');
       }
-    } else {
-      console.log('[WALLET] No stored wallet found in localStorage');
-    }
+    };
+
+    initializeWallet();
   }, []);
 
   // Update localStorage when wallet state changes

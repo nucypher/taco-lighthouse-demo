@@ -32,6 +32,9 @@ export const web3Onboard = init({
     recommendedInjectedWallets: [
       { name: 'MetaMask', url: 'https://metamask.io' },
     ],
+  },
+  connect: {
+    autoConnectLastWallet: true
   }
 });
 
@@ -40,13 +43,25 @@ export const getWeb3Provider = (): ethers.providers.Web3Provider => {
 };
 
 export const connectWalletOnly = async (): Promise<WalletState | null> => {
-  const wallets = await web3Onboard.connectWallet();
-  if (!wallets[0]) return null;
-  await window.ethereum.request({ method: 'eth_requestAccounts' });
-  return wallets[0];
+  console.log('[WALLET] Attempting to connect wallet...');
+  try {
+    const wallets = await web3Onboard.connectWallet();
+    if (!wallets[0]) {
+      console.log('[WALLET] No wallet connected');
+      return null;
+    }
+    
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    console.log('[WALLET] Wallet connected successfully:', wallets[0]);
+    return wallets[0];
+  } catch (error) {
+    console.error('[WALLET] Error connecting wallet:', error);
+    return null;
+  }
 };
 
 export const disconnectWalletOnly = async (wallet: WalletState) => {
+  console.log('[WALLET] Disconnecting wallet:', wallet);
   if (wallet.label) {
     await web3Onboard.disconnectWallet({ label: wallet.label });
   }
