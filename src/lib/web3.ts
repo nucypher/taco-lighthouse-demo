@@ -7,10 +7,9 @@ import {
 import type { WalletState } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { SiweMessage } from 'siwe';
-import { Provider } from '@supabase/auth-js/dist/module/lib/types';
 import { ethers } from 'ethers';
 
-// Extend the Provider enum
+// Extend the ProvidersOptions interface
 declare module '@supabase/auth-js/dist/module/lib/types' {
   interface ProvidersOptions {
     siwe: Record<string, unknown>;
@@ -55,7 +54,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     const message = new SiweMessage({
       domain: window.location.host,
-      address: checksumAddress, // Use checksum address here
+      address: checksumAddress,
       statement: 'Sign in with Ethereum to TACo',
       uri: window.location.origin,
       version: '1',

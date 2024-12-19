@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useWallet } from "./WalletContext";
-import { connectWallet } from "@/lib/web3";
 
 interface AuthContextType {
   session: Session | null;
@@ -45,41 +44,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Effect to handle wallet connection state
+  // Effect to handle wallet-session synchronization
   useEffect(() => {
-    const handleWalletState = async () => {
-      if (wallet && !session) {
-        // If we have a wallet but no session, try to authenticate
-        try {
-          console.log('Attempting to authenticate wallet...');
-          await connectWallet();
-        } catch (error) {
-          console.error('Failed to authenticate wallet:', error);
-          // If authentication fails, clear the wallet state
-          setWallet(null);
-        }
-      } else if (!wallet && session) {
-        // If we have a session but no wallet, sign out
-        console.log('Session exists without wallet, signing out...');
-        await supabase.auth.signOut();
-      } else if (wallet && session) {
-        // Verify the wallet address matches the session
-        const sessionEmail = session.user?.email;
-        const walletAddress = wallet.accounts?.[0]?.address?.toLowerCase();
-        const expectedEmail = `${walletAddress}@ethereum.local`;
+    if (!wallet && session) {
+      // If we have a session but no wallet, sign out
+      console.log('Session exists without wallet, signing out...');
+      supabase.auth.signOut();
+    } else if (wallet && session) {
+      // Verify the wallet address matches the session
+      const sessionEmail = session.user?.email;
+      const walletAddress = wallet.accounts?.[0]?.address?.toLowerCase();
+      const expectedEmail = `${walletAddress}@ethereum.local`;
 
-        if (sessionEmail !== expectedEmail) {
-          console.log('Session-wallet mismatch, signing out...', {
-            sessionEmail,
-            expectedEmail
-          });
-          await supabase.auth.signOut();
-          setWallet(null);
-        }
+      if (sessionEmail !== expectedEmail) {
+        console.log('Session-wallet mismatch, signing out...', {
+          sessionEmail,
+          expectedEmail
+        });
+        supabase.auth.signOut();
+        setWallet(null);
       }
-    };
-
-    handleWalletState();
+    }
   }, [wallet, session, setWallet]);
 
   return (
