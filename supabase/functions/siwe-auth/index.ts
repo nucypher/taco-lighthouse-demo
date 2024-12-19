@@ -34,8 +34,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Generate a deterministic email from the wallet address
+    const email = `${address.toLowerCase()}@ethereum.local`
+
     // Create a custom JWT token
     const { data: { user }, error: signInError } = await supabaseAdmin.auth.admin.createUser({
+      email: email,
+      email_confirm: true,
       user_metadata: {
         wallet_address: address.toLowerCase(),
         siwe_message: message,
@@ -112,7 +117,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ user }),
+      JSON.stringify({ user, session }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
