@@ -10,6 +10,14 @@ import { SiweMessage } from 'siwe';
 import { ethers } from 'ethers';
 import { Provider } from '@supabase/supabase-js';
 
+interface SiweOAuthResponse {
+  provider: Provider;
+  url: string | null;
+  properties?: {
+    nonce: string;
+  };
+}
+
 export const connectWallet = async (): Promise<WalletState | null> => {
   let connectedWallet: WalletState | null = null;
   
@@ -50,12 +58,13 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Failed to get nonce for SIWE authentication');
     }
 
-    if (!data || !data.properties?.nonce) {
-      console.error('No nonce received in OAuth response:', data);
+    const oauthData = data as SiweOAuthResponse;
+    if (!oauthData || !oauthData.properties?.nonce) {
+      console.error('No nonce received in OAuth response:', oauthData);
       throw new Error('No nonce received from authentication service');
     }
 
-    const nonce = data.properties.nonce;
+    const nonce = oauthData.properties.nonce;
     console.log('Got nonce for SIWE message:', nonce);
 
     // Create and sign SIWE message
