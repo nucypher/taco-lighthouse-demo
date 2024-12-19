@@ -99,10 +99,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
   } catch (error) {
     console.error('Wallet connection error:', error);
-    // Clean up on error
-    if (connectedWallet) {
-      await disconnectWalletOnly(connectedWallet);
-    }
+    // Don't disconnect the wallet on error, just sign out of Supabase
     await supabase.auth.signOut();
     throw error;
   }

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWallet } from "@/contexts/WalletContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UploadTrackForm } from "@/components/UploadTrackForm";
 
@@ -13,12 +14,13 @@ export const UploadButton = ({ onUploadSuccess }: UploadButtonProps) => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { toast } = useToast();
   const { session } = useAuth();
+  const { wallet } = useWallet();
 
   const handleUploadClick = () => {
-    if (!session?.user) {
+    if (!session?.user || !wallet?.accounts?.[0]?.address) {
       toast({
         title: "Authentication Required",
-        description: "Please sign in to upload tracks",
+        description: "Please ensure you are signed in and your wallet is connected",
         variant: "destructive",
       });
       return;
