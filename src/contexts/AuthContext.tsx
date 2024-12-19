@@ -27,12 +27,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log("Auth state changed:", _event, {
         userId: session?.user?.id,
         email: session?.user?.email
       });
-      setSession(session);
+
+      // If we have a session but no local state, refresh it
+      if (session && !session.expires_at) {
+        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+        console.log("Session refreshed:", refreshedSession ? "Success" : "Failed");
+        setSession(refreshedSession);
+      } else {
+        setSession(session);
+      }
+      
       setIsLoading(false);
     });
 
