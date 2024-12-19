@@ -33,9 +33,16 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const checksumAddress = ethers.utils.getAddress(walletAddress);
     console.log('Using checksum address for SIWE:', checksumAddress);
 
-    // Generate nonce using Math.random() and timestamp for uniqueness
-    const nonce = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-    console.log('Generated nonce:', nonce);
+    // Get nonce from edge function
+    console.log('Requesting nonce from edge function...');
+    const { data: nonce, error: nonceError } = await supabase.functions.invoke('nonce');
+    
+    if (nonceError || !nonce) {
+      console.error('Failed to get nonce:', nonceError);
+      throw new Error('Failed to get nonce for authentication');
+    }
+    
+    console.log('Received nonce from edge function:', nonce);
 
     // Create and sign SIWE message
     const web3Provider = getWeb3Provider();
