@@ -30,20 +30,26 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check both session and wallet state
-    if (!session?.user) {
+    console.log('Upload form submitted with wallet state:', wallet);
+    console.log('Current session state:', session);
+
+    // First check wallet connection
+    if (!wallet?.accounts?.[0]?.address) {
+      console.log('Wallet connection check failed:', wallet);
       useToastHook({
-        title: "Error",
-        description: "Please sign in to upload tracks",
+        title: "Connect Wallet",
+        description: "Please connect your wallet to upload tracks",
         variant: "destructive",
       });
       return;
     }
 
-    if (!wallet?.accounts?.[0]?.address) {
+    // Then check session
+    if (!session?.user) {
+      console.log('Session check failed:', session);
       useToastHook({
-        title: "Error",
-        description: "Please connect your wallet to upload tracks",
+        title: "Authentication Required",
+        description: "Please sign in to upload tracks",
         variant: "destructive",
       });
       return;
@@ -51,7 +57,7 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
 
     if (!title || (!audioFile && !devMode)) {
       useToastHook({
-        title: "Error",
+        title: "Missing Information",
         description: "Please fill in all required fields",
         variant: "destructive",
       });
@@ -60,7 +66,7 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
 
     if (!condition) {
       useToastHook({
-        title: "Error",
+        title: "Missing Conditions",
         description: "Please set access conditions",
         variant: "destructive",
       });

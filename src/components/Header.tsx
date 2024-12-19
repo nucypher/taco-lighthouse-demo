@@ -28,11 +28,15 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     
     try {
       setIsConnecting(true);
+      console.log('Attempting to connect wallet...');
       const connectedWallet = await connectWallet();
+      
       if (!connectedWallet) {
+        console.log('Failed to connect wallet - no wallet returned');
         throw new Error('Failed to connect wallet');
       }
 
+      console.log('Wallet connected successfully:', connectedWallet);
       setWallet(connectedWallet);
       toast({
         title: "Connected",
@@ -50,28 +54,12 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
     }
   };
 
-  const handleDisconnect = async () => {
-    try {
-      if (wallet) {
-        await disconnectWallet(wallet);
-        setWallet(null);
-        toast({
-          title: "Disconnected",
-          description: "Wallet disconnected successfully",
-        });
-      }
-    } catch (error) {
-      console.error('Disconnection error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to disconnect wallet",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleUploadClick = () => {
-    if (!session) {
+    console.log('Upload clicked. Current wallet state:', wallet);
+    console.log('Current session state:', session);
+    
+    if (!wallet?.accounts?.[0]?.address) {
+      console.log('No wallet connected when trying to upload');
       toast({
         title: "Connect Wallet",
         description: "Please connect your wallet to upload tracks",
