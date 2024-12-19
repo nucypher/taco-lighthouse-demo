@@ -60,7 +60,6 @@ serve(async (req) => {
     }
 
     let user = users?.[0];
-    let session;
 
     if (!user) {
       // Create new user if doesn't exist
@@ -103,11 +102,8 @@ serve(async (req) => {
       console.log('Updated existing user:', user);
     }
 
-    // Generate access token and refresh token for the user
-    const { data: { session: newSession }, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email,
-    })
+    // Create a new session using admin sign-in
+    const { data: sessionData, error: signInError } = await supabaseAdmin.auth.admin.signInWithUser(user.id)
 
     if (signInError) {
       console.error('Error generating session:', signInError);
@@ -119,12 +115,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         user,
-        session: {
-          access_token: newSession.access_token,
-          refresh_token: newSession.refresh_token,
-          expires_in: newSession.expires_in,
-          user
-        }
+        session: sessionData
       }),
       { 
         status: 200, 
