@@ -9,6 +9,7 @@ import { encryptAudioFile } from "@/utils/encryption";
 import { saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track";
 import { toast } from "sonner";
 import { UploadFormFields } from "./upload/UploadFormFields";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -27,15 +28,17 @@ export const UploadTrackForm = ({ onSuccess, wallet, onClose }: UploadTrackFormP
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [condition, setCondition] = useState<conditions.condition.Condition | null>(null);
   const { toast: useToastHook } = useToast();
+  const { session } = useAuth();
   const devMode = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!wallet?.accounts?.[0]?.address) {
+    // Check both session and wallet state
+    if (!session?.user || !wallet?.accounts?.[0]?.address) {
       useToastHook({
         title: "Error",
-        description: "Please connect your wallet first",
+        description: "Please ensure your wallet is connected and you're signed in",
         variant: "destructive",
       });
       return;
@@ -124,7 +127,7 @@ export const UploadTrackForm = ({ onSuccess, wallet, onClose }: UploadTrackFormP
 
       await saveTrackMetadata(
         title,
-        wallet.accounts[0].address,
+        session.user.id,
         audioCid,
         coverArtCid
       );
