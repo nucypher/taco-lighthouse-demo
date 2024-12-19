@@ -65,36 +65,35 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     const signature = await signer.signMessage(messageToSign);
     console.log('Got signature:', signature);
 
-    // Sign in with custom JWT
-    console.log('Signing in with custom JWT...');
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: `${checksumAddress.toLowerCase()}@ethereum.org`,
-      password: signature,
+    // Call the SIWE auth edge function
+    console.log('Calling SIWE auth edge function...');
+    const { data: authData, error: authError } = await supabase.functions.invoke('siwe-auth', {
+      body: { 
+        address: checksumAddress,
+        message: messageToSign,
+        signature 
+      }
     });
 
-    if (signInError || !signInData) {
-      console.error('Failed to sign in:', signInError);
-      throw new Error(`Authentication failed: ${signInError?.message || 'Unknown error'}`);
+    if (authError || !authData) {
+      console.error('Failed to authenticate with SIWE:', authError);
+      throw new Error(`SIWE authentication failed: ${authError?.message || 'Unknown error'}`);
     }
 
-    // Verify the session was created successfully
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
+    console.log('SIWE auth successful:', authData);
+
+    // Set the session with the received tokens
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: authData.session.access_token,
+      refresh_token: authData.session.refresh_token
+    });
+
     if (sessionError) {
-      console.error('Failed to get session after sign in:', sessionError);
-      throw new Error(`Session verification failed: ${sessionError.message}`);
+      console.error('Failed to set session:', sessionError);
+      throw new Error(`Failed to set session: ${sessionError.message}`);
     }
 
-    if (!session) {
-      console.error('No session created after successful sign in');
-      throw new Error('Authentication failed: No session created');
-    }
-
-    console.log('Successfully authenticated:', {
-      userId: session.user.id,
-      expiresAt: session.expires_at
-    });
-    
+    console.log('Successfully set session');
     return connectedWallet;
 
   } catch (error) {
