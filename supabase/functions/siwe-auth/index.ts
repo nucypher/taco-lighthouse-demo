@@ -127,29 +127,24 @@ serve(async (req) => {
       console.log('Updated existing user:', user)
     }
 
-    // Create a new client session
-    const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createClientSession({
-      userId: user.id,
+    // Generate sign-in link
+    const { data: { properties }, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email
     })
 
-    if (sessionError) {
-      console.error('Error creating client session:', sessionError)
-      throw sessionError
+    if (linkError) {
+      console.error('Error generating sign-in link:', linkError)
+      throw linkError
     }
 
-    console.log('Created new client session:', session)
+    console.log('Generated sign-in link properties:', properties)
 
-    // Return the session data in the format expected by Supabase's client
+    // Return the properties needed for client-side authentication
     return new Response(
       JSON.stringify({ 
         user,
-        session: {
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-          expires_in: session.expires_in,
-          expires_at: session.expires_at,
-          user: user
-        }
+        session: properties
       }),
       { 
         status: 200, 
