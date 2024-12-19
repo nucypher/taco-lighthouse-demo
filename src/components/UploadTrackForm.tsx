@@ -10,7 +10,6 @@ import { saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track
 import { toast } from "sonner";
 import { UploadFormFields } from "./upload/UploadFormFields";
 import { useAuth } from "@/contexts/AuthContext";
-import { useWallet } from "@/contexts/WalletContext";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -24,27 +23,15 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
   const [condition, setCondition] = useState<conditions.condition.Condition | null>(null);
   const { toast: useToastHook } = useToast();
   const { session } = useAuth();
-  const { wallet } = useWallet();
   const devMode = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('Upload form submitted with wallet state:', wallet);
+    console.log('Upload form submitted');
     console.log('Current session state:', session);
 
-    // First check wallet connection
-    if (!wallet?.accounts?.[0]?.address) {
-      console.log('Wallet connection check failed:', wallet);
-      useToastHook({
-        title: "Connect Wallet",
-        description: "Please connect your wallet to upload tracks",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Then check session
+    // Check authentication
     if (!session?.user) {
       console.log('Session check failed:', session);
       useToastHook({
