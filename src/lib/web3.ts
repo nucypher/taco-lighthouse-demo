@@ -82,8 +82,15 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 
     console.log('SIWE auth successful, received data:', authData);
 
-    // The session data is already in the correct format from the edge function
-    // No need to call setSession as the edge function has already created the session
+    // Use the action_link from the session data to complete authentication
+    if (authData.session?.action_link) {
+      console.log('Redirecting to action link for authentication...');
+      window.location.href = authData.session.action_link;
+    } else {
+      console.error('No action link received from server');
+      throw new Error('Authentication failed: No action link received');
+    }
+
     return connectedWallet;
 
   } catch (error) {
