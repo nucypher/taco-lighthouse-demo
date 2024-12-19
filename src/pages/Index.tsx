@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { useTrackPlayback } from "@/hooks/use-track-playback";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Track {
   id: string;
@@ -21,6 +22,7 @@ const Index = () => {
   const [error, setError] = useState<any>(null);
   const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
   const { handlePlay, isDecrypting, getArtworkUrl } = useTrackPlayback();
+  const { session, isLoading: authLoading } = useAuth();
 
   const fetchTracks = async (query: string = "") => {
     try {
@@ -58,8 +60,10 @@ const Index = () => {
   };
 
   useEffect(() => {
-    fetchTracks();
-  }, []);
+    if (!authLoading) {
+      fetchTracks();
+    }
+  }, [authLoading]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -71,6 +75,14 @@ const Index = () => {
       handlePlay(featuredTrack);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,7 +106,7 @@ const Index = () => {
                   </p>
                   <Button 
                     className="rounded-full w-full sm:w-auto" 
-                    onClick={() => handlePlay(featuredTrack)}
+                    onClick={handlePlayFeatured}
                     disabled={isDecrypting}
                   >
                     {isDecrypting ? 'Decrypting...' : 'Start Listening'}

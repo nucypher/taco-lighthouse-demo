@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, createContext, useContext } from "react";
 import Index from "./pages/Index";
 import { AudioPlayer } from "./components/AudioPlayer";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -54,30 +55,32 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AudioPlayerContext.Provider value={audioPlayerValue}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="pb-24">
-              <Routes>
-                <Route path="/" element={<Index />} />
-              </Routes>
-            </div>
-            {currentTrack && (
-              <AudioPlayer
-                title={currentTrack.title}
-                artist={currentTrack.artist}
-                coverUrl={currentTrack.coverUrl}
-                audioUrl={currentTrack.audioUrl}
-                isPlaying={isPlaying}
-                onPlayPause={audioPlayerValue.togglePlayPause}
-                onClose={audioPlayerValue.stopPlayback}
-              />
-            )}
-          </BrowserRouter>
-        </TooltipProvider>
-      </AudioPlayerContext.Provider>
+      <AuthProvider>
+        <AudioPlayerContext.Provider value={audioPlayerValue}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="pb-24">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                </Routes>
+              </div>
+              {currentTrack && (
+                <AudioPlayer
+                  title={currentTrack.title}
+                  artist={currentTrack.artist}
+                  coverUrl={currentTrack.coverUrl}
+                  audioUrl={currentTrack.audioUrl}
+                  isPlaying={isPlaying}
+                  onPlayPause={audioPlayerValue.togglePlayPause}
+                  onClose={audioPlayerValue.stopPlayback}
+                />
+              )}
+            </BrowserRouter>
+          </TooltipProvider>
+        </AudioPlayerContext.Provider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

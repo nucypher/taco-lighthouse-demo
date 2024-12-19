@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { UploadTrackForm } from "./UploadTrackForm";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -24,6 +25,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
+  const { session } = useAuth();
 
   const handleConnect = async () => {
     if (isConnecting) return;
@@ -74,7 +76,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
   };
 
   const handleUploadClick = () => {
-    if (!wallet) {
+    if (!session) {
       toast({
         title: "Connect Wallet",
         description: "Please connect your wallet to upload tracks",
@@ -114,7 +116,7 @@ export const Header = ({ onSearch, onUploadSuccess }: HeaderProps) => {
           >
             Upload
           </Button>
-          {wallet ? (
+          {session ? (
             <Button 
               variant="secondary" 
               size="icon" 
