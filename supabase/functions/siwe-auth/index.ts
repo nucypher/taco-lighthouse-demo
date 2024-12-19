@@ -127,17 +127,17 @@ serve(async (req) => {
       console.log('Updated existing user:', user)
     }
 
-    // Create a new session
-    const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+    // Create a new client session
+    const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createClientSession({
       userId: user.id,
     })
 
     if (sessionError) {
-      console.error('Error creating session:', sessionError)
+      console.error('Error creating client session:', sessionError)
       throw sessionError
     }
 
-    console.log('Created new session:', session)
+    console.log('Created new client session:', session)
 
     // Return the session data in the format expected by Supabase's client
     return new Response(
