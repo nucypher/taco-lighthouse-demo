@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 interface WalletState {
   label?: string;
@@ -16,6 +16,11 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState<WalletState | null>(null);
+
+  // Add logging for wallet state changes
+  useEffect(() => {
+    console.log('Wallet state changed:', wallet);
+  }, [wallet]);
 
   return (
     <WalletContext.Provider value={{ wallet, setWallet }}>

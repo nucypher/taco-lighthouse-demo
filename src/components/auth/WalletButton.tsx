@@ -45,6 +45,9 @@ export const WalletButton = () => {
     }
   };
 
+  // Add logging for render conditions
+  console.log('WalletButton render state:', { session, wallet, isConnecting });
+
   // Only show the connected address if we have both wallet and session
   const connectedAddress = wallet?.accounts?.[0]?.address;
   const truncatedAddress = connectedAddress && session

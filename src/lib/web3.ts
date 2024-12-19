@@ -17,6 +17,8 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     // First connect the wallet
     connectedWallet = await connectWalletOnly();
+    console.log('Initial wallet connection result:', connectedWallet);
+    
     if (!connectedWallet) {
       console.log('No wallet connected during connectWalletOnly');
       return null;
@@ -39,7 +41,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
     
     if (nonceError || !nonce) {
       console.error('Failed to get nonce:', nonceError);
-      throw new Error('Failed to get nonce for authentication');
+      throw error;
     }
     
     console.log('Received nonce from edge function:', nonce);
@@ -95,6 +97,7 @@ export const connectWallet = async (): Promise<WalletState | null> => {
       throw new Error('Authentication failed: No action link received');
     }
 
+    console.log('Returning connected wallet state:', connectedWallet);
     return connectedWallet;
 
   } catch (error) {
@@ -106,8 +109,10 @@ export const connectWallet = async (): Promise<WalletState | null> => {
 };
 
 export const disconnectWallet = async (wallet: WalletState) => {
+  console.log('Disconnecting wallet:', wallet);
   await disconnectWalletOnly(wallet);
   await supabase.auth.signOut();
+  console.log('Wallet disconnected and signed out');
 };
 
 export default web3Onboard;
