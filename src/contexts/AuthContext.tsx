@@ -53,9 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Setting up DID with wallet:', wallet.address);
         
         try {
-          // Get the provider from the wallet's sendTransaction method
+          // Create a provider object that implements the ethereum provider interface
           const provider = {
-            request: wallet.sendTransaction
+            request: async ({ method, params }: { method: string; params: any[] }) => {
+              if (method === 'eth_signMessage' || method === 'personal_sign') {
+                return await wallet.sign(params[0]);
+              }
+              throw new Error(`Unsupported method: ${method}`);
+            }
           };
           
           const newDID = await createDIDFromWallet(
