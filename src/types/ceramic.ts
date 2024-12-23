@@ -47,7 +47,9 @@ export interface TrackConnection {
 }
 
 export interface TrackQueryResponse {
-  trackIndex: TrackConnection
+  data: {
+    trackIndex: TrackConnection
+  }
 }
 
 // Track Mutation Types
@@ -60,8 +62,10 @@ export interface CreateTrackInput {
 }
 
 export interface CreateTrackResponse {
-  createTrack: {
-    document: Track
+  data: {
+    createTrack: {
+      document: Track
+    }
   }
 }
 
@@ -73,8 +77,10 @@ export interface CreateArtworkInput {
 }
 
 export interface CreateArtworkResponse {
-  createArtwork: {
-    document: Artwork
+  data: {
+    createArtwork: {
+      document: Artwork
+    }
   }
 }
 

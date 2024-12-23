@@ -15,7 +15,7 @@ export function useTracks() {
     queryKey: ['tracks'],
     queryFn: async () => {
       console.log('Fetching tracks from ComposeDB...');
-      const response = await composeClient.executeQuery<ComposeDBResponse<TrackQueryResponse>>(`
+      const response = await composeClient.executeQuery<TrackQueryResponse>(`
         query {
           trackIndex(first: 100) {
             edges {
@@ -78,7 +78,7 @@ export function useCreateTrack() {
           }
         };
 
-        const artworkResponse = await composeClient.executeQuery<ComposeDBResponse<CreateArtworkResponse>>(`
+        const artworkResponse = await composeClient.executeQuery<CreateArtworkResponse>(`
           mutation CreateArtwork($input: CreateArtworkInput!) {
             createArtwork(input: $input) {
               document {
@@ -106,7 +106,7 @@ export function useCreateTrack() {
         }
       };
 
-      const response = await composeClient.executeQuery<ComposeDBResponse<CreateTrackResponse>>(`
+      const response = await composeClient.executeQuery<CreateTrackResponse>(`
         mutation CreateTrack($input: CreateTrackInput!) {
           createTrack(input: $input) {
             document {
