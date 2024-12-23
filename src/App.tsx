@@ -87,7 +87,7 @@ const App = () => {
           id: 1,
           name: 'Ethereum',
           network: 'mainnet',
-          rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2/your-api-key'
+          rpcUrls: ['https://eth-mainnet.g.alchemy.com/v2/your-api-key']
         },
         embeddedWallets: {
           createOnLogin: 'users-without-wallets'
