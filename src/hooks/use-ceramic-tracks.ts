@@ -1,54 +1,30 @@
-import { composeClient } from "@/integrations/ceramic/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { 
-  Track, 
-  TrackQueryResponse, 
-  CreateTrackInput, 
-  CreateTrackResponse,
-  CreateArtworkInput,
-  CreateArtworkResponse,
-  ComposeDBResponse
-} from "@/types/ceramic";
+import { toast } from "@/components/ui/use-toast";
+
+// Mock data for development
+const mockTracks = [
+  {
+    id: '1',
+    title: 'Sample Track 1',
+    ipfsCid: 'mock-cid-1',
+    owner: 'mock-owner-1',
+    artwork: 'mock-artwork-1'
+  },
+  {
+    id: '2',
+    title: 'Sample Track 2',
+    ipfsCid: 'mock-cid-2',
+    owner: 'mock-owner-2',
+    artwork: 'mock-artwork-2'
+  }
+];
 
 export function useTracks() {
   return useQuery({
     queryKey: ['tracks'],
     queryFn: async () => {
-      console.log('Fetching tracks from ComposeDB...');
-      const response = await composeClient.executeQuery<TrackQueryResponse>(`
-        query {
-          trackIndex(first: 100) {
-            edges {
-              node {
-                id
-                title
-                ipfsCid
-                owner {
-                  id
-                }
-                artwork {
-                  id
-                  ipfsCid
-                }
-              }
-            }
-          }
-        }
-      `);
-
-      console.log('ComposeDB response:', response);
-
-      if (response.errors) {
-        throw new Error(response.errors.map(e => e.message).join(', '));
-      }
-
-      return response.data.trackIndex.edges.map(({ node }) => ({
-        id: node.id,
-        title: node.title,
-        ipfsCid: node.ipfsCid,
-        owner: node.owner.id,
-        artwork: node.artwork?.ipfsCid
-      }));
+      console.log('Fetching mock tracks...');
+      return mockTracks;
     }
   });
 }
@@ -66,74 +42,25 @@ export function useCreateTrack() {
       ipfsCid: string; 
       artworkCid?: string 
     }) => {
-      console.log('Creating track in ComposeDB...', { title, ipfsCid, artworkCid });
+      console.log('Creating mock track...', { title, ipfsCid, artworkCid });
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // First create artwork if provided
-      let artworkId: string | undefined;
-      if (artworkCid) {
-        const artworkInput: CreateArtworkInput = {
-          content: {
-            ipfsCid: artworkCid,
-            mimeType: "image/jpeg"
-          }
-        };
-
-        const artworkResponse = await composeClient.executeQuery<CreateArtworkResponse>(`
-          mutation CreateArtwork($input: CreateArtworkInput!) {
-            createArtwork(input: $input) {
-              document {
-                id
-              }
-            }
-          }
-        `, {
-          input: artworkInput
-        });
-
-        if (artworkResponse.errors) {
-          throw new Error(artworkResponse.errors.map(e => e.message).join(', '));
-        }
-
-        artworkId = artworkResponse.data.createArtwork.document.id;
-      }
-
-      // Then create the track
-      const trackInput: CreateTrackInput = {
-        content: {
-          title,
-          ipfsCid,
-          ...(artworkId && { artwork: artworkId })
-        }
+      const newTrack = {
+        id: Math.random().toString(),
+        title,
+        ipfsCid,
+        owner: 'mock-owner',
+        artwork: artworkCid
       };
 
-      const response = await composeClient.executeQuery<CreateTrackResponse>(`
-        mutation CreateTrack($input: CreateTrackInput!) {
-          createTrack(input: $input) {
-            document {
-              id
-              title
-              ipfsCid
-              owner {
-                id
-              }
-              artwork {
-                id
-                ipfsCid
-              }
-            }
-          }
-        }
-      `, {
-        input: trackInput
+      toast({
+        title: "Track created",
+        description: "Your track has been created successfully.",
       });
 
-      console.log('ComposeDB create response:', response);
-
-      if (response.errors) {
-        throw new Error(response.errors.map(e => e.message).join(', '));
-      }
-
-      return response.data.createTrack.document;
+      return newTrack;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tracks'] });

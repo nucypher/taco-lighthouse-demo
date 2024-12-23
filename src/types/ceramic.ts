@@ -1,94 +1,26 @@
-import type { RuntimeCompositeDefinition } from '@composedb/types'
-
-// Basic Profile Types
+// Basic types for the mock data
 export interface BasicProfile {
-  id: string
-  displayName?: string
-  avatar?: string
+  id: string;
+  displayName?: string;
+  avatar?: string;
 }
 
-// Artwork Types
 export interface Artwork {
-  id: string
-  ipfsCid: string
-  mimeType: string
+  id: string;
+  ipfsCid: string;
+  mimeType: string;
   owner: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-// Track Types
 export interface Track {
-  id: string
-  title: string
-  ipfsCid: string
-  owner: {
-    id: string
-  }
-  artwork?: Artwork
+  id: string;
+  title: string;
+  ipfsCid: string;
+  owner: string;
+  artwork?: string;
 }
 
-// ComposeDB Query Response Types
-export interface ComposeDBResponse<T> {
-  data: T
-  errors?: Array<{
-    message: string
-    path?: string[]
-  }>
-}
-
-// Track Query Response Types
-export interface TrackEdge {
-  node: Track
-}
-
-export interface TrackConnection {
-  edges: TrackEdge[]
-}
-
-export interface TrackQueryResponse {
-  data: {
-    trackIndex: TrackConnection
-  }
-}
-
-// Track Mutation Types
-export interface CreateTrackInput {
-  content: {
-    title: string
-    ipfsCid: string
-    artwork?: string // StreamID reference
-  }
-}
-
-export interface CreateTrackResponse {
-  data: {
-    createTrack: {
-      document: Track
-    }
-  }
-}
-
-export interface CreateArtworkInput {
-  content: {
-    ipfsCid: string
-    mimeType: string
-  }
-}
-
-export interface CreateArtworkResponse {
-  data: {
-    createArtwork: {
-      document: Artwork
-    }
-  }
-}
-
-// Query Helper Types
-export type QueryVariables = Record<string, unknown>
-
-// Error Types
-export interface CeramicError extends Error {
-  code?: string
-  details?: unknown
-}
+// Simplified response types
+export type QueryVariables = Record<string, unknown>;
