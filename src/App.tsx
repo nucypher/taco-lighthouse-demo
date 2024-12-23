@@ -87,8 +87,8 @@ const App = () => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <WalletProvider>
-          <BrowserRouter>
+        <BrowserRouter>
+          <WalletProvider>
             <AuthProvider>
               <TooltipProvider>
                 <AudioPlayerContext.Provider value={audioPlayerValue}>
@@ -114,8 +114,8 @@ const App = () => {
                 </AudioPlayerContext.Provider>
               </TooltipProvider>
             </AuthProvider>
-          </BrowserRouter>
-        </WalletProvider>
+          </WalletProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </PrivyProvider>
   );
