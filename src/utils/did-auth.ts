@@ -1,5 +1,5 @@
 import { DID } from 'dids';
-import { createProvider } from '@didtools/pkh-ethereum';
+import { createProvider } from '@didtools/pkh-ethereum/dist/index.js';
 
 export async function createDIDFromWallet(
   provider: any,
