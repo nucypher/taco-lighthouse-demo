@@ -53,8 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Setting up DID with wallet:', wallet.address);
         
         try {
+          // Get the provider from the wallet's sendTransaction method
+          const provider = {
+            request: wallet.sendTransaction
+          };
+          
           const newDID = await createDIDFromWallet(
-            wallet.provider?.request ? wallet.provider : null,
+            provider,
             wallet.address
           );
           
