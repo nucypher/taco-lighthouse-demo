@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
       buffer: 'buffer',
       stream: 'stream-browserify',
-      util: 'util',
     },
   },
   define: {
@@ -37,7 +36,7 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['crypto', 'stream', 'util', 'os', 'path', 'fs', 'http', 'https', 'zlib']
+      external: ['stream', 'os', 'path', 'fs', 'http', 'https', 'zlib']
     }
   }
 }));
