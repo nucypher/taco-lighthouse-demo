@@ -1,87 +1,47 @@
 import { useEffect, useState } from "react";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { useTrackPlayback } from "@/hooks/use-track-playback";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTracks } from "@/hooks/use-ceramic-tracks";
 
 interface Track {
   id: string;
   title: string;
-  owner_id: string | null;
-  cover_art_cid: string | null;
-  ipfs_cid: string | null;
+  owner: string;
+  artwork?: string;
+  ipfsCid: string;
 }
 
 const Index = () => {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [error, setError] = useState<any>(null);
   const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
   const { handlePlay, isDecrypting, getArtworkUrl } = useTrackPlayback();
   const { session, isLoading: authLoading } = useAuth();
+  const { data: tracks, isLoading, error } = useTracks();
 
   console.log("Auth state:", { session, authLoading });
 
-  const fetchTracks = async (query: string = "") => {
-    try {
-      console.log("Fetching tracks with query:", query);
-      setIsLoading(true);
-      setError(null);
-      
-      let queryBuilder = supabase
-        .from('tracks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (query) {
-        queryBuilder = queryBuilder.ilike('title', `%${query}%`);
-      }
-
-      const { data, error: supabaseError } = await queryBuilder;
-
-      if (supabaseError) {
-        console.error("Error fetching tracks:", supabaseError);
-        setError(supabaseError);
-        return;
-      }
-
-      console.log("Fetched tracks:", data);
-
-      if (data) {
-        if (!query && data.length > 0) {
-          setFeaturedTrack(data[0]);
-          setTracks(data.slice(1));
-        } else {
-          setTracks(data);
-        }
-      }
-    } catch (err) {
-      console.error("Error in fetchTracks:", err);
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (!authLoading) {
-      console.log("Auth loading complete, fetching tracks");
-      fetchTracks();
+    if (tracks && tracks.length > 0 && !searchQuery) {
+      setFeaturedTrack(tracks[0]);
     }
-  }, [authLoading]);
+  }, [tracks, searchQuery]);
 
   const handleSearch = (query: string) => {
     console.log("Search query:", query);
     setSearchQuery(query);
-    fetchTracks(query);
   };
 
   const handlePlayFeatured = () => {
     if (featuredTrack) {
-      handlePlay(featuredTrack);
+      handlePlay({
+        title: featuredTrack.title,
+        owner_id: featuredTrack.owner,
+        ipfs_cid: featuredTrack.ipfsCid,
+        cover_art_cid: featuredTrack.artwork
+      });
     }
   };
 
@@ -93,6 +53,10 @@ const Index = () => {
     );
   }
 
+  const filteredTracks = tracks?.filter(track => 
+    track.title.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   return (
     <>
         {error && <ErrorDisplay error={error} />}
@@ -101,7 +65,7 @@ const Index = () => {
           <section className="mb-6 md:mb-12">
             <div className="relative h-[200px] md:h-[400px] rounded-xl overflow-hidden">
               <img
-                src={getArtworkUrl(featuredTrack.cover_art_cid)}
+                src={getArtworkUrl(featuredTrack.artwork)}
                 alt={featuredTrack.title}
                 className="w-full h-full object-cover"
               />
@@ -109,7 +73,7 @@ const Index = () => {
                 <div className="absolute bottom-0 left-0 p-4 md:p-8">
                   <h1 className="text-xl md:text-4xl font-bold mb-2">{featuredTrack.title}</h1>
                   <p className="text-sm md:text-lg text-muted-foreground mb-4">
-                    {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
+                    {featuredTrack.owner ? `${featuredTrack.owner.slice(0, 8)}...` : 'Unknown Artist'}
                   </p>
                   <Button 
                     className="rounded-full w-full sm:w-auto" 
@@ -135,17 +99,17 @@ const Index = () => {
               Array(5).fill(null).map((_, index) => (
                 <div key={index} className="h-32 sm:h-64 rounded-xl bg-muted animate-pulse" />
               ))
-            ) : tracks.length > 0 ? (
-              tracks.map((track) => (
+            ) : filteredTracks.length > 0 ? (
+              filteredTracks.map((track) => (
                 <TrackCard
                   key={track.id}
                   trackId={track.id}
                   title={track.title}
-                  artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
-                  coverUrl={getArtworkUrl(track.cover_art_cid)}
-                  ipfsCid={track.ipfs_cid}
-                  owner_id={track.owner_id}
-                  cover_art_cid={track.cover_art_cid}
+                  artist={track.owner ? `${track.owner.slice(0, 8)}...` : 'Unknown Artist'}
+                  coverUrl={getArtworkUrl(track.artwork)}
+                  ipfsCid={track.ipfsCid}
+                  owner_id={track.owner}
+                  cover_art_cid={track.artwork}
                 />
               ))
             ) : (
