@@ -7,6 +7,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   logout: () => Promise<void>;
+  login: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,24 +16,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   console.log('Initializing AuthProvider');
   const [isLoading, setIsLoading] = useState(true);
   
-  // Get Privy authentication state
   const { 
     ready: privyReady,
     authenticated: privyAuthenticated,
     user: privyUser,
-    logout: privyLogout
+    logout: privyLogout,
+    login: privyLogin
   } = usePrivy();
 
   useEffect(() => {
-    console.log('Setting up auth state listeners');
-    console.log('Privy state:', { privyReady, privyAuthenticated, privyUser });
+    console.log('Auth state changed:', { 
+      privyReady, 
+      privyAuthenticated, 
+      privyUser 
+    });
     
     if (privyReady) {
       setIsLoading(false);
     }
   }, [privyReady, privyAuthenticated, privyUser]);
 
-  // Handle logout
+  const handleLogin = async () => {
+    try {
+      console.log('Initiating login...');
+      await privyLogin();
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Failed to login');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       console.log('Logging out...');
@@ -48,7 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     privyUser,
     isLoading: isLoading || !privyReady,
     isAuthenticated: Boolean(privyAuthenticated),
-    logout: handleLogout
+    logout: handleLogout,
+    login: handleLogin
   };
 
   return (
