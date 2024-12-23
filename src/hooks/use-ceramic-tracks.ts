@@ -1,20 +1,21 @@
 import { composeClient } from "@/integrations/ceramic/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-interface Track {
-  id: string;
-  title: string;
-  ipfsCid: string;
-  owner: string;
-  artwork?: string;
-}
+import type { 
+  Track, 
+  TrackQueryResponse, 
+  CreateTrackInput, 
+  CreateTrackResponse,
+  CreateArtworkInput,
+  CreateArtworkResponse,
+  ComposeDBResponse
+} from "@/types/ceramic";
 
 export function useTracks() {
   return useQuery({
     queryKey: ['tracks'],
     queryFn: async () => {
       console.log('Fetching tracks from ComposeDB...');
-      const response = await composeClient.executeQuery(`
+      const response = await composeClient.executeQuery<ComposeDBResponse<TrackQueryResponse>>(`
         query {
           trackIndex(first: 100) {
             edges {
@@ -41,7 +42,7 @@ export function useTracks() {
         throw new Error(response.errors.map(e => e.message).join(', '));
       }
 
-      return response.data.trackIndex.edges.map(({ node }: any) => ({
+      return response.data.trackIndex.edges.map(({ node }) => ({
         id: node.id,
         title: node.title,
         ipfsCid: node.ipfsCid,
@@ -56,26 +57,38 @@ export function useCreateTrack() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ title, ipfsCid, artworkCid }: { title: string; ipfsCid: string; artworkCid?: string }) => {
+    mutationFn: async ({ 
+      title, 
+      ipfsCid, 
+      artworkCid 
+    }: { 
+      title: string; 
+      ipfsCid: string; 
+      artworkCid?: string 
+    }) => {
       console.log('Creating track in ComposeDB...', { title, ipfsCid, artworkCid });
 
       // First create artwork if provided
-      let artworkId;
+      let artworkId: string | undefined;
       if (artworkCid) {
-        const artworkResponse = await composeClient.executeQuery(`
-          mutation {
-            createArtwork(input: {
-              content: {
-                ipfsCid: "${artworkCid}"
-                mimeType: "image/jpeg"
-              }
-            }) {
+        const artworkInput: CreateArtworkInput = {
+          content: {
+            ipfsCid: artworkCid,
+            mimeType: "image/jpeg"
+          }
+        };
+
+        const artworkResponse = await composeClient.executeQuery<ComposeDBResponse<CreateArtworkResponse>>(`
+          mutation CreateArtwork($input: CreateArtworkInput!) {
+            createArtwork(input: $input) {
               document {
                 id
               }
             }
           }
-        `);
+        `, {
+          input: artworkInput
+        });
 
         if (artworkResponse.errors) {
           throw new Error(artworkResponse.errors.map(e => e.message).join(', '));
@@ -85,15 +98,17 @@ export function useCreateTrack() {
       }
 
       // Then create the track
-      const response = await composeClient.executeQuery(`
-        mutation {
-          createTrack(input: {
-            content: {
-              title: "${title}"
-              ipfsCid: "${ipfsCid}"
-              ${artworkId ? `artwork: "${artworkId}"` : ''}
-            }
-          }) {
+      const trackInput: CreateTrackInput = {
+        content: {
+          title,
+          ipfsCid,
+          ...(artworkId && { artwork: artworkId })
+        }
+      };
+
+      const response = await composeClient.executeQuery<ComposeDBResponse<CreateTrackResponse>>(`
+        mutation CreateTrack($input: CreateTrackInput!) {
+          createTrack(input: $input) {
             document {
               id
               title
@@ -108,7 +123,9 @@ export function useCreateTrack() {
             }
           }
         }
-      `);
+      `, {
+        input: trackInput
+      });
 
       console.log('ComposeDB create response:', response);
 
