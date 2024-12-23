@@ -1,0 +1,17 @@
+type BasicProfile @createModel(accountRelation: SINGLE, description: "Basic user profile") {
+  displayName: String @string(minLength: 1, maxLength: 100)
+  avatar: String @string(minLength: 1)
+}
+
+type Artwork @createModel(accountRelation: LIST, description: "Artwork for tracks") {
+  ipfsCid: String! @string(minLength: 1)
+  mimeType: String! @string(minLength: 1)
+  owner: DID! @documentAccount
+}
+
+type Track @createModel(accountRelation: LIST, description: "A music track") {
+  title: String! @string(minLength: 1, maxLength: 100)
+  ipfsCid: String! @string(minLength: 1)
+  owner: DID! @documentAccount
+  artwork: StreamID @reference(model: "Artwork")
+}
