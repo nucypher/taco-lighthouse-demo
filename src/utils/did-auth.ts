@@ -1,6 +1,5 @@
 import { DID } from 'dids';
-import { EthereumAuthProvider } from '@didtools/pkh-ethereum';
-import { authenticateCeramic } from '@/integrations/ceramic/client';
+import { PKHEthereumAuthProvider } from '@didtools/pkh-ethereum';
 
 export async function createDIDFromWallet(
   provider: any,
@@ -10,12 +9,13 @@ export async function createDIDFromWallet(
     console.log('Creating DID from wallet:', { address });
     
     // Create an Ethereum auth provider using the wallet's provider and address
-    const authProvider = new EthereumAuthProvider(provider, address);
+    const authProvider = new PKHEthereumAuthProvider(provider, address);
     
-    // Authenticate with Ceramic using the auth provider
-    const did = await authenticateCeramic();
+    // Create and authenticate the DID
+    const did = new DID({ provider: authProvider });
+    await did.authenticate();
     
-    console.log('DID created successfully:', {
+    console.log('DID created and authenticated:', {
       id: did.id,
       authenticated: did.authenticated
     });

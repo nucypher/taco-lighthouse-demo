@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { DID } from "dids";
 import { createDIDFromWallet } from "@/utils/did-auth";
 import { useWallets } from "@privy-io/react-auth";
+import { authenticateCeramic } from "@/integrations/ceramic/client";
 
 interface AuthContextType {
   privyUser: PrivyUser | null;
@@ -53,11 +54,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         try {
           const newDID = await createDIDFromWallet(
-            wallet.provider,
+            wallet.provider?.request ? wallet.provider : null,
             wallet.address
           );
           
           if (newDID) {
+            // Authenticate Ceramic with the created DID
+            await authenticateCeramic(newDID);
             setDID(newDID);
             console.log('DID setup complete:', newDID.id);
             toast.success('DID authentication successful');
