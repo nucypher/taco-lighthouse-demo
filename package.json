@@ -13,7 +13,6 @@
   "dependencies": {
     "@ceramicnetwork/http-client": "^6.4.0",
     "@composedb/client": "^0.7.1",
-    "@composedb/devtools": "^0.7.1",
     "@didtools/pkh-ethereum": "^0.5.0",
     "@hookform/resolvers": "^3.9.0",
     "@nucypher/taco": "^0.5.0",
@@ -79,6 +78,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@composedb/devtools": "^0.7.1",
+    "@composedb/devtools-node": "^0.7.1",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.5.5",
