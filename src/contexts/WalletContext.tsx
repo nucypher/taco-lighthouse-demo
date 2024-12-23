@@ -1,74 +1,38 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { connectWalletOnly } from "@/services/wallet";
-
-interface WalletState {
-  label?: string;
-  accounts?: Array<{
-    address: string;
-  }>;
-}
+import { createContext, useContext } from "react";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 
 interface WalletContextType {
-  wallet: WalletState | null;
-  setWallet: (wallet: WalletState | null) => void;
+  wallet: {
+    label?: string;
+    accounts?: Array<{
+      address: string;
+    }>;
+  } | null;
+  setWallet: (wallet: any) => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
-  const [wallet, setWallet] = useState<WalletState | null>(null);
+  const { ready, authenticated, user } = usePrivy();
+  const { wallets } = useWallets();
 
-  // Attempt to restore and reconnect wallet on mount
-  useEffect(() => {
-    const initializeWallet = async () => {
-      console.log('[WALLET] Initializing wallet provider...');
-      const storedWallet = localStorage.getItem('connectedWallet');
-      
-      if (storedWallet) {
-        console.log('[WALLET] Found stored wallet, attempting to reconnect...');
-        try {
-          // First restore the stored state
-          const parsedWallet = JSON.parse(storedWallet);
-          console.log('[WALLET] Parsed stored wallet:', parsedWallet);
-          setWallet(parsedWallet); // Set the wallet state immediately from storage
-          
-          // Then attempt to reconnect
-          const reconnectedWallet = await connectWalletOnly();
-          if (reconnectedWallet) {
-            console.log('[WALLET] Successfully reconnected wallet:', reconnectedWallet);
-            setWallet(reconnectedWallet);
-          } else {
-            console.log('[WALLET] Failed to reconnect wallet');
-            localStorage.removeItem('connectedWallet');
-            setWallet(null);
-          }
-        } catch (error) {
-          console.error('[WALLET] Error reconnecting wallet:', error);
-          localStorage.removeItem('connectedWallet');
-          setWallet(null);
-        }
-      } else {
-        console.log('[WALLET] No stored wallet found');
-      }
-    };
+  // Convert Privy wallet format to match our existing interface
+  const currentWallet = ready && authenticated && wallets[0] ? {
+    label: wallets[0].walletClientType,
+    accounts: [{
+      address: wallets[0].address
+    }]
+  } : null;
 
-    initializeWallet();
-  }, []);
-
-  // Update localStorage when wallet state changes
-  useEffect(() => {
-    console.log('[WALLET] Wallet state changed:', wallet);
-    if (wallet) {
-      localStorage.setItem('connectedWallet', JSON.stringify(wallet));
-      console.log('[WALLET] Updated wallet in localStorage');
-    } else {
-      localStorage.removeItem('connectedWallet');
-      console.log('[WALLET] Removed wallet from localStorage');
-    }
-  }, [wallet]);
+  console.log('[WALLET] Privy state:', { ready, authenticated, user, wallets });
+  console.log('[WALLET] Current wallet:', currentWallet);
 
   return (
-    <WalletContext.Provider value={{ wallet, setWallet }}>
+    <WalletContext.Provider value={{ 
+      wallet: currentWallet,
+      setWallet: () => {} // No-op since Privy manages wallet state
+    }}>
       {children}
     </WalletContext.Provider>
   );
