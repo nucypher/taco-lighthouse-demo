@@ -81,11 +81,6 @@ export interface CreateArtworkResponse {
 // Query Helper Types
 export type QueryVariables = Record<string, unknown>
 
-export interface QueryOptions<T = unknown> {
-  queryKey: string[]
-  queryFn: () => Promise<T>
-}
-
 // Error Types
 export interface CeramicError extends Error {
   code?: string
