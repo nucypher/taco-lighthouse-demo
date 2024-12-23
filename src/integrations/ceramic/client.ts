@@ -10,8 +10,17 @@ const CERAMIC_URL = 'https://ceramic-clay.3boxlabs.com'
 
 export const ceramic = new CeramicClient(CERAMIC_URL)
 
-// This will be your composite definition once you create it
-const definition = {} // You'll need to replace this with your composite definition
+// This is a minimal composite definition that we'll expand later
+const definition = {
+  models: {},
+  objects: {},
+  enums: {},
+  accountData: {
+    profile: { type: 'node', name: 'BasicProfile' },
+    track: { type: 'node', name: 'Track' },
+    artwork: { type: 'node', name: 'Artwork' }
+  }
+} as const;
 
 export const composeClient = new ComposeClient({
   ceramic: CERAMIC_URL,
@@ -21,10 +30,12 @@ export const composeClient = new ComposeClient({
 // Initialize DID authentication
 export async function authenticateCeramic(seed?: string) {
   // If no seed is provided, generate a random one
-  const seedValue = seed || crypto.getRandomValues(new Uint8Array(32))
+  const seedArray = seed 
+    ? fromString(seed.replace(/^0x/, ''), 'base16')
+    : crypto.getRandomValues(new Uint8Array(32));
   
   // Create and authenticate the DID
-  const provider = new Ed25519Provider(seedValue)
+  const provider = new Ed25519Provider(seedArray)
   const did = new DID({
     provider,
     resolver: getResolver(),
