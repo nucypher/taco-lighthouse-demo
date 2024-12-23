@@ -87,6 +87,11 @@ const App = () => {
           id: 1,
           name: 'Ethereum',
           network: 'mainnet',
+          nativeCurrency: {
+            name: 'Ether',
+            symbol: 'ETH',
+            decimals: 18
+          },
           rpcUrls: {
             default: {
               http: ['https://eth-mainnet.g.alchemy.com/v2/your-api-key']
