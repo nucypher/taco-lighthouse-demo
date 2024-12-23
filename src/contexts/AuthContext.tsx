@@ -56,10 +56,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Create a provider object that implements the ethereum provider interface
           const provider = {
             request: async ({ method, params }: { method: string; params: any[] }) => {
-              if (method === 'eth_signMessage' || method === 'personal_sign') {
-                return await wallet.sign(params[0]);
+              switch (method) {
+                case 'eth_signMessage':
+                case 'personal_sign':
+                  return await wallet.sign(params[0]);
+                case 'eth_accounts':
+                  return [wallet.address];
+                default:
+                  throw new Error(`Unsupported method: ${method}`);
               }
-              throw new Error(`Unsupported method: ${method}`);
             }
           };
           
