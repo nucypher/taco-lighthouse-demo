@@ -11,6 +11,7 @@ import { AudioPlayer } from "./components/AudioPlayer";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WalletProvider } from "./contexts/WalletContext";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { toast } from "./components/ui/use-toast";
 
 const queryClient = new QueryClient();
 
@@ -39,13 +40,16 @@ export const useAudioPlayer = () => {
   return context;
 };
 
+// Hardcode the Privy App ID for development
+const PRIVY_APP_ID = "clrn3fj4q02jyl50fjzxjkpic";
+
 const App = () => {
   console.log('Rendering App component');
   const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Log the Privy App ID for debugging
-  console.log('Privy App ID:', import.meta.env.VITE_PRIVY_APP_ID);
+  console.log('Privy App ID:', PRIVY_APP_ID);
 
   const audioPlayerValue = {
     currentTrack,
@@ -61,9 +65,18 @@ const App = () => {
     },
   };
 
+  if (!PRIVY_APP_ID) {
+    toast({
+      title: "Configuration Error",
+      description: "Privy App ID is not configured.",
+      variant: "destructive",
+    });
+    return null;
+  }
+
   return (
     <PrivyProvider
-      appId={import.meta.env.VITE_PRIVY_APP_ID || ''}
+      appId={PRIVY_APP_ID}
       config={{
         loginMethods: ['wallet', 'email'],
         appearance: {
