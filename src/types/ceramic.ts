@@ -12,7 +12,9 @@ export interface Artwork {
   id: string
   ipfsCid: string
   mimeType: string
-  owner: string
+  owner: {
+    id: string
+  }
 }
 
 // Track Types
@@ -20,7 +22,9 @@ export interface Track {
   id: string
   title: string
   ipfsCid: string
-  owner: string
+  owner: {
+    id: string
+  }
   artwork?: Artwork
 }
 
@@ -71,30 +75,6 @@ export interface CreateArtworkInput {
 export interface CreateArtworkResponse {
   createArtwork: {
     document: Artwork
-  }
-}
-
-// Runtime Definition Type
-export interface ComposeDBDefinition extends RuntimeCompositeDefinition {
-  models: {
-    BasicProfile: {
-      id: string
-      displayName?: string
-      avatar?: string
-    }
-    Artwork: {
-      id: string
-      ipfsCid: string
-      mimeType: string
-      owner: string
-    }
-    Track: {
-      id: string
-      title: string
-      ipfsCid: string
-      owner: string
-      artwork?: string // StreamID reference
-    }
   }
 }
 

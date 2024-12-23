@@ -4,8 +4,7 @@ import { DID } from 'dids'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { getResolver } from 'key-did-resolver'
 import { fromString } from 'uint8arrays'
-import definition from '../composites/__generated__/track-composite.json'
-import type { ComposeDBDefinition } from '@/types/ceramic'
+import { definition } from './definition'
 
 // For development, we'll use the Clay testnet
 const CERAMIC_URL = 'https://ceramic-clay.3boxlabs.com'
@@ -15,7 +14,7 @@ export const ceramic = new CeramicClient(CERAMIC_URL)
 export const composeClient = new ComposeClient({
   ceramic: CERAMIC_URL,
   // Use the imported runtime composite definition with proper typing
-  definition: definition as ComposeDBDefinition
+  definition
 })
 
 // Initialize DID authentication
