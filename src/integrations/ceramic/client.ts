@@ -4,27 +4,17 @@ import { DID } from 'dids'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { getResolver } from 'key-did-resolver'
 import { fromString } from 'uint8arrays'
+import { definition } from '../composites/__generated__/track-composite.json'
 
 // For development, we'll use the Clay testnet
 const CERAMIC_URL = 'https://ceramic-clay.3boxlabs.com'
 
 export const ceramic = new CeramicClient(CERAMIC_URL)
 
-// This is a minimal composite definition that we'll expand later
-const definition = {
-  models: {},
-  objects: {},
-  enums: {},
-  accountData: {
-    profile: { type: 'node', name: 'BasicProfile' },
-    track: { type: 'node', name: 'Track' },
-    artwork: { type: 'node', name: 'Artwork' }
-  }
-} as const;
-
 export const composeClient = new ComposeClient({
   ceramic: CERAMIC_URL,
-  definition
+  // Use the imported runtime composite definition
+  definition: definition as RuntimeCompositeDefinition
 })
 
 // Initialize DID authentication
@@ -42,8 +32,9 @@ export async function authenticateCeramic(seed?: string) {
   })
   await did.authenticate()
   
-  // Set the DID instance on the Ceramic client
+  // Set the DID instance on both clients
   ceramic.did = did
+  composeClient.setDID(did)
   
   return did
 }
