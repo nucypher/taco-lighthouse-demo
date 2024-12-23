@@ -1,5 +1,5 @@
 import { DID } from 'dids';
-import { EthereumAuthProvider } from '@didtools/pkh-ethereum';
+import { createProvider } from '@didtools/pkh-ethereum';
 
 export async function createDIDFromWallet(
   provider: any,
@@ -9,7 +9,10 @@ export async function createDIDFromWallet(
     console.log('Creating DID from wallet:', { address });
     
     // Create an Ethereum auth provider using the wallet's provider and address
-    const authProvider = new EthereumAuthProvider(provider, address);
+    const authProvider = await createProvider({
+      provider,
+      address,
+    });
     
     // Create and authenticate the DID
     const did = new DID({ provider: authProvider });
