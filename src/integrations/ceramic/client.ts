@@ -4,7 +4,8 @@ import { DID } from 'dids'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { getResolver } from 'key-did-resolver'
 import { fromString } from 'uint8arrays'
-import { definition } from '../composites/__generated__/track-composite.json'
+import { RuntimeCompositeDefinition } from '@composedb/types'
+import definition from '../composites/__generated__/track-composite.json'
 
 // For development, we'll use the Clay testnet
 const CERAMIC_URL = 'https://ceramic-clay.3boxlabs.com'
