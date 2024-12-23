@@ -12,6 +12,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { WalletProvider } from "./contexts/WalletContext";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { toast } from "./components/ui/use-toast";
+import { mainnet } from "@privy-io/react-auth";
 
 const queryClient = new QueryClient();
 
@@ -83,7 +84,7 @@ const App = () => {
           accentColor: '#000000',
           showWalletLoginFirst: true,
         },
-        defaultChain: 1,
+        defaultChain: mainnet,
         embeddedWallets: {
           createOnLogin: 'users-without-wallets'
         },
