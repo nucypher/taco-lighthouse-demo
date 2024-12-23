@@ -1,24 +1,17 @@
 import { DID } from 'dids';
-import { createProvider } from '@didtools/pkh-ethereum/dist/index.js';
 
 export async function createDIDFromWallet(
   provider: any,
   address: string
 ): Promise<DID | null> {
   try {
-    console.log('Creating DID from wallet:', { address });
+    console.log('Creating DID from Privy wallet:', { address });
     
-    // Create an Ethereum auth provider using the wallet's provider and address
-    const authProvider = await createProvider({
-      provider,
-      address,
-    });
+    // The DID is already created and authenticated by Privy
+    // We just need to create a DID instance with the provider
+    const did = new DID({ provider });
     
-    // Create and authenticate the DID
-    const did = new DID({ provider: authProvider });
-    await did.authenticate();
-    
-    console.log('DID created and authenticated:', {
+    console.log('DID created:', {
       id: did.id,
       authenticated: did.authenticated
     });
