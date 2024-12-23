@@ -77,7 +77,7 @@ const App = () => {
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
-        loginMethods: ['wallet', 'email', 'farcaster'],
+        loginMethods: ['farcaster', 'walletconnect', 'injected', 'email'],
         appearance: {
           theme: 'light',
           accentColor: '#000000',
