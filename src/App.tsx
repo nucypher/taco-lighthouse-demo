@@ -41,7 +41,7 @@ export const useAudioPlayer = () => {
 };
 
 // Hardcode the Privy App ID for development
-const PRIVY_APP_ID = "clrn3fj4q02jyl50fjzxjkpic";
+const PRIVY_APP_ID = "cm50x0smr03cgw0xcmg48uk7e";
 
 const App = () => {
   console.log('Rendering App component');
