@@ -23,7 +23,7 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
   const [coverArt, setCoverArt] = useState<File | null>(null);
   const [condition, setCondition] = useState<conditions.condition.Condition | null>(null);
   const { toast: useToastHook } = useToast();
-  const { session } = useAuth();
+  const { isAuthenticated, privyUser } = useAuth();
   const { wallet } = useWallet();
   const devMode = false;
 
@@ -31,12 +31,12 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
     e.preventDefault();
 
     console.log('Upload form submitted');
-    console.log('Current session state:', session);
+    console.log('Auth state:', { isAuthenticated, privyUser });
     console.log('Current wallet state:', wallet);
 
     // Check authentication and wallet
-    if (!session?.user || !wallet?.accounts?.[0]?.address) {
-      console.log('Auth check failed:', { session, wallet });
+    if (!isAuthenticated || !wallet?.accounts?.[0]?.address) {
+      console.log('Auth check failed:', { isAuthenticated, wallet });
       useToastHook({
         title: "Authentication Required",
         description: "Please ensure you are signed in and your wallet is connected",
@@ -128,7 +128,7 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
 
       await saveTrackMetadata(
         title,
-        session.user.id,
+        privyUser!.id,
         audioCid,
         coverArtCid
       );
