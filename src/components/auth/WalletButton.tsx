@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 import { formatWalletAddress } from "@/utils/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { usePrivy } from "@privy-io/react-auth";
 
 export const WalletButton = () => {
   const { wallet } = useWallet();
-  const { isAuthenticated, isLoading, logout, login, did } = useAuth();
+  const { isAuthenticated, isLoading, logout, did } = useAuth();
+  const { login } = usePrivy();
 
   console.log('WalletButton state:', { 
     wallet, 
@@ -56,7 +58,7 @@ export const WalletButton = () => {
   return (
     <Button 
       variant="default"
-      onClick={login}
+      onClick={() => login()}
       className="rounded-full font-medium whitespace-nowrap text-sm"
     >
       Connect Wallet

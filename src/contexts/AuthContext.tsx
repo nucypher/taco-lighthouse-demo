@@ -53,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Setting up DID with wallet:', wallet.address);
         
         try {
-          // Create a provider object that implements the ethereum provider interface
           const provider = {
             request: async ({ method, params }: { method: string; params: any[] }) => {
               switch (method) {
@@ -74,7 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
           
           if (newDID) {
-            // Authenticate Ceramic with the created DID
             await authenticateCeramic(newDID);
             setDID(newDID);
             console.log('DID setup complete:', newDID.id);

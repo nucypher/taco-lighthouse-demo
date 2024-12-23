@@ -48,7 +48,6 @@ const App = () => {
   const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Log the Privy App ID for debugging
   console.log('Privy App ID:', PRIVY_APP_ID);
 
   const audioPlayerValue = {
@@ -84,6 +83,11 @@ const App = () => {
           accentColor: '#000000',
           showWalletLoginFirst: true,
         },
+        defaultChain: 1,
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets'
+        },
+        autoConnect: false
       }}
     >
       <QueryClientProvider client={queryClient}>
