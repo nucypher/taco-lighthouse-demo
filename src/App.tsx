@@ -44,6 +44,9 @@ const App = () => {
   const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Log the Privy App ID for debugging
+  console.log('Privy App ID:', import.meta.env.VITE_PRIVY_APP_ID);
+
   const audioPlayerValue = {
     currentTrack,
     isPlaying,
@@ -60,7 +63,7 @@ const App = () => {
 
   return (
     <PrivyProvider
-      appId={process.env.PRIVY_APP_ID || ''}
+      appId={import.meta.env.VITE_PRIVY_APP_ID || ''}
       config={{
         loginMethods: ['wallet', 'email'],
         appearance: {
