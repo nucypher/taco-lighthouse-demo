@@ -14,6 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const USER_MODEL_ID = "kjzl6hvfrbw6c7j8otyyccaetle63o1m27zafs06csb24bljk1imyns9klda994";
+const ORBIS_CONTEXT_ID = "kjzl6kcym7w8y99fn4i5nup6v978x6wcpox2dem4pmqz9dk1ex1ts0v41tfypea";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser, logout: privyLogout } = usePrivy();
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select()
         .from(USER_MODEL_ID)
         .where({ name: address })
+        .context(ORBIS_CONTEXT_ID)
         .run();
       
       if (!existingProfiles || existingProfiles.length === 0) {
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .value({
             name: address  // Using address as name since it's required
           })
+          .context(ORBIS_CONTEXT_ID)
           .run();
           
         console.log('✅ User profile created:', result);

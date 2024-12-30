@@ -2,6 +2,7 @@ import { orbisdb } from "./client";
 import { Track } from "@/types/ceramic";
 
 const TRACKS_MODEL_ID = "kjzl6hvfrbw6c8w4h3sv4rtf5fhf7bmwxn0carjm1h4kqbk4hrapg65qlc2l2m7";
+const ORBIS_CONTEXT_ID = "kjzl6kcym7w8y99fn4i5nup6v978x6wcpox2dem4pmqz9dk1ex1ts0v41tfypea";
 
 export async function getAllTracks(): Promise<Track[]> {
   console.log("🎵 Fetching all tracks from OrbisDB...");
@@ -9,6 +10,7 @@ export async function getAllTracks(): Promise<Track[]> {
     const { rows: tracks } = await orbisdb
       .select()
       .from(TRACKS_MODEL_ID)
+      .context(ORBIS_CONTEXT_ID)
       .run();
     
     console.log("✅ Tracks fetched successfully:", tracks);
@@ -25,6 +27,7 @@ export async function createTrack(data: Omit<Track, 'id' | 'created_at' | 'updat
     const result = await orbisdb
       .insert(TRACKS_MODEL_ID)
       .value(data)
+      .context(ORBIS_CONTEXT_ID)
       .run();
     
     console.log("✅ Track created successfully:", result);
