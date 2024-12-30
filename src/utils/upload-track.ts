@@ -5,58 +5,24 @@ export async function uploadTrackToLighthouse(
   coverArtData: ArrayBuffer | null,
   formData: FormData
 ): Promise<{ audioCid: string; coverArtCid?: string }> {
-  const apiKey = process.env.LIGHTHOUSE_API_KEY;
+  const formDataToSend = new FormData();
+  formDataToSend.append('audioData', new Blob([audioData]));
   
-  // Upload encrypted audio to Lighthouse
-  const audioFormData = new FormData();
-  audioFormData.append('file', new Blob([audioData]));
+  if (coverArtData) {
+    formDataToSend.append('coverArt', new Blob([coverArtData]));
+  }
 
-  console.log('Uploading encrypted audio to Lighthouse...');
-  const audioUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
+  const response = await fetch('/api/upload-to-lighthouse', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: audioFormData
+    body: formDataToSend
   });
 
-  if (!audioUploadResponse.ok) {
-    const errorData = await audioUploadResponse.json();
-    throw new Error(`Audio upload failed: ${errorData.message || 'Unknown error'}`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Upload failed: ${errorData.message || 'Unknown error'}`);
   }
 
-  const audioUploadData = await audioUploadResponse.json();
-  console.log('Audio upload successful:', audioUploadData);
-
-  let coverArtCid = undefined;
-  if (coverArtData) {
-    // Upload cover art to Lighthouse
-    const coverArtFormData = new FormData();
-    coverArtFormData.append('file', new Blob([coverArtData]));
-
-    console.log('Uploading cover art to Lighthouse...');
-    const coverArtUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: coverArtFormData
-    });
-
-    if (!coverArtUploadResponse.ok) {
-      const errorData = await coverArtUploadResponse.json();
-      throw new Error(`Cover art upload failed: ${errorData.message || 'Unknown error'}`);
-    }
-
-    const coverArtUploadData = await coverArtUploadResponse.json();
-    coverArtCid = coverArtUploadData.Hash;
-    console.log('Cover art upload successful:', coverArtUploadData);
-  }
-
-  return {
-    audioCid: audioUploadData.Hash,
-    coverArtCid
-  };
+  return await response.json();
 }
 
 export async function saveTrackMetadata(
