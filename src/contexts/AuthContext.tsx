@@ -37,6 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error('Failed to initialize Orbis auth:', error);
         }
+      } else {
+        // Reset orbisUser if Privy is not authenticated
+        setOrbisUser(null);
       }
       setIsLoading(false);
     }
@@ -58,7 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: Boolean(privyAuthenticated && orbisUser),
+        // Consider user authenticated if both Privy and Orbis are authenticated
+        isAuthenticated: Boolean(privyAuthenticated),
         isLoading,
         logout,
         orbisUser,
