@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, User, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatWalletAddress } from "@/utils/format";
 
@@ -12,11 +12,13 @@ export default function Profile() {
   const { wallet } = useWallet();
   const { orbisUser } = useAuth();
   
+  console.log('Profile page - Current Orbis user:', orbisUser);
+  
   const address = wallet?.accounts?.[0]?.address;
   const truncatedAddress = address ? formatWalletAddress(address) : "Not connected";
-  const memberSince = orbisUser?.created_at 
-    ? new Date(orbisUser.created_at).toLocaleDateString()
-    : new Date().toLocaleDateString();
+  const lastUpdated = orbisUser?.updated_at 
+    ? new Date(orbisUser.updated_at).toLocaleDateString()
+    : "Not available";
 
   return (
     <div className="container max-w-2xl py-10 relative">
@@ -32,34 +34,35 @@ export default function Profile() {
         <CardHeader>
           <CardTitle className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="" alt="Profile picture" />
-              <AvatarFallback>UP</AvatarFallback>
+              <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
+              <AvatarFallback>
+                <User className="h-8 w-8 text-muted-foreground" />
+              </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold">User Profile</h1>
+              <h1 className="text-2xl font-bold">{orbisUser?.name || truncatedAddress}</h1>
               <p className="text-sm text-muted-foreground">
-                Manage your profile settings
+                Profile Details
               </p>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Wallet Address</Label>
-            <p className="font-mono text-sm">{truncatedAddress}</p>
+            <Label className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Controller
+            </Label>
+            <p className="font-mono text-sm">{orbisUser?.controller || truncatedAddress}</p>
           </div>
           
           <div className="space-y-2">
-            <Label>Stream ID</Label>
-            <p className="font-mono text-sm break-all">
-              {orbisUser?.id || 'Not available'}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Member Since</Label>
+            <Label className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Last Updated
+            </Label>
             <p className="text-sm text-muted-foreground">
-              {memberSince}
+              {lastUpdated}
             </p>
           </div>
         </CardContent>
