@@ -39,11 +39,12 @@ export default function Profile() {
 
       const result = await orbisdb
         .update(ORBIS_CONFIG.MODELS.USERS)
-        .where({ stream_id: orbisUser.id })
-        .value({
+        .replace({
           name: editedName,
           updated_at: new Date().toISOString()
         })
+        .byId(orbisUser.id)
+        .context(ORBIS_CONFIG.CONTEXT_ID)
         .run();
 
       console.log('Profile update result:', result);
