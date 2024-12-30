@@ -27,17 +27,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { rows: existingProfiles } = await orbisdb
         .select()
         .from(USER_MODEL_ID)
-        .where({ address })
+        .where({ name: address })
         .run();
       
       if (!existingProfiles || existingProfiles.length === 0) {
         console.log('Creating new user profile in Orbis...');
+        // Only include name property as required by the schema
         const result = await orbisdb
           .insert(USER_MODEL_ID)
           .value({
-            name: '',  // Can be updated later
-            address,
-            createdAt: new Date().toISOString()
+            name: address  // Using address as name since it's required
           })
           .run();
           
