@@ -5,6 +5,9 @@ export interface OrbisUser {
   id?: string;
   name: string;
   created_at?: string;
+  updated_at?: string;
+  avatar_url?: string;
+  controller?: string;
 }
 
 export class UserClient extends BaseOrbisClient {
@@ -13,6 +16,9 @@ export class UserClient extends BaseOrbisClient {
       id: doc.stream_id || doc.id,
       name: doc.name || '',
       created_at: doc.created_at,
+      updated_at: doc.updated_at,
+      avatar_url: doc.avatar_url,
+      controller: doc.controller
     };
   }
 
