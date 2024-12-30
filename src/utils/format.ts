@@ -1,6 +1,6 @@
 export const formatWalletAddress = (address: string | null) => {
   if (!address) return 'Unknown Artist';
-  return `${address.slice(0, 8)}...`;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
 export const getTrackUrl = (cid: string | null) => {

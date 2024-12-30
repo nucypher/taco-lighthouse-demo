@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { tracksClient } from "@/integrations/orbis/utils";
 import { Track } from "@/types/ceramic";
+import { formatWalletAddress } from "@/utils/format";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +75,7 @@ const Index = () => {
               <div className="absolute bottom-0 left-0 p-4 md:p-8">
                 <h1 className="text-xl md:text-4xl font-bold mb-2">{featuredTrack.title}</h1>
                 <p className="text-sm md:text-lg text-muted-foreground mb-4">
-                  {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
+                  {formatWalletAddress(featuredTrack.owner_id)}
                 </p>
                 <Button 
                   className="rounded-full w-full sm:w-auto" 
@@ -106,7 +107,7 @@ const Index = () => {
                 key={track.id}
                 trackId={track.id}
                 title={track.title}
-                artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
+                artist={formatWalletAddress(track.owner_id)}
                 coverUrl={getArtworkUrl(track.artworkCID)}
                 ipfsCid={track.ipfsCID}
                 owner_id={track.owner_id}
