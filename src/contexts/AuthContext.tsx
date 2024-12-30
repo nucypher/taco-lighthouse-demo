@@ -1,14 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePrivy, User as PrivyUser } from "@privy-io/react-auth";
 import { toast } from "sonner";
-import { DID } from "dids";
-import { createDIDFromWallet } from "@/utils/did-auth";
 import { useWallets } from "@privy-io/react-auth";
-import { authenticateCeramic } from "@/integrations/ceramic/client";
 
 interface AuthContextType {
   privyUser: PrivyUser | null;
-  did: DID | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   logout: () => Promise<void>;
@@ -20,7 +16,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   console.log('Initializing AuthProvider');
   const [isLoading, setIsLoading] = useState(true);
-  const [did, setDID] = useState<DID | null>(null);
   
   const { 
     ready: privyReady,
@@ -45,52 +40,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [privyReady, privyAuthenticated, privyUser, wallets]);
 
-  // Handle DID creation when wallet is connected
-  useEffect(() => {
-    async function setupDID() {
-      if (privyAuthenticated && wallets.length > 0 && !did) {
-        const wallet = wallets[0];
-        console.log('Setting up DID with wallet:', wallet.address);
-        
-        try {
-          const provider = {
-            request: async ({ method, params }: { method: string; params: any[] }) => {
-              switch (method) {
-                case 'eth_signMessage':
-                case 'personal_sign':
-                  return await wallet.sign(params[0]);
-                case 'eth_accounts':
-                  return [wallet.address];
-                default:
-                  throw new Error(`Unsupported method: ${method}`);
-              }
-            }
-          };
-          
-          const newDID = await createDIDFromWallet(
-            provider,
-            wallet.address
-          );
-          
-          if (newDID) {
-            await authenticateCeramic(newDID);
-            setDID(newDID);
-            console.log('DID setup complete:', newDID.id);
-            toast.success('DID authentication successful');
-          } else {
-            console.error('Failed to create DID');
-            toast.error('Failed to setup DID authentication');
-          }
-        } catch (error) {
-          console.error('Error setting up DID:', error);
-          toast.error('Error setting up DID authentication');
-        }
-      }
-    }
-
-    setupDID();
-  }, [privyAuthenticated, wallets, did]);
-
   const handleLogin = async () => {
     try {
       console.log('Initiating login...');
@@ -104,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     try {
       console.log('Logging out...');
-      setDID(null);
       await privyLogout();
       toast.success('Logged out successfully');
     } catch (error) {
@@ -115,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     privyUser,
-    did,
     isLoading: isLoading || !privyReady,
     isAuthenticated: Boolean(privyAuthenticated),
     logout: handleLogout,

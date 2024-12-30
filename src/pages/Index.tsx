@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { useTrackPlayback } from "@/hooks/use-track-playback";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTracks } from "@/hooks/use-ceramic-tracks";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Track {
   id: string;
   title: string;
-  owner: string;
-  artwork?: string;
-  ipfsCid: string;
+  owner_id: string;
+  cover_art_cid?: string;
+  ipfs_cid: string;
 }
 
 const Index = () => {
@@ -19,7 +20,20 @@ const Index = () => {
   const [featuredTrack, setFeaturedTrack] = useState<Track | null>(null);
   const { handlePlay, isDecrypting, getArtworkUrl } = useTrackPlayback();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { data: tracks, isLoading, error } = useTracks();
+
+  const { data: tracks, isLoading, error } = useQuery({
+    queryKey: ['tracks'],
+    queryFn: async () => {
+      console.log('Fetching tracks from Supabase...');
+      const { data, error } = await supabase
+        .from('tracks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Track[];
+    }
+  });
 
   console.log("Auth state:", { isAuthenticated, authLoading });
 
@@ -38,9 +52,9 @@ const Index = () => {
     if (featuredTrack) {
       handlePlay({
         title: featuredTrack.title,
-        owner_id: featuredTrack.owner,
-        ipfs_cid: featuredTrack.ipfsCid,
-        cover_art_cid: featuredTrack.artwork
+        owner_id: featuredTrack.owner_id,
+        ipfs_cid: featuredTrack.ipfs_cid,
+        cover_art_cid: featuredTrack.cover_art_cid
       });
     }
   };
@@ -65,7 +79,7 @@ const Index = () => {
         <section className="mb-6 md:mb-12">
           <div className="relative h-[200px] md:h-[400px] rounded-xl overflow-hidden">
             <img
-              src={getArtworkUrl(featuredTrack.artwork)}
+              src={getArtworkUrl(featuredTrack.cover_art_cid)}
               alt={featuredTrack.title}
               className="w-full h-full object-cover"
             />
@@ -73,7 +87,7 @@ const Index = () => {
               <div className="absolute bottom-0 left-0 p-4 md:p-8">
                 <h1 className="text-xl md:text-4xl font-bold mb-2">{featuredTrack.title}</h1>
                 <p className="text-sm md:text-lg text-muted-foreground mb-4">
-                  {featuredTrack.owner ? `${featuredTrack.owner.slice(0, 8)}...` : 'Unknown Artist'}
+                  {featuredTrack.owner_id ? `${featuredTrack.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
                 </p>
                 <Button 
                   className="rounded-full w-full sm:w-auto" 
@@ -105,11 +119,11 @@ const Index = () => {
                 key={track.id}
                 trackId={track.id}
                 title={track.title}
-                artist={track.owner ? `${track.owner.slice(0, 8)}...` : 'Unknown Artist'}
-                coverUrl={getArtworkUrl(track.artwork)}
-                ipfsCid={track.ipfsCid}
-                owner_id={track.owner}
-                cover_art_cid={track.artwork}
+                artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
+                coverUrl={getArtworkUrl(track.cover_art_cid)}
+                ipfsCid={track.ipfs_cid}
+                owner_id={track.owner_id}
+                cover_art_cid={track.cover_art_cid}
               />
             ))
           ) : (
