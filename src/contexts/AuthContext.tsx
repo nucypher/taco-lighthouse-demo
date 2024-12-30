@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   orbisUser: any;
+  privyUser: any; // Add this line to fix the TypeScript error
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: Boolean(privyAuthenticated && orbisUser),
         isLoading,
         logout,
-        orbisUser
+        orbisUser,
+        privyUser // Add this line to expose privyUser
       }}
     >
       {children}
