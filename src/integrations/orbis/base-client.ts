@@ -15,7 +15,6 @@ export class BaseOrbisClient {
   }
 
   protected async insert<T>(modelId: string, data: T) {
-    console.log('Inserting data into model:', modelId, 'Data:', data);
     return orbisdb
       .insert(modelId)
       .value(data)
