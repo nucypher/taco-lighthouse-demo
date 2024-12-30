@@ -1,26 +1,9 @@
-// Basic types for the mock data
-export interface BasicProfile {
-  id: string;
-  displayName?: string;
-  avatar?: string;
-}
-
-export interface Artwork {
-  id: string;
-  ipfsCid: string;
-  mimeType: string;
-  owner: {
-    id: string;
-  };
-}
-
 export interface Track {
   id: string;
   title: string;
-  ipfsCid: string;
-  owner: string;
-  artwork?: string;
+  owner_id: string;
+  ipfs_cid: string;
+  cover_art_cid?: string;
+  created_at?: string;
+  updated_at?: string;
 }
-
-// Simplified response types
-export type QueryVariables = Record<string, unknown>;

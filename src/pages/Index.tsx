@@ -5,15 +5,8 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { useTrackPlayback } from "@/hooks/use-track-playback";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Track {
-  id: string;
-  title: string;
-  owner_id: string;
-  cover_art_cid?: string;
-  ipfs_cid: string;
-}
+import { tracksClient } from "@/integrations/orbis/utils";
+import { Track } from "@/types/ceramic";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,14 +17,8 @@ const Index = () => {
   const { data: tracks, isLoading, error } = useQuery({
     queryKey: ['tracks'],
     queryFn: async () => {
-      console.log('Fetching tracks from Supabase...');
-      const { data, error } = await supabase
-        .from('tracks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as Track[];
+      console.log('Fetching tracks from Orbis...');
+      return tracksClient.getAllTracks();
     }
   });
 

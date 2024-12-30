@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { tracksClient } from "@/integrations/orbis/utils";
 
 export async function uploadTrackToLighthouse(
   audioData: ArrayBuffer,
@@ -10,15 +10,17 @@ export async function uploadTrackToLighthouse(
     formData.append('coverArt', new Blob([coverArtData]));
   }
 
-  const { data, error } = await supabase.functions.invoke('upload-to-lighthouse', {
+  const response = await fetch('/api/upload-to-lighthouse', {
+    method: 'POST',
     body: formData
   });
 
-  if (error) {
+  if (!response.ok) {
+    const error = await response.json();
     throw new Error(`Upload failed: ${error.message}`);
   }
 
-  return data;
+  return response.json();
 }
 
 export async function saveTrackMetadata(
@@ -27,14 +29,17 @@ export async function saveTrackMetadata(
   audioCid: string,
   coverArtCid?: string
 ) {
-  const { error } = await supabase
-    .from('tracks')
-    .insert({
-      title,
-      owner_id: ownerId,
-      ipfs_cid: audioCid,
-      cover_art_cid: coverArtCid
-    });
+  console.log('Saving track metadata to Orbis:', {
+    title,
+    ownerId,
+    audioCid,
+    coverArtCid
+  });
 
-  if (error) throw error;
+  await tracksClient.createTrack({
+    title,
+    owner_id: ownerId,
+    ipfs_cid: audioCid,
+    cover_art_cid: coverArtCid
+  });
 }
