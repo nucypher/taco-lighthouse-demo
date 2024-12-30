@@ -28,13 +28,13 @@ export default function Profile() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
+              <Avatar className="h-16 w-16 shrink-0">
                 <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
                 <AvatarFallback>
                   <User className="h-8 w-8 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0">
                 {isEditing ? (
                   <Input 
                     defaultValue={orbisUser?.name || truncatedAddress}
@@ -42,14 +42,16 @@ export default function Profile() {
                     placeholder="Enter your name"
                   />
                 ) : (
-                  <h1 className="text-2xl font-bold">{orbisUser?.name || truncatedAddress}</h1>
+                  <h1 className="text-2xl font-bold truncate">
+                    {orbisUser?.name || truncatedAddress}
+                  </h1>
                 )}
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground truncate">
                   Profile Details
                 </p>
               </div>
             </CardTitle>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               {isEditing ? (
                 <>
                   <Button 
@@ -91,7 +93,7 @@ export default function Profile() {
                 className="font-mono text-sm"
               />
             ) : (
-              <p className="font-mono text-sm">{orbisUser?.controller || truncatedAddress}</p>
+              <p className="font-mono text-sm truncate">{orbisUser?.controller || truncatedAddress}</p>
             )}
           </div>
           
