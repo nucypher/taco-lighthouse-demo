@@ -26,15 +26,15 @@ export default function Profile() {
     <div className="container max-w-2xl py-10">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-4">
+          <div className="flex items-center justify-between w-full">
+            <CardTitle className="flex items-center gap-4 flex-1 min-w-0">
               <Avatar className="h-16 w-16 shrink-0">
                 <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
                 <AvatarFallback>
                   <User className="h-8 w-8 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <div className="space-y-1 min-w-0">
+              <div className="space-y-1 min-w-0 flex-1">
                 {isEditing ? (
                   <Input 
                     defaultValue={orbisUser?.name || truncatedAddress}
@@ -42,7 +42,7 @@ export default function Profile() {
                     placeholder="Enter your name"
                   />
                 ) : (
-                  <h1 className="text-2xl font-bold truncate">
+                  <h1 className="text-2xl font-bold truncate pr-2">
                     {orbisUser?.name || truncatedAddress}
                   </h1>
                 )}
@@ -51,7 +51,7 @@ export default function Profile() {
                 </p>
               </div>
             </CardTitle>
-            <div className="flex gap-2 shrink-0">
+            <div className="flex gap-2 shrink-0 ml-4">
               {isEditing ? (
                 <>
                   <Button 
@@ -93,7 +93,9 @@ export default function Profile() {
                 className="font-mono text-sm"
               />
             ) : (
-              <p className="font-mono text-sm truncate">{orbisUser?.controller || truncatedAddress}</p>
+              <p className="font-mono text-sm truncate">
+                {orbisUser?.controller || truncatedAddress}
+              </p>
             )}
           </div>
           
