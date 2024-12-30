@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, User as PrivyUser } from "@privy-io/react-auth";
 import { useWallet } from "./WalletContext";
 import { connectOrbisUser, isOrbisUserConnected, getOrbisConnectedUser, orbisdb } from "@/integrations/orbis/client";
 
@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   orbisUser: any;
+  privyUser: PrivyUser | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,19 +24,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createOrbisProfile = async (address: string) => {
     try {
       console.log('Checking if user profile exists in Orbis...');
-      const existingProfiles = await orbisdb.model(USER_MODEL_ID).query();
+      const existingProfiles = await orbisdb.ceramic.getModel(USER_MODEL_ID);
       
-      if (existingProfiles.length === 0) {
+      if (!existingProfiles) {
         console.log('Creating new user profile in Orbis...');
-        const newProfile = await orbisdb.model(USER_MODEL_ID).create({
-          name: '',  // Can be updated later
-          createdAt: new Date().toISOString()
+        const newProfile = await orbisdb.ceramic.writeDocument(USER_MODEL_ID, {
+          content: {
+            name: '',  // Can be updated later
+            createdAt: new Date().toISOString()
+          }
         });
         console.log('✅ User profile created:', newProfile);
         return newProfile;
       } else {
-        console.log('User profile already exists:', existingProfiles[0]);
-        return existingProfiles[0];
+        console.log('User profile already exists:', existingProfiles);
+        return existingProfiles;
       }
     } catch (error) {
       console.error('Failed to create/check Orbis profile:', error);
@@ -86,7 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: Boolean(privyAuthenticated && orbisUser),
         isLoading,
         logout,
-        orbisUser
+        orbisUser,
+        privyUser: privyUser || null
       }}
     >
       {children}
