@@ -5,24 +5,58 @@ export async function uploadTrackToLighthouse(
   coverArtData: ArrayBuffer | null,
   formData: FormData
 ): Promise<{ audioCid: string; coverArtCid?: string }> {
-  formData.append('audioData', new Blob([audioData]));
-  if (coverArtData) {
-    formData.append('coverArt', new Blob([coverArtData]));
-  }
+  const apiKey = process.env.LIGHTHOUSE_API_KEY;
+  
+  // Upload encrypted audio to Lighthouse
+  const audioFormData = new FormData();
+  audioFormData.append('file', new Blob([audioData]));
 
-  const response = await fetch('/api/upload-to-lighthouse', {
+  console.log('Uploading encrypted audio to Lighthouse...');
+  const audioUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
     method: 'POST',
-    body: formData
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: audioFormData
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`Upload failed: ${errorData.message}`);
+  if (!audioUploadResponse.ok) {
+    const errorData = await audioUploadResponse.json();
+    throw new Error(`Audio upload failed: ${errorData.message || 'Unknown error'}`);
   }
 
-  // Store the JSON response in a variable to avoid consuming it twice
-  const responseData = await response.json();
-  return responseData;
+  const audioUploadData = await audioUploadResponse.json();
+  console.log('Audio upload successful:', audioUploadData);
+
+  let coverArtCid = undefined;
+  if (coverArtData) {
+    // Upload cover art to Lighthouse
+    const coverArtFormData = new FormData();
+    coverArtFormData.append('file', new Blob([coverArtData]));
+
+    console.log('Uploading cover art to Lighthouse...');
+    const coverArtUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: coverArtFormData
+    });
+
+    if (!coverArtUploadResponse.ok) {
+      const errorData = await coverArtUploadResponse.json();
+      throw new Error(`Cover art upload failed: ${errorData.message || 'Unknown error'}`);
+    }
+
+    const coverArtUploadData = await coverArtUploadResponse.json();
+    coverArtCid = coverArtUploadData.Hash;
+    console.log('Cover art upload successful:', coverArtUploadData);
+  }
+
+  return {
+    audioCid: audioUploadData.Hash,
+    coverArtCid
+  };
 }
 
 export async function saveTrackMetadata(
