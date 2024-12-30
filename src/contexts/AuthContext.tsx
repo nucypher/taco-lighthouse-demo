@@ -3,6 +3,7 @@ import { usePrivy, User as PrivyUser } from "@privy-io/react-auth";
 import { useWallet } from "./WalletContext";
 import { orbisdb } from "@/integrations/orbis/base-client";
 import { OrbisUser, userClient } from "@/integrations/orbis/user";
+import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -22,17 +23,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     console.log('Initializing AuthProvider');
-    console.log('Auth state:', { privyReady, privyAuthenticated, privyUser });
+    console.log('Auth state:', { privyReady, privyAuthenticated, privyUser, wallet });
 
     async function initializeOrbisAuth() {
       if (privyAuthenticated && wallet?.accounts?.[0]?.address) {
         try {
-          const isConnected = await orbisdb.isUserConnected(wallet.accounts[0].address);
-          if (!isConnected) {
-            await orbisdb.connectUser(window.ethereum);
-          }
+          console.log('Attempting to connect Orbis with wallet:', wallet);
+          const auth = new OrbisEVMAuth(wallet);
+          await orbisdb.connectUser({ auth });
           
           const user = await userClient.connectOrbisUser(wallet.accounts[0].address);
+          console.log('Orbis user connected:', user);
           setOrbisUser(user);
         } catch (error) {
           console.error('Failed to initialize Orbis auth:', error);
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        // Consider user authenticated if both Privy and Orbis are authenticated
+        // Consider user authenticated if Privy is authenticated
         isAuthenticated: Boolean(privyAuthenticated),
         isLoading,
         logout,
