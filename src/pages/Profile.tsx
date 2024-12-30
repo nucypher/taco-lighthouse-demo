@@ -5,13 +5,18 @@ import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatWalletAddress } from "@/utils/format";
 
 export default function Profile() {
   const { wallet } = useWallet();
+  const { orbisUser } = useAuth();
+  
   const address = wallet?.accounts?.[0]?.address;
-  const truncatedAddress = address
-    ? `${address.slice(0, 6)}...${address.slice(-4)}`
-    : "Not connected";
+  const truncatedAddress = address ? formatWalletAddress(address) : "Not connected";
+  const memberSince = orbisUser?.created_at 
+    ? new Date(orbisUser.created_at).toLocaleDateString()
+    : new Date().toLocaleDateString();
 
   return (
     <div className="container max-w-2xl py-10 relative">
@@ -45,14 +50,16 @@ export default function Profile() {
           </div>
           
           <div className="space-y-2">
-            <Label>Tracks Uploaded</Label>
-            <p className="text-sm text-muted-foreground">0 tracks</p>
+            <Label>Stream ID</Label>
+            <p className="font-mono text-sm break-all">
+              {orbisUser?.id || 'Not available'}
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label>Member Since</Label>
             <p className="text-sm text-muted-foreground">
-              {new Date().toLocaleDateString()}
+              {memberSince}
             </p>
           </div>
         </CardContent>
