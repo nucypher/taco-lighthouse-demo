@@ -8,12 +8,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatWalletAddress } from "@/utils/format";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { orbisdb } from "@/integrations/orbis/base-client";
+import { ORBIS_CONFIG } from "@/integrations/orbis/config";
 
 export default function Profile() {
   const { wallet } = useWallet();
   const { orbisUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(orbisUser?.name || '');
+  const [isSaving, setIsSaving] = useState(false);
   
   console.log('Profile page - Current Orbis user:', orbisUser);
   
@@ -22,6 +26,41 @@ export default function Profile() {
   const lastUpdated = orbisUser?.updated_at 
     ? new Date(orbisUser.updated_at).toLocaleDateString()
     : "Not available";
+
+  const handleSave = async () => {
+    if (!orbisUser?.id) {
+      toast.error("User not found");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      console.log('Saving profile changes...', { editedName, userId: orbisUser.id });
+
+      const result = await orbisdb
+        .update(ORBIS_CONFIG.MODELS.USERS)
+        .where({ stream_id: orbisUser.id })
+        .value({
+          name: editedName,
+          updated_at: new Date().toISOString()
+        })
+        .run();
+
+      console.log('Profile update result:', result);
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedName(orbisUser?.name || '');
+    setIsEditing(false);
+  };
 
   return (
     <div className="container max-w-2xl py-10">
@@ -59,14 +98,16 @@ export default function Profile() {
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancel}
+                    disabled={isSaving}
                   >
                     <X className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleSave}
+                    disabled={isSaving}
                   >
                     <Check className="h-4 w-4" />
                   </Button>
