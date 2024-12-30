@@ -41,11 +41,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsInitializingOrbis(true);
       console.log('Starting Orbis initialization...');
-      
-      // Check if there's an existing session first
+
+      // First check if there's an existing session
       const isConnected = await orbisdb.isUserConnected();
       console.log('Checking existing Orbis connection:', isConnected);
-      
+
       if (isConnected) {
         console.log('User already connected to Orbis');
         const user = await userClient.getOrbisUser(wallet.accounts[0].address);
@@ -62,9 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Creating new Orbis connection...');
       const provider = await wallet.getEthereumProvider();
       const auth = new OrbisEVMAuth(provider);
-      const authResult = await orbisdb.connectUser({ auth });
+      
+      // Use the proper connect method that handles session persistence
+      const authResult = await orbisdb.connectUser({ 
+        auth,
+        persist: true // This ensures the session is persisted in localStorage
+      });
+      
       console.log('Orbis auth result:', authResult);
       
+      if (!authResult) {
+        throw new Error('Failed to authenticate with Orbis');
+      }
+
       // Create or get the Orbis user
       const user = await userClient.connectOrbisUser(wallet.accounts[0].address);
       console.log('Connected Orbis user:', user);
@@ -105,10 +115,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Only initialize if we have authentication and no existing user
-    if (!orbisUser && !isInitializingOrbis) {
-      initializeOrbisAuth();
-    }
+    // Check for existing Orbis session first
+    orbisdb.isUserConnected().then(isConnected => {
+      console.log('Checking existing Orbis session:', isConnected);
+      if (!isConnected && !orbisUser && !isInitializingOrbis) {
+        initializeOrbisAuth();
+      }
+    });
+
   }, [privyReady, privyAuthenticated, wallet, initializeOrbisAuth, orbisUser, isInitializingOrbis]);
 
   const logout = async () => {
