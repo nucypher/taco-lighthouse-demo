@@ -7,7 +7,7 @@ export const orbisdb = new OrbisDB({
 });
 
 export class BaseOrbisClient {
-  protected async query<T>(modelId: string) {
+  protected query<T>(modelId: string) {
     return orbisdb
       .select()
       .from(modelId)
