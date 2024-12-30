@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { UploadFormFields } from "./upload/UploadFormFields";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
@@ -25,6 +26,7 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
   const { toast: useToastHook } = useToast();
   const { isAuthenticated, privyUser } = useAuth();
   const { wallet } = useWallet();
+  const queryClient = useQueryClient();
   const devMode = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +36,6 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
     console.log('Auth state:', { isAuthenticated, privyUser });
     console.log('Current wallet state:', wallet);
 
-    // Check authentication and wallet
     if (!isAuthenticated || !wallet?.accounts?.[0]?.address) {
       console.log('Auth check failed:', { isAuthenticated, wallet });
       useToastHook({
@@ -64,10 +65,8 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
     }
 
     try {
-      // Close the dialog immediately
       onClose?.();
 
-      // Show upload progress toast
       const toastId = toast.loading(`Uploading ${title}...`, {
         description: "Initializing...",
       });
@@ -113,11 +112,9 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
         id: toastId,
       });
 
-      const formData = new FormData();
       const { audioCid, coverArtCid } = await uploadTrackToLighthouse(
         encryptedAudioData,
-        coverArtBuffer,
-        formData
+        coverArtBuffer
       );
       console.log('✅ Upload successful:', { audioCid, coverArtCid });
 
@@ -133,6 +130,9 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
         coverArtCid
       );
       console.log('✅ Track metadata saved successfully');
+
+      // Invalidate and refetch tracks query
+      await queryClient.invalidateQueries({ queryKey: ['tracks'] });
 
       toast.success(`${title} uploaded successfully`, {
         id: toastId,

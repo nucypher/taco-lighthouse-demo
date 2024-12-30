@@ -6,65 +6,69 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { audioData, coverArtData } = await req.json()
+    console.log('Received upload request');
+    const body = await req.json();
+    const { audioData, coverArtData } = body;
 
     if (!audioData) {
-      throw new Error('No audio data provided')
+      console.error('No audio data provided');
+      throw new Error('No audio data provided');
     }
 
-    // Convert array back to Uint8Array
-    const audioBuffer = new Uint8Array(audioData).buffer
-    
-    // Upload encrypted audio to Lighthouse
-    const audioFormData = new FormData()
-    audioFormData.append('file', new Blob([audioBuffer]))
+    console.log('Creating audio blob...');
+    // Convert Uint8Array data back to a blob
+    const audioBlob = new Blob([new Uint8Array(audioData)], { type: 'audio/mpeg' });
 
-    console.log('Uploading encrypted audio to Lighthouse...')
+    // Create form data for Lighthouse
+    const audioFormData = new FormData();
+    audioFormData.append('file', audioBlob, 'audio.mp3');
+
+    console.log('Uploading audio to Lighthouse...');
     const audioUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
       },
       body: audioFormData
-    })
+    });
 
     if (!audioUploadResponse.ok) {
-      throw new Error(`Failed to upload audio: ${audioUploadResponse.statusText}`)
+      throw new Error(`Failed to upload audio: ${audioUploadResponse.statusText}`);
     }
 
-    const audioUploadData = await audioUploadResponse.json()
-    console.log('Audio upload successful:', audioUploadData)
+    const audioUploadData = await audioUploadResponse.json();
+    console.log('Audio upload successful:', audioUploadData);
 
-    let coverArtCid = null
+    let coverArtCid = null;
     if (coverArtData) {
-      // Convert array back to Uint8Array for cover art
-      const coverArtBuffer = new Uint8Array(coverArtData).buffer
+      console.log('Creating cover art blob...');
+      const coverArtBlob = new Blob([new Uint8Array(coverArtData)], { type: 'image/jpeg' });
       
-      // Upload cover art to Lighthouse
-      const coverArtFormData = new FormData()
-      coverArtFormData.append('file', new Blob([coverArtBuffer]))
+      const coverArtFormData = new FormData();
+      coverArtFormData.append('file', coverArtBlob, 'cover.jpg');
 
-      console.log('Uploading cover art to Lighthouse...')
+      console.log('Uploading cover art to Lighthouse...');
       const coverArtUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('LIGHTHOUSE_API_KEY')}`,
         },
         body: coverArtFormData
-      })
+      });
 
       if (!coverArtUploadResponse.ok) {
-        throw new Error(`Failed to upload cover art: ${coverArtUploadResponse.statusText}`)
+        throw new Error(`Failed to upload cover art: ${coverArtUploadResponse.statusText}`);
       }
 
-      const coverArtUploadData = await coverArtUploadResponse.json()
-      coverArtCid = coverArtUploadData.Hash
-      console.log('Cover art upload successful:', coverArtUploadData)
+      const coverArtUploadData = await coverArtUploadResponse.json();
+      coverArtCid = coverArtUploadData.Hash;
+      console.log('Cover art upload successful:', coverArtUploadData);
     }
 
     return new Response(
@@ -76,15 +80,18 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       }
-    )
+    );
   } catch (error) {
-    console.error('Upload error:', error)
+    console.error('Upload error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'Upload failed', 
+        details: error.message 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
       }
-    )
+    );
   }
-})
+});
