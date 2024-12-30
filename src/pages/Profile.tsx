@@ -16,9 +16,9 @@ export default function Profile() {
   
   const address = wallet?.accounts?.[0]?.address;
   const truncatedAddress = address ? formatWalletAddress(address) : "Not connected";
-  const memberSince = orbisUser?.created_at 
-    ? new Date(orbisUser.created_at).toLocaleDateString()
-    : "Unknown";
+  const lastUpdated = orbisUser?.updated_at 
+    ? new Date(orbisUser.updated_at).toLocaleDateString()
+    : "Not available";
 
   return (
     <div className="container max-w-2xl py-10 relative">
@@ -34,7 +34,7 @@ export default function Profile() {
         <CardHeader>
           <CardTitle className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="" alt={orbisUser?.name || 'Profile picture'} />
+              <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
               <AvatarFallback>
                 <User className="h-8 w-8 text-muted-foreground" />
               </AvatarFallback>
@@ -51,28 +51,18 @@ export default function Profile() {
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              Wallet Address
+              Controller
             </Label>
-            <p className="font-mono text-sm">{truncatedAddress}</p>
+            <p className="font-mono text-sm">{orbisUser?.controller || truncatedAddress}</p>
           </div>
           
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Stream ID
-            </Label>
-            <p className="font-mono text-sm break-all">
-              {orbisUser?.id || 'Not available'}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Member Since
+              Last Updated
             </Label>
             <p className="text-sm text-muted-foreground">
-              {memberSince}
+              {lastUpdated}
             </p>
           </div>
         </CardContent>
