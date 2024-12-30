@@ -2,15 +2,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useWallet } from "@/contexts/WalletContext";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, User, Clock } from "lucide-react";
+import { Edit2, User, Clock, Check, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatWalletAddress } from "@/utils/format";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 export default function Profile() {
   const { wallet } = useWallet();
   const { orbisUser } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
   
   console.log('Profile page - Current Orbis user:', orbisUser);
   
@@ -21,31 +23,61 @@ export default function Profile() {
     : "Not available";
 
   return (
-    <div className="container max-w-2xl py-10 relative">
-      <Link 
-        to="/" 
-        className="absolute top-4 left-4"
-      >
-        <Button variant="ghost" size="icon">
-          <Home className="h-5 w-5" />
-        </Button>
-      </Link>
+    <div className="container max-w-2xl py-10">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
-              <AvatarFallback>
-                <User className="h-8 w-8 text-muted-foreground" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-2xl font-bold">{orbisUser?.name || truncatedAddress}</h1>
-              <p className="text-sm text-muted-foreground">
-                Profile Details
-              </p>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
+                <AvatarFallback>
+                  <User className="h-8 w-8 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-1">
+                {isEditing ? (
+                  <Input 
+                    defaultValue={orbisUser?.name || truncatedAddress}
+                    className="max-w-[200px]"
+                    placeholder="Enter your name"
+                  />
+                ) : (
+                  <h1 className="text-2xl font-bold">{orbisUser?.name || truncatedAddress}</h1>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Profile Details
+                </p>
+              </div>
+            </CardTitle>
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
@@ -53,7 +85,14 @@ export default function Profile() {
               <User className="h-4 w-4" />
               Controller
             </Label>
-            <p className="font-mono text-sm">{orbisUser?.controller || truncatedAddress}</p>
+            {isEditing ? (
+              <Input 
+                defaultValue={orbisUser?.controller || truncatedAddress}
+                className="font-mono text-sm"
+              />
+            ) : (
+              <p className="font-mono text-sm">{orbisUser?.controller || truncatedAddress}</p>
+            )}
           </div>
           
           <div className="space-y-2">
