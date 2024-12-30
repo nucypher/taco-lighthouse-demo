@@ -1,4 +1,5 @@
 import { tracksClient } from "@/integrations/orbis/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export async function uploadTrackToLighthouse(
   audioData: ArrayBuffer,
@@ -12,17 +13,23 @@ export async function uploadTrackToLighthouse(
     formDataToSend.append('coverArt', new Blob([coverArtData]));
   }
 
-  const response = await fetch('/api/upload-to-lighthouse', {
-    method: 'POST',
-    body: formDataToSend
+  const { data, error } = await supabase.functions.invoke('upload-to-lighthouse', {
+    body: {
+      audioData: Array.from(new Uint8Array(audioData)),
+      coverArtData: coverArtData ? Array.from(new Uint8Array(coverArtData)) : null
+    }
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`Upload failed: ${errorData.message || 'Unknown error'}`);
+  if (error) {
+    console.error('Upload error:', error);
+    throw new Error(`Upload failed: ${error.message || 'Unknown error'}`);
   }
 
-  return await response.json();
+  if (!data) {
+    throw new Error('No response data received from upload');
+  }
+
+  return data;
 }
 
 export async function saveTrackMetadata(
