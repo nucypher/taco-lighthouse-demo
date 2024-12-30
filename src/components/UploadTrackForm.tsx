@@ -113,11 +113,9 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
         id: toastId,
       });
 
-      const formData = new FormData();
       const { audioCid, coverArtCid } = await uploadTrackToLighthouse(
         encryptedAudioData,
-        coverArtBuffer,
-        formData
+        coverArtBuffer
       );
       console.log('✅ Upload successful:', { audioCid, coverArtCid });
 

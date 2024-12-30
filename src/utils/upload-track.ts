@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export async function uploadTrackToLighthouse(
   audioData: ArrayBuffer,
-  coverArtData: ArrayBuffer | null,
+  coverArtData: ArrayBuffer | null
 ): Promise<{ audioCid: string; coverArtCid?: string }> {
   console.log('Starting upload to Lighthouse...', {
     audioDataSize: audioData.byteLength,
