@@ -1,76 +1,66 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { usePrivy, User as PrivyUser } from "@privy-io/react-auth";
-import { toast } from "sonner";
-import { useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallet } from "./WalletContext";
+import { connectOrbisUser, isOrbisUserConnected, getOrbisConnectedUser } from "@/integrations/orbis/client";
 
 interface AuthContextType {
-  privyUser: PrivyUser | null;
-  isLoading: boolean;
   isAuthenticated: boolean;
+  isLoading: boolean;
   logout: () => Promise<void>;
-  login: () => Promise<void>;
+  orbisUser: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  console.log('Initializing AuthProvider');
+  const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser, logout: privyLogout } = usePrivy();
+  const { wallet } = useWallet();
   const [isLoading, setIsLoading] = useState(true);
-  
-  const { 
-    ready: privyReady,
-    authenticated: privyAuthenticated,
-    user: privyUser,
-    logout: privyLogout,
-    login: privyLogin
-  } = usePrivy();
-
-  const { wallets } = useWallets();
+  const [orbisUser, setOrbisUser] = useState<any>(null);
 
   useEffect(() => {
-    console.log('Auth state changed:', { 
-      privyReady, 
-      privyAuthenticated, 
-      privyUser,
-      walletCount: wallets.length
-    });
-    
-    if (privyReady) {
+    console.log('Initializing AuthProvider');
+    console.log('Auth state:', { privyReady, privyAuthenticated, privyUser });
+
+    async function initializeOrbisAuth() {
+      if (privyAuthenticated && wallet?.accounts?.[0]?.address) {
+        try {
+          const isConnected = await isOrbisUserConnected(wallet.accounts[0].address);
+          if (!isConnected) {
+            await connectOrbisUser(window.ethereum);
+          }
+          const user = await getOrbisConnectedUser();
+          setOrbisUser(user);
+        } catch (error) {
+          console.error('Failed to initialize Orbis auth:', error);
+        }
+      }
       setIsLoading(false);
     }
-  }, [privyReady, privyAuthenticated, privyUser, wallets]);
 
-  const handleLogin = async () => {
-    try {
-      console.log('Initiating login...');
-      await privyLogin();
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Failed to login');
+    if (privyReady) {
+      initializeOrbisAuth();
     }
-  };
+  }, [privyReady, privyAuthenticated, wallet]);
 
-  const handleLogout = async () => {
+  const logout = async () => {
     try {
-      console.log('Logging out...');
       await privyLogout();
-      toast.success('Logged out successfully');
+      setOrbisUser(null);
     } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Failed to logout');
+      console.error('Error during logout:', error);
     }
-  };
-
-  const value = {
-    privyUser,
-    isLoading: isLoading || !privyReady,
-    isAuthenticated: Boolean(privyAuthenticated),
-    logout: handleLogout,
-    login: handleLogin
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: Boolean(privyAuthenticated && orbisUser),
+        isLoading,
+        logout,
+        orbisUser
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
