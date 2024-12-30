@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
-import { Edit2, User, Clock, Check, X } from "lucide-react";
+import { Edit2, User, Clock, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatWalletAddress } from "@/utils/format";
 import { useState } from "react";
@@ -13,18 +13,19 @@ import { orbisdb } from "@/integrations/orbis/base-client";
 
 export default function Profile() {
   const { wallet } = useWallet();
-  const { orbisUser } = useAuth();
+  const { orbisUser, isLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(orbisUser?.name || '');
   const [isSaving, setIsSaving] = useState(false);
   
-  console.log('Profile page - Current Orbis user:', orbisUser);
+  console.log('Profile page - Current state:', { 
+    orbisUser, 
+    isLoading,
+    wallet: wallet?.accounts?.[0]?.address 
+  });
   
   const address = wallet?.accounts?.[0]?.address;
   const truncatedAddress = address ? formatWalletAddress(address) : "Not connected";
-  const lastUpdated = orbisUser?.updated_at 
-    ? new Date(orbisUser.updated_at).toLocaleDateString()
-    : "Not available";
 
   const handleSave = async () => {
     if (!orbisUser?.id) {
@@ -34,16 +35,22 @@ export default function Profile() {
 
     try {
       setIsSaving(true);
-      console.log('Saving profile changes...', { editedName, userId: orbisUser.id });
+      console.log('Saving profile changes...', { 
+        editedName, 
+        userId: orbisUser.id 
+      });
 
       await orbisdb
         .update(orbisUser.id)
         .set({
           name: editedName,
-          updatedAt: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
         .run();
 
+      // Add a small delay to ensure the update is processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast.success("Profile updated successfully");
       setIsEditing(false);
     } catch (error: any) {
@@ -58,6 +65,36 @@ export default function Profile() {
     setEditedName(orbisUser?.name || '');
     setIsEditing(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="container max-w-2xl py-10">
+        <Card>
+          <CardContent className="flex items-center justify-center py-20">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-muted-foreground">Loading profile...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!orbisUser) {
+    return (
+      <div className="container max-w-2xl py-10">
+        <Card>
+          <CardContent className="flex items-center justify-center py-20">
+            <div className="flex flex-col items-center gap-4">
+              <User className="h-8 w-8 text-muted-foreground" />
+              <p className="text-muted-foreground">No profile found. Please connect your wallet.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-2xl py-10">
@@ -106,7 +143,11 @@ export default function Profile() {
                     onClick={handleSave}
                     disabled={isSaving}
                   >
-                    <Check className="h-4 w-4" />
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
                   </Button>
                 </>
               ) : (
@@ -138,7 +179,9 @@ export default function Profile() {
               Last Updated
             </Label>
             <p className="text-sm text-muted-foreground">
-              {lastUpdated}
+              {orbisUser?.updated_at 
+                ? new Date(orbisUser.updated_at).toLocaleDateString()
+                : "Not available"}
             </p>
           </div>
         </CardContent>
