@@ -24,14 +24,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createOrbisProfile = async (address: string) => {
     try {
       console.log('Checking if user profile exists in Orbis...');
-      const existingProfiles = await orbisdb.query(USER_MODEL_ID).first().run();
+      const { rows: existingProfiles } = await orbisdb
+        .select()
+        .from(USER_MODEL_ID)
+        .where({ address })
+        .run();
       
-      if (!existingProfiles) {
+      if (!existingProfiles || existingProfiles.length === 0) {
         console.log('Creating new user profile in Orbis...');
         const result = await orbisdb
           .insert(USER_MODEL_ID)
           .value({
             name: '',  // Can be updated later
+            address,
             createdAt: new Date().toISOString()
           })
           .run();
@@ -39,8 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ User profile created:', result);
         return result;
       } else {
-        console.log('User profile already exists:', existingProfiles);
-        return existingProfiles;
+        console.log('User profile already exists:', existingProfiles[0]);
+        return existingProfiles[0];
       }
     } catch (error) {
       console.error('Failed to create/check Orbis profile:', error);
