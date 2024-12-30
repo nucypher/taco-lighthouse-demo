@@ -10,7 +10,6 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { orbisdb } from "@/integrations/orbis/base-client";
-import { ORBIS_CONFIG } from "@/integrations/orbis/config";
 
 export default function Profile() {
   const { wallet } = useWallet();
@@ -43,7 +42,6 @@ export default function Profile() {
           name: editedName,
           updated_at: new Date().toISOString()
         })
-        .context(ORBIS_CONFIG.CONTEXT_ID)
         .run();
 
       console.log('Profile update result:', result);
