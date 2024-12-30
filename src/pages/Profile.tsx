@@ -13,6 +13,7 @@ export default function Profile() {
   const { wallet } = useWallet();
   const { orbisUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(orbisUser?.name || '');
   
   console.log('Profile page - Current Orbis user:', orbisUser);
   
@@ -37,7 +38,8 @@ export default function Profile() {
               <div className="space-y-1 min-w-0 flex-1">
                 {isEditing ? (
                   <Input 
-                    defaultValue={orbisUser?.name || truncatedAddress}
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
                     className="max-w-[200px]"
                     placeholder="Enter your name"
                   />
@@ -87,16 +89,9 @@ export default function Profile() {
               <User className="h-4 w-4" />
               Controller
             </Label>
-            {isEditing ? (
-              <Input 
-                defaultValue={orbisUser?.controller || truncatedAddress}
-                className="font-mono text-sm"
-              />
-            ) : (
-              <p className="font-mono text-sm truncate">
-                {orbisUser?.controller || truncatedAddress}
-              </p>
-            )}
+            <p className="font-mono text-sm truncate">
+              {orbisUser?.controller || truncatedAddress}
+            </p>
           </div>
           
           <div className="space-y-2">
