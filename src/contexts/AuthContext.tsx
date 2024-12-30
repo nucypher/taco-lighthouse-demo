@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallet } from "./WalletContext";
-import { connectOrbisUser, isOrbisUserConnected, getOrbisConnectedUser } from "@/integrations/orbis/client";
+import { connectOrbisUser, isOrbisUserConnected, getOrbisConnectedUser, orbisdb } from "@/integrations/orbis/client";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -12,11 +12,36 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const USER_MODEL_ID = "kjzl6hvfrbw6c7j8otyyccaetle63o1m27zafs06csb24bljk1imyns9klda994";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser, logout: privyLogout } = usePrivy();
   const { wallet } = useWallet();
   const [isLoading, setIsLoading] = useState(true);
   const [orbisUser, setOrbisUser] = useState<any>(null);
+
+  const createOrbisProfile = async (address: string) => {
+    try {
+      console.log('Checking if user profile exists in Orbis...');
+      const existingProfiles = await orbisdb.model(USER_MODEL_ID).query();
+      
+      if (existingProfiles.length === 0) {
+        console.log('Creating new user profile in Orbis...');
+        const newProfile = await orbisdb.model(USER_MODEL_ID).create({
+          name: '',  // Can be updated later
+          createdAt: new Date().toISOString()
+        });
+        console.log('✅ User profile created:', newProfile);
+        return newProfile;
+      } else {
+        console.log('User profile already exists:', existingProfiles[0]);
+        return existingProfiles[0];
+      }
+    } catch (error) {
+      console.error('Failed to create/check Orbis profile:', error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     console.log('Initializing AuthProvider');
@@ -31,6 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           const user = await getOrbisConnectedUser();
           setOrbisUser(user);
+          
+          // Create or verify Orbis profile
+          await createOrbisProfile(wallet.accounts[0].address);
         } catch (error) {
           console.error('Failed to initialize Orbis auth:', error);
         }
