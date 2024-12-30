@@ -6,7 +6,7 @@ const TRACKS_MODEL_ID = "your-tracks-model-id"; // Replace with your actual mode
 export async function getAllTracks(): Promise<Track[]> {
   console.log("🎵 Fetching all tracks from OrbisDB...");
   try {
-    const tracks = await orbisdb.from(TRACKS_MODEL_ID).select().run();
+    const tracks = await orbisdb.query(TRACKS_MODEL_ID).run();
     console.log("✅ Tracks fetched successfully:", tracks);
     return tracks || [];
   } catch (error) {
@@ -24,7 +24,7 @@ export async function createTrack(track: TrackModel): Promise<Track> {
       .run();
     
     console.log("✅ Track created successfully:", result);
-    return result;
+    return result as Track;
   } catch (error) {
     console.error("❌ Error creating track:", error);
     throw error;
