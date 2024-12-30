@@ -16,11 +16,13 @@ export async function uploadTrackToLighthouse(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Upload failed: ${error.message}`);
+    const errorData = await response.json();
+    throw new Error(`Upload failed: ${errorData.message}`);
   }
 
-  return response.json();
+  // Store the JSON response in a variable to avoid consuming it twice
+  const responseData = await response.json();
+  return responseData;
 }
 
 export async function saveTrackMetadata(
