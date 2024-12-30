@@ -9,12 +9,13 @@ import { usePrivy } from "@privy-io/react-auth";
 export const WalletButton = () => {
   const { wallet } = useWallet();
   const { isAuthenticated, isLoading, logout } = useAuth();
-  const { login } = usePrivy();
+  const { login, authenticated } = usePrivy();
 
   console.log('WalletButton state:', { 
     wallet, 
     isAuthenticated,
     isLoading,
+    authenticated,
     connectedAddress: wallet?.accounts?.[0]?.address
   });
 
@@ -56,7 +57,12 @@ export const WalletButton = () => {
   return (
     <Button 
       variant="default"
-      onClick={() => login()}
+      onClick={() => {
+        // Only attempt login if not already authenticated
+        if (!authenticated) {
+          login();
+        }
+      }}
       className="rounded-full font-medium whitespace-nowrap text-sm"
     >
       Connect Wallet
