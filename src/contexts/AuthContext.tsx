@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitializingOrbis, setIsInitializingOrbis] = useState(false);
 
   const initializeOrbisAuth = useCallback(async () => {
-    // Skip if already initialized, initializing, not authenticated, or no wallet
     if (
       hasInitializedOrbis || 
       isInitializingOrbis || 
@@ -38,8 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsInitializingOrbis(true);
       console.log('Starting Orbis initialization...');
       
-      // Check if user is already connected to Orbis
+      // Check if there's an existing session first
       const isConnected = await orbisdb.isUserConnected();
+      console.log('Checking existing Orbis connection:', isConnected);
+      
       if (isConnected) {
         console.log('User already connected to Orbis');
         const user = await userClient.getOrbisUser(wallet.accounts[0].address);
@@ -47,18 +48,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('Found existing Orbis user:', user);
           setOrbisUser(user);
           setHasInitializedOrbis(true);
+          setIsLoading(false);
           return;
         }
       }
 
-      // If not connected or no user found, proceed with new connection
-      console.log('Connecting new Orbis user with wallet:', wallet.accounts[0].address);
+      // If no valid session exists, create a new one
+      console.log('Creating new Orbis connection...');
       const provider = await wallet.getEthereumProvider();
       const auth = new OrbisEVMAuth(provider);
-      await orbisdb.connectUser({ auth });
+      const authResult = await orbisdb.connectUser({ auth });
+      console.log('Orbis auth result:', authResult);
       
       const user = await userClient.connectOrbisUser(wallet.accounts[0].address);
-      console.log('New Orbis user connected:', user);
+      console.log('Connected Orbis user:', user);
       setOrbisUser(user);
       setHasInitializedOrbis(true);
     } catch (error) {
@@ -88,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Only initialize if we haven't already and we're not in the process of initializing
     if (!hasInitializedOrbis && !isInitializingOrbis) {
       initializeOrbisAuth();
     }
@@ -96,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      await orbisdb.disconnectUser();
       await privyLogout();
       setOrbisUser(null);
       setHasInitializedOrbis(false);
