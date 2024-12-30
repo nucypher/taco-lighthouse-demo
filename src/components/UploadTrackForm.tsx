@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "./ui/button";
+import { UploadFormFields } from "./upload/UploadFormFields";
+import { TacoConditionsForm } from "./TacoConditionsForm";
 
 interface UploadTrackFormProps {
   onSuccess?: () => void;
