@@ -44,12 +44,15 @@ export default function Profile() {
         })
         .run();
 
+      // Add a small delay to ensure the response is properly handled
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       console.log('Profile update result:', result);
       toast.success("Profile updated successfully");
       setIsEditing(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error("Failed to update profile");
+      toast.error(error.message || "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
