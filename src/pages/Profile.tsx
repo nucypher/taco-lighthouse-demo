@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, User, Controller, Clock } from "lucide-react";
+import { Home, User, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatWalletAddress } from "@/utils/format";
 
@@ -50,8 +50,8 @@ export default function Profile() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              <Controller className="h-4 w-4" />
-              Controller Address
+              <User className="h-4 w-4" />
+              Wallet Address
             </Label>
             <p className="font-mono text-sm">{truncatedAddress}</p>
           </div>
