@@ -1,14 +1,10 @@
 import { useState } from "react";
-import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { TacoConditionsForm } from "./TacoConditionsForm";
 import { conditions, initialize } from '@nucypher/taco';
 import { ethers } from "ethers";
-import { createTestBuffer } from "@/utils/dev-mode";
 import { encryptAudioFile } from "@/utils/encryption";
 import { saveTrackMetadata, uploadTrackToLighthouse } from "@/utils/upload-track";
 import { toast } from "sonner";
-import { UploadFormFields } from "./upload/UploadFormFields";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,7 +23,6 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
   const { isAuthenticated, privyUser } = useAuth();
   const { wallet } = useWallet();
   const queryClient = useQueryClient();
-  const devMode = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +41,7 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
       return;
     }
 
-    if (!title || (!audioFile && !devMode)) {
+    if (!title || !audioFile) {
       useToastHook({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -83,28 +78,21 @@ export const UploadTrackForm = ({ onSuccess, onClose }: UploadTrackFormProps) =>
       const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
       console.log('✅ Web3 provider ready');
 
-      let encryptedAudioData: ArrayBuffer;
       let coverArtBuffer: ArrayBuffer | null = null;
 
-      if (devMode) {
-        const testBuffer = createTestBuffer();
-        encryptedAudioData = testBuffer;
-        coverArtBuffer = testBuffer;
-      } else {
-        const audioBuffer = await audioFile!.arrayBuffer();
-        console.log('✅ Audio file read, size:', audioBuffer.byteLength / 1024, 'KB');
-        toast.loading(`Uploading ${title}...`, {
-          description: "Encrypting audio...",
-          id: toastId,
-        });
+      const audioBuffer = await audioFile!.arrayBuffer();
+      console.log('✅ Audio file read, size:', audioBuffer.byteLength / 1024, 'KB');
+      toast.loading(`Uploading ${title}...`, {
+        description: "Encrypting audio...",
+        id: toastId,
+      });
 
-        encryptedAudioData = await encryptAudioFile(audioBuffer, condition, web3Provider);
-        console.log('✅ Audio encrypted, size:', encryptedAudioData.byteLength / 1024, 'KB');
+      const encryptedAudioData = await encryptAudioFile(audioBuffer, condition, web3Provider);
+      console.log('✅ Audio encrypted, size:', encryptedAudioData.byteLength / 1024, 'KB');
 
-        if (coverArt) {
-          coverArtBuffer = await coverArt.arrayBuffer();
-          console.log('✅ Cover art read, size:', coverArtBuffer.byteLength / 1024, 'KB');
-        }
+      if (coverArt) {
+        coverArtBuffer = await coverArt.arrayBuffer();
+        console.log('✅ Cover art read, size:', coverArtBuffer.byteLength / 1024, 'KB');
       }
 
       toast.loading(`Uploading ${title}...`, {
