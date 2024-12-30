@@ -36,18 +36,14 @@ export default function Profile() {
       setIsSaving(true);
       console.log('Saving profile changes...', { editedName, userId: orbisUser.id });
 
-      const result = await orbisdb
+      await orbisdb
         .update(orbisUser.id)
         .set({
           name: editedName,
-          updated_at: new Date().toISOString()
+          updatedAt: new Date().toISOString()
         })
         .run();
 
-      // Add a small delay to ensure the response is properly handled
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      console.log('Profile update result:', result);
       toast.success("Profile updated successfully");
       setIsEditing(false);
     } catch (error: any) {
