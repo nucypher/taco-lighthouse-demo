@@ -38,12 +38,11 @@ export default function Profile() {
       console.log('Saving profile changes...', { editedName, userId: orbisUser.id });
 
       const result = await orbisdb
-        .update(ORBIS_CONFIG.MODELS.USERS)
+        .update(orbisUser.id)
         .set({
           name: editedName,
           updated_at: new Date().toISOString()
         })
-        .where({ id: orbisUser.id })
         .context(ORBIS_CONFIG.CONTEXT_ID)
         .run();
 
