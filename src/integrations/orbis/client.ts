@@ -10,14 +10,13 @@ export const orbisdb = new OrbisDB({
   },
   nodes: [
     {
-      gateway: ORBIS_NODE_URL
+      gateway: ORBIS_NODE_URL,
+      env: ENVIRONMENT_ID
     }
-  ],
-  environment: ENVIRONMENT_ID,
+  ]
 });
 
 console.log("🌍 OrbisDB client initialized with:", {
   ceramic: CERAMIC_NODE_URL,
-  nodes: [ORBIS_NODE_URL],
-  environment: ENVIRONMENT_ID,
+  nodes: [{ gateway: ORBIS_NODE_URL, env: ENVIRONMENT_ID }]
 });

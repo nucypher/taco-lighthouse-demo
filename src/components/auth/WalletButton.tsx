@@ -8,15 +8,14 @@ import { usePrivy } from "@privy-io/react-auth";
 
 export const WalletButton = () => {
   const { wallet } = useWallet();
-  const { isAuthenticated, isLoading, logout, did } = useAuth();
+  const { isAuthenticated, isLoading, logout } = useAuth();
   const { login } = usePrivy();
 
   console.log('WalletButton state:', { 
     wallet, 
     isAuthenticated,
     isLoading,
-    connectedAddress: wallet?.accounts?.[0]?.address,
-    didAuthenticated: Boolean(did)
+    connectedAddress: wallet?.accounts?.[0]?.address
   });
 
   if (isLoading) {
@@ -35,13 +34,12 @@ export const WalletButton = () => {
   if (isAuthenticated && wallet) {
     const connectedAddress = wallet.accounts?.[0]?.address;
     const truncatedAddress = connectedAddress ? formatWalletAddress(connectedAddress) : '';
-    const didStatus = did ? '✓ DID' : 'DID...';
 
     return (
       <div className="flex items-center gap-2">
         <Link to="/profile">
           <Button variant="secondary" className="rounded-full font-medium">
-            {truncatedAddress} {didStatus}
+            {truncatedAddress}
           </Button>
         </Link>
         <Button 
