@@ -4,8 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 export async function uploadTrackToLighthouse(
   audioData: ArrayBuffer,
   coverArtData: ArrayBuffer | null,
-  formData: FormData
 ): Promise<{ audioCid: string; coverArtCid?: string }> {
+  console.log('Starting upload to Lighthouse...', {
+    audioDataSize: audioData.byteLength,
+    hasCoverArt: !!coverArtData
+  });
+
   const { data, error } = await supabase.functions.invoke('upload-to-lighthouse', {
     body: {
       audioData: Array.from(new Uint8Array(audioData)),
@@ -22,6 +26,7 @@ export async function uploadTrackToLighthouse(
     throw new Error('No response data received from upload');
   }
 
+  console.log('Upload successful:', data);
   return data;
 }
 
