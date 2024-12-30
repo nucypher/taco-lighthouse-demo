@@ -29,7 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (privyAuthenticated && wallet?.accounts?.[0]?.address) {
         try {
           console.log('Attempting to connect Orbis with wallet:', wallet);
-          const auth = new OrbisEVMAuth(wallet);
+          const provider = await wallet.getEthereumProvider();
+          const auth = new OrbisEVMAuth(provider);
           await orbisdb.connectUser({ auth });
           
           const user = await userClient.connectOrbisUser(wallet.accounts[0].address);
