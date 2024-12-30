@@ -1,9 +1,9 @@
 export interface Track {
   id: string;
   title: string;
-  owner_id: string;
-  ipfs_cid: string;
-  cover_art_cid?: string;
+  ipfsCID: string;
+  artworkCID?: string;
+  owner_id?: string;
   created_at?: string;
   updated_at?: string;
 }

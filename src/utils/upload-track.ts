@@ -6,13 +6,6 @@ export async function uploadTrackToLighthouse(
   coverArtData: ArrayBuffer | null,
   formData: FormData
 ): Promise<{ audioCid: string; coverArtCid?: string }> {
-  const formDataToSend = new FormData();
-  formDataToSend.append('audioData', new Blob([audioData]));
-  
-  if (coverArtData) {
-    formDataToSend.append('coverArt', new Blob([coverArtData]));
-  }
-
   const { data, error } = await supabase.functions.invoke('upload-to-lighthouse', {
     body: {
       audioData: Array.from(new Uint8Array(audioData)),
@@ -47,8 +40,8 @@ export async function saveTrackMetadata(
 
   await tracksClient.createTrack({
     title,
-    owner_id: ownerId,
-    ipfs_cid: audioCid,
-    cover_art_cid: coverArtCid
+    ipfsCID: audioCid,
+    artworkCID: coverArtCid,
+    owner_id: ownerId
   });
 }

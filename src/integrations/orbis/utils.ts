@@ -7,7 +7,11 @@ export class TracksClient extends BaseOrbisClient {
     console.log("🎵 Fetching all tracks...");
     try {
       const { rows } = await this.query(ORBIS_CONFIG.MODELS.TRACKS).run();
-      return rows as Track[] || [];
+      return rows.map(track => ({
+        ...track,
+        ipfsCID: track.ipfsCID || track.ipfs_cid, // Handle both formats for backward compatibility
+        artworkCID: track.artworkCID || track.cover_art_cid // Handle both formats for backward compatibility
+      })) as Track[];
     } catch (error) {
       console.error("❌ Error fetching tracks:", error);
       throw error;
@@ -17,7 +21,11 @@ export class TracksClient extends BaseOrbisClient {
   async createTrack(data: Omit<Track, 'id' | 'created_at' | 'updated_at'>): Promise<Track> {
     console.log("🎵 Creating new track...");
     try {
-      return await this.insert(ORBIS_CONFIG.MODELS.TRACKS, data) as unknown as Track;
+      return await this.insert(ORBIS_CONFIG.MODELS.TRACKS, {
+        title: data.title,
+        ipfsCID: data.ipfsCID,
+        artworkCID: data.artworkCID,
+      }) as unknown as Track;
     } catch (error) {
       console.error("❌ Error creating track:", error);
       throw error;
