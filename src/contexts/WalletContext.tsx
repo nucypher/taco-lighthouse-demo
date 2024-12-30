@@ -7,6 +7,7 @@ interface WalletContextType {
     accounts?: Array<{
       address: string;
     }>;
+    getEthereumProvider: () => Promise<any>;
   } | null;
   setWallet: (wallet: any) => void;
 }
@@ -22,7 +23,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     label: wallets[0].walletClientType,
     accounts: [{
       address: wallets[0].address
-    }]
+    }],
+    getEthereumProvider: wallets[0].getEthereumProvider
   } : null;
 
   console.log('[WALLET] Privy state:', { ready, authenticated, user, wallets });
