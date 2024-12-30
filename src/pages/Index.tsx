@@ -5,15 +5,8 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { useTrackPlayback } from "@/hooks/use-track-playback";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Track {
-  id: string;
-  title: string;
-  owner_id: string;
-  cover_art_cid?: string;
-  ipfs_cid: string;
-}
+import { tracksClient } from "@/integrations/orbis/utils";
+import { Track } from "@/types/ceramic";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,14 +17,8 @@ const Index = () => {
   const { data: tracks, isLoading, error } = useQuery({
     queryKey: ['tracks'],
     queryFn: async () => {
-      console.log('Fetching tracks from Supabase...');
-      const { data, error } = await supabase
-        .from('tracks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as Track[];
+      console.log('Fetching tracks from Orbis...');
+      return tracksClient.getAllTracks();
     }
   });
 
@@ -53,8 +40,8 @@ const Index = () => {
       handlePlay({
         title: featuredTrack.title,
         owner_id: featuredTrack.owner_id,
-        ipfs_cid: featuredTrack.ipfs_cid,
-        cover_art_cid: featuredTrack.cover_art_cid
+        ipfs_cid: featuredTrack.ipfsCID,
+        cover_art_cid: featuredTrack.artworkCID
       });
     }
   };
@@ -79,7 +66,7 @@ const Index = () => {
         <section className="mb-6 md:mb-12">
           <div className="relative h-[200px] md:h-[400px] rounded-xl overflow-hidden">
             <img
-              src={getArtworkUrl(featuredTrack.cover_art_cid)}
+              src={getArtworkUrl(featuredTrack.artworkCID)}
               alt={featuredTrack.title}
               className="w-full h-full object-cover"
             />
@@ -120,10 +107,10 @@ const Index = () => {
                 trackId={track.id}
                 title={track.title}
                 artist={track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist'}
-                coverUrl={getArtworkUrl(track.cover_art_cid)}
-                ipfsCid={track.ipfs_cid}
+                coverUrl={getArtworkUrl(track.artworkCID)}
+                ipfsCid={track.ipfsCID}
                 owner_id={track.owner_id}
-                cover_art_cid={track.cover_art_cid}
+                cover_art_cid={track.artworkCID}
               />
             ))
           ) : (

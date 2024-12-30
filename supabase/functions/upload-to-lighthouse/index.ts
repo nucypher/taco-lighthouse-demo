@@ -11,17 +11,18 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData()
-    const audioData = formData.get('audioData')
-    const coverArt = formData.get('coverArt')
+    const { audioData, coverArtData } = await req.json()
 
     if (!audioData) {
       throw new Error('No audio data provided')
     }
 
+    // Convert array back to Uint8Array
+    const audioBuffer = new Uint8Array(audioData).buffer
+    
     // Upload encrypted audio to Lighthouse
     const audioFormData = new FormData()
-    audioFormData.append('file', audioData)
+    audioFormData.append('file', new Blob([audioBuffer]))
 
     console.log('Uploading encrypted audio to Lighthouse...')
     const audioUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {
@@ -40,10 +41,13 @@ serve(async (req) => {
     console.log('Audio upload successful:', audioUploadData)
 
     let coverArtCid = null
-    if (coverArt) {
+    if (coverArtData) {
+      // Convert array back to Uint8Array for cover art
+      const coverArtBuffer = new Uint8Array(coverArtData).buffer
+      
       // Upload cover art to Lighthouse
       const coverArtFormData = new FormData()
-      coverArtFormData.append('file', coverArt)
+      coverArtFormData.append('file', new Blob([coverArtBuffer]))
 
       console.log('Uploading cover art to Lighthouse...')
       const coverArtUploadResponse = await fetch('https://node.lighthouse.storage/api/v0/add', {

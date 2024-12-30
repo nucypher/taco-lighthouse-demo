@@ -1,3 +1,4 @@
+import { tracksClient } from "@/integrations/orbis/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 export async function uploadTrackToLighthouse(
@@ -5,17 +6,20 @@ export async function uploadTrackToLighthouse(
   coverArtData: ArrayBuffer | null,
   formData: FormData
 ): Promise<{ audioCid: string; coverArtCid?: string }> {
-  formData.append('audioData', new Blob([audioData]));
-  if (coverArtData) {
-    formData.append('coverArt', new Blob([coverArtData]));
-  }
-
   const { data, error } = await supabase.functions.invoke('upload-to-lighthouse', {
-    body: formData
+    body: {
+      audioData: Array.from(new Uint8Array(audioData)),
+      coverArtData: coverArtData ? Array.from(new Uint8Array(coverArtData)) : null
+    }
   });
 
   if (error) {
-    throw new Error(`Upload failed: ${error.message}`);
+    console.error('Upload error:', error);
+    throw new Error(`Upload failed: ${error.message || 'Unknown error'}`);
+  }
+
+  if (!data) {
+    throw new Error('No response data received from upload');
   }
 
   return data;
@@ -27,14 +31,17 @@ export async function saveTrackMetadata(
   audioCid: string,
   coverArtCid?: string
 ) {
-  const { error } = await supabase
-    .from('tracks')
-    .insert({
-      title,
-      owner_id: ownerId,
-      ipfs_cid: audioCid,
-      cover_art_cid: coverArtCid
-    });
+  console.log('Saving track metadata to Orbis:', {
+    title,
+    ownerId,
+    audioCid,
+    coverArtCid
+  });
 
-  if (error) throw error;
+  await tracksClient.createTrack({
+    title,
+    ipfsCID: audioCid,
+    artworkCID: coverArtCid,
+    owner_id: ownerId
+  });
 }
