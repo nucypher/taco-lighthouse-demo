@@ -4,6 +4,7 @@ import { useWallet } from "./WalletContext";
 import { orbisdb } from "@/integrations/orbis/base-client";
 import { OrbisUser, userClient } from "@/integrations/orbis/user";
 import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
+import { toast } from "sonner";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -24,12 +25,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitializingOrbis, setIsInitializingOrbis] = useState(false);
 
   const initializeOrbisAuth = useCallback(async () => {
-    if (
-      hasInitializedOrbis || 
-      isInitializingOrbis || 
-      !privyAuthenticated || 
-      !wallet?.accounts?.[0]?.address
-    ) {
+    if (!privyAuthenticated || !wallet?.accounts?.[0]?.address) {
+      console.log('Cannot initialize Orbis: missing authentication or wallet', {
+        privyAuthenticated,
+        walletAddress: wallet?.accounts?.[0]?.address
+      });
+      return;
+    }
+
+    if (hasInitializedOrbis || isInitializingOrbis) {
+      console.log('Skipping Orbis initialization - already initialized or in progress', {
+        hasInitializedOrbis,
+        isInitializingOrbis
+      });
       return;
     }
 
@@ -44,8 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isConnected) {
         console.log('User already connected to Orbis');
         const user = await userClient.getOrbisUser(wallet.accounts[0].address);
+        console.log('Retrieved existing Orbis user:', user);
+        
         if (user) {
-          console.log('Found existing Orbis user:', user);
           setOrbisUser(user);
           setHasInitializedOrbis(true);
           setIsLoading(false);
@@ -60,12 +69,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const authResult = await orbisdb.connectUser({ auth });
       console.log('Orbis auth result:', authResult);
       
+      // Create or get the Orbis user
       const user = await userClient.connectOrbisUser(wallet.accounts[0].address);
       console.log('Connected Orbis user:', user);
+      
+      if (!user) {
+        throw new Error('Failed to create or get Orbis user');
+      }
+      
       setOrbisUser(user);
       setHasInitializedOrbis(true);
+      toast.success("Successfully connected to Orbis");
     } catch (error) {
       console.error('Failed to initialize Orbis auth:', error);
+      toast.error("Failed to connect to Orbis. Please try again.");
+      // Reset states on error
+      setOrbisUser(null);
+      setHasInitializedOrbis(false);
     } finally {
       setIsInitializingOrbis(false);
       setIsLoading(false);
@@ -77,8 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       privyReady, 
       privyAuthenticated, 
       hasWallet: Boolean(wallet),
+      walletAddress: wallet?.accounts?.[0]?.address,
       hasInitializedOrbis,
-      isInitializingOrbis 
+      isInitializingOrbis,
+      currentOrbisUser: orbisUser
     });
 
     if (!privyReady) return;
@@ -91,20 +113,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!hasInitializedOrbis && !isInitializingOrbis) {
-      initializeOrbisAuth();
-    }
-  }, [privyReady, privyAuthenticated, wallet, initializeOrbisAuth, hasInitializedOrbis, isInitializingOrbis]);
+    initializeOrbisAuth();
+  }, [privyReady, privyAuthenticated, wallet, initializeOrbisAuth]);
 
   const logout = async () => {
     try {
+      console.log('Starting logout process...');
       await orbisdb.disconnectUser();
       await privyLogout();
       setOrbisUser(null);
       setHasInitializedOrbis(false);
       setIsInitializingOrbis(false);
+      toast.success("Successfully logged out");
     } catch (error) {
       console.error('Error during logout:', error);
+      toast.error("Error during logout");
     }
   };
 
