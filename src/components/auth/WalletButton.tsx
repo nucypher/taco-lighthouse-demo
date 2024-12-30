@@ -1,53 +1,73 @@
 import { Button } from "@/components/ui/button";
-import { usePrivy } from "@privy-io/react-auth";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
 import { formatWalletAddress } from "@/utils/format";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
+import { usePrivy } from "@privy-io/react-auth";
 
 export const WalletButton = () => {
-  const { login, ready, authenticated } = usePrivy();
   const { wallet } = useWallet();
+  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { login, ready, authenticated } = usePrivy();
 
-  // Add logging for component state
-  console.log('WalletButton state:', { 
+  console.log('WalletButton detailed state:', { 
     wallet, 
+    isAuthenticated,
+    isLoading,
     ready,
-    authenticated,
-    connectedAddress: wallet?.accounts?.[0]?.address 
+    privyAuthenticated: authenticated,
+    connectedAddress: wallet?.accounts?.[0]?.address,
+    hasWallet: Boolean(wallet),
   });
 
-  // Show loading state while Privy is initializing
-  if (!ready) {
+  if (isLoading) {
     return (
       <Button 
         variant="default"
         disabled
         className="rounded-full font-medium whitespace-nowrap text-sm"
       >
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         Loading...
       </Button>
     );
   }
 
-  // Show profile link if authenticated and wallet connected
-  if (authenticated && wallet) {
+  if (isAuthenticated && wallet) {
     const connectedAddress = wallet.accounts?.[0]?.address;
     const truncatedAddress = connectedAddress ? formatWalletAddress(connectedAddress) : '';
 
     return (
-      <Link to="/profile">
-        <Button variant="secondary" className="rounded-full font-medium">
-          {truncatedAddress}
+      <div className="flex items-center gap-2">
+        <Link to="/profile">
+          <Button variant="secondary" className="rounded-full font-medium">
+            {truncatedAddress}
+          </Button>
+        </Link>
+        <Button 
+          variant="ghost" 
+          onClick={logout}
+          className="rounded-full font-medium"
+        >
+          Logout
         </Button>
-      </Link>
+      </div>
     );
   }
 
-  // Show connect button if not authenticated
   return (
     <Button 
       variant="default"
-      onClick={() => login()}
+      onClick={() => {
+        console.log('Login button clicked. Current auth state:', {
+          ready,
+          authenticated,
+          isAuthenticated,
+          hasWallet: Boolean(wallet)
+        });
+        login();
+      }}
       className="rounded-full font-medium whitespace-nowrap text-sm"
     >
       Connect Wallet

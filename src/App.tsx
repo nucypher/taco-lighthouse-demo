@@ -48,7 +48,6 @@ const App = () => {
   const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Log the Privy App ID for debugging
   console.log('Privy App ID:', PRIVY_APP_ID);
 
   const audioPlayerValue = {
@@ -78,17 +77,38 @@ const App = () => {
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
-        loginMethods: ['wallet', 'email'],
+        loginMethods: ['farcaster', 'wallet', 'email'],
         appearance: {
           theme: 'light',
           accentColor: '#000000',
           showWalletLoginFirst: true,
         },
+        defaultChain: {
+          id: 1,
+          name: 'Ethereum',
+          network: 'mainnet',
+          nativeCurrency: {
+            name: 'Ether',
+            symbol: 'ETH',
+            decimals: 18
+          },
+          rpcUrls: {
+            default: {
+              http: ['https://eth-mainnet.g.alchemy.com/v2/your-api-key']
+            },
+            public: {
+              http: ['https://eth-mainnet.g.alchemy.com/v2/your-api-key']
+            }
+          }
+        },
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets'
+        }
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <WalletProvider>
-          <BrowserRouter>
+        <BrowserRouter>
+          <WalletProvider>
             <AuthProvider>
               <TooltipProvider>
                 <AudioPlayerContext.Provider value={audioPlayerValue}>
@@ -114,8 +134,8 @@ const App = () => {
                 </AudioPlayerContext.Provider>
               </TooltipProvider>
             </AuthProvider>
-          </BrowserRouter>
-        </WalletProvider>
+          </WalletProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </PrivyProvider>
   );
