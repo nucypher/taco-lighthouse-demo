@@ -9,19 +9,19 @@ import { usePrivy } from "@privy-io/react-auth";
 export const WalletButton = () => {
   const { wallet } = useWallet();
   const { isAuthenticated, isLoading, logout } = useAuth();
-  const { login, ready, authenticated } = usePrivy();
+  const { login, ready } = usePrivy();
 
-  console.log('WalletButton detailed state:', { 
+  console.log('WalletButton state:', { 
     wallet, 
     isAuthenticated,
     isLoading,
     ready,
-    privyAuthenticated: authenticated,
     connectedAddress: wallet?.accounts?.[0]?.address,
     hasWallet: Boolean(wallet),
   });
 
-  if (isLoading) {
+  // Show loading state only when Privy is not ready or auth is loading
+  if (!ready || isLoading) {
     return (
       <Button 
         variant="default"
@@ -60,9 +60,8 @@ export const WalletButton = () => {
     <Button 
       variant="default"
       onClick={() => {
-        console.log('Login button clicked. Current auth state:', {
+        console.log('Login button clicked. Current state:', {
           ready,
-          authenticated,
           isAuthenticated,
           hasWallet: Boolean(wallet)
         });

@@ -8,8 +8,6 @@ import { useState, createContext, useContext } from "react";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import { AudioPlayer } from "./components/AudioPlayer";
-import { AuthProvider } from "./contexts/AuthContext";
-import { WalletProvider } from "./contexts/WalletContext";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { toast } from "./components/ui/use-toast";
 
@@ -108,33 +106,29 @@ const App = () => {
     >
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <WalletProvider>
-            <AuthProvider>
-              <TooltipProvider>
-                <AudioPlayerContext.Provider value={audioPlayerValue}>
-                  <Toaster />
-                  <Sonner />
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/profile" element={<Profile />} />
-                    </Routes>
-                  </Layout>
-                  {currentTrack && (
-                    <AudioPlayer
-                      title={currentTrack.title}
-                      artist={currentTrack.artist}
-                      coverUrl={currentTrack.coverUrl}
-                      audioUrl={currentTrack.audioUrl}
-                      isPlaying={isPlaying}
-                      onPlayPause={audioPlayerValue.togglePlayPause}
-                      onClose={audioPlayerValue.stopPlayback}
-                    />
-                  )}
-                </AudioPlayerContext.Provider>
-              </TooltipProvider>
-            </AuthProvider>
-          </WalletProvider>
+          <TooltipProvider>
+            <AudioPlayerContext.Provider value={audioPlayerValue}>
+              <Toaster />
+              <Sonner />
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Routes>
+              </Layout>
+              {currentTrack && (
+                <AudioPlayer
+                  title={currentTrack.title}
+                  artist={currentTrack.artist}
+                  coverUrl={currentTrack.coverUrl}
+                  audioUrl={currentTrack.audioUrl}
+                  isPlaying={isPlaying}
+                  onPlayPause={audioPlayerValue.togglePlayPause}
+                  onClose={audioPlayerValue.stopPlayback}
+                />
+              )}
+            </AudioPlayerContext.Provider>
+          </TooltipProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </PrivyProvider>
