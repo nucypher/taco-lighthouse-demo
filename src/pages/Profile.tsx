@@ -44,7 +44,7 @@ export default function Profile() {
         .update(orbisUser.id)
         .set({
           name: editedName,
-          updated_at: new Date().toISOString()
+          updatedAt: new Date().toISOString()
         })
         .run();
 
@@ -103,7 +103,7 @@ export default function Profile() {
           <div className="flex items-center justify-between w-full">
             <CardTitle className="flex items-center gap-4 flex-1 min-w-0">
               <Avatar className="h-16 w-16 shrink-0">
-                <AvatarImage src={orbisUser?.avatar_url || ""} alt={orbisUser?.name || 'Profile picture'} />
+                <AvatarImage src={orbisUser?.avatar || ""} alt={orbisUser?.name || 'Profile picture'} />
                 <AvatarFallback>
                   <User className="h-8 w-8 text-muted-foreground" />
                 </AvatarFallback>
@@ -179,8 +179,8 @@ export default function Profile() {
               Last Updated
             </Label>
             <p className="text-sm text-muted-foreground">
-              {orbisUser?.updated_at 
-                ? new Date(orbisUser.updated_at).toLocaleDateString()
+              {orbisUser?.updatedAt 
+                ? new Date(orbisUser.updatedAt).toLocaleDateString()
                 : "Not available"}
             </p>
           </div>

@@ -18,7 +18,7 @@ export class TracksClient extends BaseOrbisClient {
     }
   }
 
-  async createTrack(data: Omit<Track, 'id' | 'created_at' | 'updated_at'>): Promise<Track> {
+  async createTrack(data: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>): Promise<Track> {
     console.log("🎵 Creating new track...");
     try {
       return await this.insert(ORBIS_CONFIG.MODELS.TRACKS, {
