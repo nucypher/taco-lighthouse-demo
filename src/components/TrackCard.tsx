@@ -26,12 +26,12 @@ export const TrackCard = ({
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
   const { handlePlay, isDecrypting } = useTrackPlayback();
 
-  // Fetch artist details from Orbis
+  // Fetch artist details from Orbis using the controller field
   const { data: artistData } = useQuery({
     queryKey: ['artist', owner_id],
     queryFn: async () => {
       if (!owner_id) return null;
-      console.log('🎵 Fetching artist data for:', owner_id);
+      console.log('🎵 Fetching artist data for controller:', owner_id);
       const user = await userClient.getOrbisUser(owner_id);
       console.log('🎵 Artist data:', user);
       return user;
@@ -54,7 +54,8 @@ export const TrackCard = ({
   };
 
   const isThisTrackPlaying = currentTrack?.title === title && currentTrack?.artist === artist && isPlaying;
-  const displayName = artistData?.name || artist;
+  // Use the name from the Orbis user data, fallback to the owner_id if not found
+  const displayName = artistData?.name || (owner_id ? `${owner_id.slice(0, 8)}...` : 'Unknown Artist');
 
   return (
     <div className="group relative overflow-hidden rounded-lg border border-border hover-scale">
