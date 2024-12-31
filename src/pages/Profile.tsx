@@ -44,7 +44,7 @@ export default function Profile() {
         .update(orbisUser.id)
         .set({
           name: editedName,
-          updatedAt: new Date().toISOString()
+          // updatedAt: new Date().toISOString()
         })
         .run();
 
