@@ -63,12 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = await wallet.getEthereumProvider();
       const auth = new OrbisEVMAuth(provider);
       
-      // Use the proper connect method that handles session persistence
-      const authResult = await orbisdb.connectUser({ 
-        auth,
-        persist: true // This ensures the session is persisted in localStorage
-      });
-      
+      const authResult = await orbisdb.connectUser({ auth });
       console.log('Orbis auth result:', authResult);
       
       if (!authResult) {
