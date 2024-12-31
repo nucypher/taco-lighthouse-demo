@@ -8,8 +8,8 @@ import { useState } from "react";
 interface Track {
   title: string;
   owner_id: string | null;
-  ipfs_cid: string | null;
-  cover_art_cid: string | null;
+  ipfsCID: string | null;
+  artworkCID: string | null;
 }
 
 export function useTrackPlayback() {
@@ -28,7 +28,7 @@ export function useTrackPlayback() {
   };
 
   const handlePlay = async (track: Track) => {
-    const trackUrl = getTrackUrl(track.ipfs_cid);
+    const trackUrl = getTrackUrl(track.ipfsCID);
     if (!trackUrl) {
       toast({
         title: 'Error',
@@ -104,7 +104,7 @@ export function useTrackPlayback() {
       playTrack({
         title: track.title,
         artist: track.owner_id ? `${track.owner_id.slice(0, 8)}...` : 'Unknown Artist',
-        coverUrl: getArtworkUrl(track.cover_art_cid),
+        coverUrl: getArtworkUrl(track.artworkCID),
         audioUrl: decryptedUrl,
       });
 

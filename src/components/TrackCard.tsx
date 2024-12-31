@@ -12,7 +12,7 @@ interface TrackCardProps {
   trackId: string;
   ipfsCid: string | null;
   owner_id: string | null;
-  cover_art_cid: string | null;
+  artworkCID: string | null;
 }
 
 export const TrackCard = ({ 
@@ -21,7 +21,7 @@ export const TrackCard = ({
   coverUrl, 
   ipfsCid,
   owner_id,
-  cover_art_cid,
+  artworkCID,
 }: TrackCardProps) => {
   const { currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
   const { handlePlay, isDecrypting } = useTrackPlayback();
@@ -48,8 +48,8 @@ export const TrackCard = ({
     await handlePlay({
       title,
       owner_id,
-      ipfs_cid: ipfsCid,
-      cover_art_cid,
+      ipfsCID: ipfsCid,
+      artworkCID,
     });
   };
 

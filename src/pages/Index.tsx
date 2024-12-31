@@ -41,8 +41,8 @@ const Index = () => {
       handlePlay({
         title: featuredTrack.title,
         owner_id: featuredTrack.owner_id,
-        ipfs_cid: featuredTrack.ipfsCID,
-        cover_art_cid: featuredTrack.artworkCID
+        ipfsCID: featuredTrack.ipfsCID,
+        artworkCID: featuredTrack.artworkCID
       });
     }
   };
@@ -111,7 +111,7 @@ const Index = () => {
                 coverUrl={getArtworkUrl(track.artworkCID)}
                 ipfsCid={track.ipfsCID}
                 owner_id={track.owner_id}
-                cover_art_cid={track.artworkCID}
+                artworkCID={track.artworkCID}
               />
             ))
           ) : (
