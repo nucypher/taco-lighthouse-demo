@@ -108,10 +108,6 @@ export function useTrackPlayback() {
         audioUrl: decryptedUrl,
       });
 
-      toast({
-        title: 'Playing Track',
-        description: `Now playing ${track.title}`,
-      });
     } catch (error) {
       console.error('❌ Decryption error:', error);
       console.error('Error details:', {
