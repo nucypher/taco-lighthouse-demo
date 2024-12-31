@@ -24,21 +24,31 @@ export class UserClient extends BaseOrbisClient {
 
   async getOrbisUser(address: string): Promise<OrbisUser | null> {
     try {
-      const walletDid = `did:pkh:eip155:1:${address}`;
+      // Ensure the address is properly formatted for Orbis
+      const normalizedAddress = address.toLowerCase();
+      const walletDid = `did:pkh:eip155:1:${normalizedAddress}`;
+      
+      console.log('🔍 Fetching Orbis user for DID:', walletDid);
+      
       const { rows } = await this.query(ORBIS_CONFIG.MODELS.USERS)
         .where({ controller: walletDid })
         .run();
 
+      console.log('📝 Orbis user query result:', rows);
+      
       return rows?.length ? this.convertToOrbisUser(rows[0]) : null;
     } catch (error) {
       console.error('❌ Error fetching Orbis user:', error);
-      throw error;
+      return null;
     }
   }
 
   async createOrbisUser(address: string): Promise<OrbisUser> {
     try {
-      const result = await this.insert(ORBIS_CONFIG.MODELS.USERS, { name: address });
+      const result = await this.insert(ORBIS_CONFIG.MODELS.USERS, { 
+        name: address,
+        controller: `did:pkh:eip155:1:${address.toLowerCase()}`
+      });
       return this.convertToOrbisUser(result);
     } catch (error) {
       console.error('❌ Error creating Orbis user:', error);

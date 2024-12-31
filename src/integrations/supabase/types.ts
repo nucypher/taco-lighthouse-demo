@@ -12,33 +12,33 @@ export type Database = {
       tracks: {
         Row: {
           cover_art_cid: string | null
-          createdAt: string | null
+          created_at: string | null
           description: string | null
           id: string
           ipfs_cid: string | null
           owner_id: string
           title: string
-          updatedAt: string | null
+          updated_at: string | null
         }
         Insert: {
           cover_art_cid?: string | null
-          createdAt?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           ipfs_cid?: string | null
           owner_id?: string
           title: string
-          updatedAt?: string | null
+          updated_at?: string | null
         }
         Update: {
           cover_art_cid?: string | null
-          createdAt?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           ipfs_cid?: string | null
           owner_id?: string
           title?: string
-          updatedAt?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
