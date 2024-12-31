@@ -25,8 +25,7 @@ export class UserClient extends BaseOrbisClient {
   async getOrbisUser(address: string): Promise<OrbisUser | null> {
     try {
       // Ensure the address is properly formatted for Orbis
-      const normalizedAddress = address.toLowerCase();
-      const walletDid = `did:pkh:eip155:1:${normalizedAddress}`;
+      const walletDid = `did:pkh:eip155:1:${address}`;
       
       console.log('🔍 Fetching Orbis user for DID:', walletDid);
       
