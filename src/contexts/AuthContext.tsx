@@ -101,20 +101,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       currentOrbisUser: orbisUser
     });
 
-    if (!privyReady) return;
-
-    if (!privyAuthenticated) {
+    // Reset loading state if Privy is not ready or not authenticated
+    if (!privyReady || !privyAuthenticated) {
       setIsLoading(false);
       setOrbisUser(null);
       setIsInitializingOrbis(false);
       return;
     }
 
-    // Check for existing Orbis session first
+    // Check for existing Orbis session
     orbisdb.isUserConnected().then(isConnected => {
       console.log('Checking existing Orbis session:', isConnected);
       if (!isConnected && !orbisUser && !isInitializingOrbis) {
         initializeOrbisAuth();
+      } else {
+        // Make sure to set loading to false if we're already connected
+        setIsLoading(false);
       }
     });
 
@@ -122,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       console.log('Starting logout process...');
       await orbisdb.disconnectUser();
       await privyLogout();
@@ -131,13 +134,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error during logout:', error);
       toast.error("Error during logout");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: Boolean(privyAuthenticated),
+        isAuthenticated: Boolean(privyAuthenticated && privyReady),
         isLoading,
         logout,
         orbisUser,
