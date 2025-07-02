@@ -1,3 +1,105 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Common Development Commands
+
+```bash
+# Development server with hot reload
+npm run dev
+
+# Production build
+npm run build
+
+# Development build (different Vite mode)
+npm run build:dev
+
+# Lint code
+npm run lint
+
+# Preview production build
+npm run preview
+```
+
+## Project Architecture
+
+This is a React/TypeScript application built with Vite that implements a decentralized music platform with token-gated access control using TACo encryption.
+
+### Core Technologies
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **State Management**: React Context + TanStack React Query
+- **Authentication**: Privy (wallet/email/Farcaster) + Supabase
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: IPFS via Lighthouse
+- **Encryption**: NuCypher TACo for token-gated content access
+
+### Key Architectural Patterns
+
+**Dual Authentication System**:
+- `AuthContext` manages Privy authentication and Supabase user state
+- `WalletContext` handles wallet connections and network switching
+- Progressive initialization ensures wallet is ready before user operations
+
+**Encrypted Content Distribution**:
+- All audio files encrypted with TACo before IPFS upload
+- Decryption requires wallet signatures and token ownership verification
+- Uses ERC20/ERC721 conditions for access control
+
+**Network Strategy**:
+- Authentication uses Ethereum mainnet
+- TACo operations use Polygon Amoy testnet
+- Separate providers handle each network context
+
+**Data Model**:
+- Users identified by wallet address (not traditional IDs)
+- Minimal schema: `users` and `tracks` tables
+- Tracks store IPFS CIDs and metadata only
+
+### Key Components Structure
+
+```
+src/
+├── contexts/           # Global state (Auth, Wallet)
+├── integrations/       # External services (Supabase, TACo)
+├── components/
+│   ├── audio/         # Audio playback components
+│   ├── auth/          # Authentication UI
+│   ├── taco/          # TACo condition setup
+│   ├── upload/        # File upload handling
+│   └── ui/            # shadcn/ui components
+├── hooks/             # Custom hooks for business logic
+├── utils/             # Utility functions (encryption, formatting)
+└── types/             # TypeScript type definitions
+```
+
+### Important Integration Notes
+
+**TACo Initialization**: 
+- Must complete before any encryption/decryption operations
+- App continues gracefully if TACo init fails
+- Network configuration is hardcoded for Polygon Amoy testnet
+
+**Supabase Integration**:
+- Auto-generated types from database schema
+- Uses Row Level Security for user data protection
+- Client configured with anon key and service role
+
+**Audio Playback Flow**:
+1. Fetch encrypted content from IPFS
+2. Attempt TACo decryption with wallet signatures
+3. Create blob URL from decrypted data
+4. Load into HTML5 audio element
+
+### Development Notes
+
+- Configuration values (Privy App ID, Supabase URL) are hardcoded in source
+- No test suite currently configured
+- Uses address-based user identification throughout
+- Graceful error handling for Web3 operations is critical
+
+## Product Overview - SoundProof
+
 # SoundProof – Product‑Only Overview
 
 Welcome to **SoundProof**—a music‑discovery experience that pays 90 % of every sale directly to emerging artists and lets listeners permanently own the songs they love.
@@ -86,73 +188,3 @@ A public launch is *ready* when:
 ### 🔑  Takeaway
 
 SoundProof wins if it *feels like magic discovery* for listeners *and* delivers **transparent, immediate income** to small creators—no wallets, no headaches, just music.
-
----
-
-## Project info
-
-**URL**: https://lovable.dev/projects/ec3d00e5-9c6c-45ae-a810-a7ab1170c9d6
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/ec3d00e5-9c6c-45ae-a810-a7ab1170c9d6) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ec3d00e5-9c6c-45ae-a810-a7ab1170c9d6) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
